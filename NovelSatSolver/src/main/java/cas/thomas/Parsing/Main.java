@@ -6,6 +6,7 @@ import cas.thomas.Exceptions.EmptyClauseException;
 import cas.thomas.Exceptions.IncorrectFirstLineException;
 import cas.thomas.Formulas.Formula;
 import cas.thomas.SolverAlgorithms.DPLL;
+import cas.thomas.SolverAlgorithms.DPLLWithUnitresolution;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -16,16 +17,18 @@ public class Main {
 
     public static void main(String... args) {
 
+        long startTime = System.nanoTime();
+
         if (args.length != 1) {
             System.err.println("You have to specify exactly one input file!");
         }
 
-        for (int a = 1; a <= 100; a++) {
+        for (int a = 1; a <= 1000; a++) {
             String[] input = null;
 
             try {
                 input =
-                        Files.readAllLines(Paths.get("InputFiles", "flat30-60.tar", "flat30-" + a + ".cnf"),
+                        Files.readAllLines(Paths.get("InputFiles", "uf50-0" + a + ".cnf"),
                                 StandardCharsets.UTF_8).toArray(new String[0]);
             } catch (IOException e) {
                 System.err.println("Something went wrong while reading the specified input file!");
@@ -33,7 +36,7 @@ public class Main {
             }
 
             ClauseParser clauseParser = new ClauseParser();
-            Formula formula = new Formula();
+            Formula formula = null;
 
             try {
                 formula = clauseParser.parseInput(input);
@@ -48,10 +51,14 @@ public class Main {
                 variableOrdering[i] = i + 1;
             }
 
-            DPLL dpllSolver = new DPLL(variableOrdering);
-
+            DPLLWithUnitresolution dpllSolver = new DPLLWithUnitresolution(variableOrdering);
+            System.out.print(a + ": ");
             System.out.println(dpllSolver.solve(formula));
         }
+
+        long endTime = System.nanoTime();
+
+        System.out.println(endTime - startTime);
 
 
     }

@@ -1,12 +1,12 @@
 package cas.thomas.Formulas;
 
-public class EmptyClause extends Clause {
+public class SatisfiedClause extends Clause {
 
-    public EmptyClause(int numberOfVariables, int[] variables) {
+    public SatisfiedClause(int numberOfVariables, int[] variables) {
         super(numberOfVariables);
     }
 
-    public EmptyClause(int numberOfVariables) {
+    public SatisfiedClause(int numberOfVariables) {
         super(numberOfVariables);
     }
 
@@ -17,13 +17,12 @@ public class EmptyClause extends Clause {
 
     @Override
     public boolean isEmpty() {
-        return true;
+        return false;
     }
 
     @Override
     public boolean isSatisfied() {
-        return false;
+        return true;
     }
-
 
 }

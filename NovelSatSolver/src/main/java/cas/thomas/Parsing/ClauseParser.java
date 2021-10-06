@@ -7,7 +7,10 @@ import cas.thomas.Exceptions.EmptyClauseException;
 import cas.thomas.Exceptions.IncorrectFirstLineException;
 import cas.thomas.Formulas.Formula;
 import cas.thomas.Formulas.Variable;
+
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class ClauseParser {
 
@@ -39,6 +42,7 @@ public class ClauseParser {
 
         Clause[] clauses = new Clause[numberOfClauses];
         Variable[] variables = new Variable[numberOfVariables];
+        List<Integer> listOfUnitVariables = new ArrayList<>();
 
         int clausecounter = 0;
         for (int i = indexOfFirstLine + 1; i < indexOfFirstLine + numberOfClauses + 1; i++) {
@@ -49,7 +53,7 @@ public class ClauseParser {
                 continue;
             }
 
-            Clause nextClause = parseClause(lines[i], numberOfVariables, clausecounter);
+            Clause nextClause = parseClause(lines[i], numberOfVariables, clausecounter, listOfUnitVariables);
 
             if (nextClause != null) {
                 clauses[clausecounter] = nextClause;
@@ -64,7 +68,7 @@ public class ClauseParser {
         }
 
 
-        return new Formula(clauses, numberOfClauses, numberOfVariables);
+        return new Formula(clauses, numberOfClauses, numberOfVariables, listOfUnitVariables);
 
 
     }
@@ -86,13 +90,18 @@ public class ClauseParser {
         throw new IncorrectFirstLineException("Your input does not contain a defining first line!");
     }
 
-    private Clause parseClause(String line, int numberOfVariables, int formulaPosition) throws ClauseNotTerminatedByZeroException,
+    private Clause parseClause(String line, int numberOfVariables, int formulaPosition,
+                               List<Integer> listOfUnitVariables) throws ClauseNotTerminatedByZeroException,
             EmptyClauseException, ClauseContainsZeroException {
         try {
 
             int[] variables = checkAndParseInputVariables(line, numberOfVariables);
 
-            return new Clause(formulaPosition, numberOfVariables, variables);
+            if (variables.length == 1) {
+                listOfUnitVariables.add(variables[0]);
+            }
+
+            return new Clause(numberOfVariables, variables);
 
         } catch(NumberFormatException e) {
             throw new NumberFormatException("Bad clause variables!");
@@ -112,7 +121,7 @@ public class ClauseParser {
                 Arrays.stream(Arrays.copyOf(lineParts, lineParts.length - 1)).mapToInt(Integer::parseInt).toArray();
 
 
-        if (!(variables.length > 1)) {
+        if (!(variables.length > 0)) {
             throw new EmptyClauseException("One of the clauses is empty!");
         }
 

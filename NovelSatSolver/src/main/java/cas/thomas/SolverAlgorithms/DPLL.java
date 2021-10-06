@@ -3,9 +3,7 @@ package cas.thomas.SolverAlgorithms;
 import cas.thomas.Formulas.Clause;
 import cas.thomas.Formulas.Formula;
 
-import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 public class DPLL implements ISolverAlgorithm {

@@ -4,10 +4,10 @@ import java.util.Arrays;
 
 public class Clause {
 
-    private int[] variables;
-    private int formulaPosition;
+    protected int[] variables;
+    private int nonZeroCounter;
 
-    public Clause(int formulaPosition, int numberOfVariables, int[] variables) {
+    public Clause(int numberOfVariables, int[] variables) {
 
         this.variables = new int[numberOfVariables + 1];
 
@@ -21,12 +21,16 @@ public class Clause {
             }
         }
 
-        this.formulaPosition = formulaPosition;
+        this.nonZeroCounter = variables.length;
     }
 
-    public Clause(int formulaPosition, int numberOfVariables) {
+    public Clause(int numberOfVariables) {
         this.variables = new int[numberOfVariables + 1];
-        this.formulaPosition = formulaPosition;
+    }
+
+    public Clause(int numberOfVariables, int nonZeroCounter) {
+        this.variables = new int[numberOfVariables + 1];
+        this.nonZeroCounter = nonZeroCounter;
     }
 
 
@@ -62,22 +66,32 @@ public class Clause {
         int compareValue = compareValues(this.variables[absoluteVariable], variable);
 
         if (compareValue == -1) {
-            Clause clause = new Clause(this.formulaPosition, this.variables.length);
+
+            if (this.nonZeroCounter == 2) {
+                UnitClause clause = new UnitClause(this.variables.length, this.nonZeroCounter - 1);
+                clause.setVariables(this.variables);
+                clause.variables[absoluteVariable] = 0;
+
+
+                return clause;
+            }
+
+            if (this.nonZeroCounter == 1) {
+                return new EmptyClause(this.variables.length);
+            }
+
+            Clause clause = new Clause(this.variables.length, this.nonZeroCounter - 1);
 
             clause.setVariables(this.variables);
 
             clause.variables[absoluteVariable] = 0;
 
-            if (clause.isEmpty()) {
-                return new EmptyClause(this.formulaPosition, this.variables.length);
-            }
-
             return clause;
         } else if (compareValue == 1) {
-            return new FulfilledClause(this.formulaPosition, this.variables.length);
+            return new SatisfiedClause(this.variables.length);
         }
 
-        Clause copiedClause = new Clause(this.formulaPosition, this.variables.length);
+        Clause copiedClause = new Clause(this.variables.length, this.nonZeroCounter);
         copiedClause.setVariables(this.variables);
 
         return copiedClause;
@@ -127,18 +141,31 @@ public class Clause {
     }
 
     public boolean isEmpty() {
-        for (int i = 0; i < variables.length; i++) {
-            if (variables[i] != 0) {
-                return false;
-            }
-        }
-
-        return true;
+        return nonZeroCounter == 0;
     }
 
-    public boolean isFullfilled() {
+    public boolean isSatisfied() {
         return false;
     }
 
+    public int[] getVariables() {
+        return this.variables;
+    }
+
+    public boolean isUnitClause() {
+        return nonZeroCounter == 1;
+    }
+
+    public int findUnitClauseVariable() {
+        for (int i = 1; i < variables.length; i++) {
+            if (variables[i] < 0) {
+                return -i;
+            } else if (variables[i] > 0) {
+                return  i;
+            }
+        }
+
+        return 0;
+    }
 
 }
