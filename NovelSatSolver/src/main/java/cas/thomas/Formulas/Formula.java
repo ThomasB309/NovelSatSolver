@@ -7,19 +7,18 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.TreeSet;
 
-public class Formula {
+public abstract class Formula {
 
-    private Clause[] clauses;
-    private boolean containsEmptyClause;
-    private boolean isEmptyClause;
+    protected Constraint[] constraints;
+    protected boolean containsEmptyClause;
+    protected boolean isEmptyClause;
     private int numberOfClauses;
     private int numberOfVariables;
     private List<Integer> listOfUnitVariables;
 
-    public Formula(Clause[] clauses, int numberOfClauses, int numberOfVariables, List<Integer> listOfUnitVariables) {
-        this.clauses = clauses;
+    public Formula(Constraint[] constraints, int numberOfClauses, int numberOfVariables, List<Integer> listOfUnitVariables) {
+        this.constraints = constraints;
         this.containsEmptyClause = false;
         this.isEmptyClause = false;
         this.numberOfClauses = numberOfClauses;
@@ -36,11 +35,11 @@ public class Formula {
     }
 
     public Formula copy(){
-        Formula formula = new Formula(this);
-        Clause[] clauses = Arrays.copyOf(this.clauses, this.clauses.length);
+        Formula formula = copyClause(this);
+        Constraint[] constraints = Arrays.copyOf(this.constraints, this.constraints.length);
         List<Integer> setOfUnitVariables = new ArrayList<>(this.listOfUnitVariables);
 
-        formula.clauses = clauses;
+        formula.constraints = constraints;
         formula.listOfUnitVariables = setOfUnitVariables;
         formula.numberOfVariables = this.numberOfVariables;
         formula.numberOfClauses = this.numberOfClauses;
@@ -66,39 +65,39 @@ public class Formula {
 
 
     public Formula condition(int variable) {
-        Clause[] conditionedClauses = new Clause[this.clauses.length];
-        Formula conditionedFormula = new Formula(this);
+        Constraint[] conditionedConstraints = new Constraint[this.constraints.length];
+        Formula conditionedFormula = copyClause(this);
 
         conditionedFormula.setListOfUnitVariables(this.listOfUnitVariables);
 
         int fullfilledCounter = 0;
 
-        for (int i = 0; i < this.clauses.length; i++) {
+        for (int i = 0; i < this.constraints.length; i++) {
 
-            Clause clause = clauses[i].condition(variable);
+            Constraint constraint = constraints[i].condition(variable);
 
-            if (clause.isUnitClause()) {
-                conditionedFormula.listOfUnitVariables.add(clause.findUnitClauseVariable());
+            if (constraint.needsUnitResolution()) {
+                conditionedFormula.listOfUnitVariables.addAll(constraint.findUnitClauseVariable());
             }
 
-            conditionedClauses[i] = clause;
+            conditionedConstraints[i] = constraint;
 
-            if (clause.isEmpty()) {
+            if (constraint.isEmpty()) {
                 conditionedFormula.setContainsEmptyClause();
             }
 
-            if (clause.isSatisfied()) {
+            if (constraint.isSatisfied()) {
                 fullfilledCounter++;
             }
 
         }
 
-        if (fullfilledCounter == this.clauses.length) {
+        if (fullfilledCounter == this.constraints.length) {
             conditionedFormula.setIsEmptyClause();
         }
 
 
-        conditionedFormula.setClauses(conditionedClauses);
+        conditionedFormula.setClauses(conditionedConstraints);
 
         return conditionedFormula;
     }
@@ -147,8 +146,8 @@ public class Formula {
         this.isEmptyClause = true;
     }
 
-    public void setClauses(Clause[] clauses) {
-        this.clauses = clauses;
+    public void setClauses(Constraint[] constraints) {
+        this.constraints = constraints;
     }
 
     public int getNumberOfClauses() {
@@ -159,21 +158,11 @@ public class Formula {
         return numberOfVariables;
     }
 
-    private void changeListOfUnitClauseVariables(Clause clause, Formula formula) {
-        return;
-    }
-
-    private Clause changeListOfUnitClauseVariables(UnitClause clause, Formula formula) {
-        formula.listOfUnitVariables.add(clause.getUnitClauseVariable());
-
-        return clause;
-    }
-
     public int getFirstLiteral() {
-        for (int i = 0; i < clauses.length; i++) {
-            for (int a = 0; a < clauses[i].variables.length; a++) {
-                if (clauses[i].variables[a] != 0) {
-                    return a * clauses[i].variables[a];
+        for (int i = 0; i < constraints.length; i++) {
+            for (int a = 0; a < constraints[i].variables.length; a++) {
+                if (constraints[i].variables[a] != 0) {
+                    return a * constraints[i].variables[a];
                 }
             }
         }
@@ -181,7 +170,23 @@ public class Formula {
         return 0;
     }
 
+    public String toString() {
+        String output = "";
+
+        for (int i = 0; i < constraints.length - 1; i++) {
+            output += "(" + constraints[i].toString() + ")" + " Ʌ ";
+        }
+
+        output += "(" + constraints[constraints.length - 1].toString() + ")";
+
+        return output;
+    }
+
     private void setListOfUnitVariables(List<Integer> listOfUnitVariables) {
         this.listOfUnitVariables = new ArrayList<>(listOfUnitVariables.size());
     }
+
+    protected abstract void checkIfIsEmptyClause(int fulfilledCounter);
+
+    protected abstract Formula copyClause(Formula formula);
 }

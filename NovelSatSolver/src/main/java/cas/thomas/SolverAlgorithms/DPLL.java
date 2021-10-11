@@ -1,6 +1,5 @@
 package cas.thomas.SolverAlgorithms;
 
-import cas.thomas.Formulas.Clause;
 import cas.thomas.Formulas.Formula;
 
 import java.util.HashSet;

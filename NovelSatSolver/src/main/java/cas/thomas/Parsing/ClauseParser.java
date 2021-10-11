@@ -1,10 +1,13 @@
 package cas.thomas.Parsing;
 
-import cas.thomas.Formulas.Clause;
+import cas.thomas.Formulas.AMOConstraint;
+import cas.thomas.Formulas.ConjunctiveFormula;
+import cas.thomas.Formulas.Constraint;
 import cas.thomas.Exceptions.ClauseContainsZeroException;
 import cas.thomas.Exceptions.ClauseNotTerminatedByZeroException;
 import cas.thomas.Exceptions.EmptyClauseException;
 import cas.thomas.Exceptions.IncorrectFirstLineException;
+import cas.thomas.Formulas.DisjunctiveConstraint;
 import cas.thomas.Formulas.Formula;
 import cas.thomas.Formulas.Variable;
 
@@ -40,7 +43,7 @@ public class ClauseParser {
                     " the file.");
         }
 
-        Clause[] clauses = new Clause[numberOfClauses];
+        Constraint[] constraints = new Constraint[numberOfClauses];
         Variable[] variables = new Variable[numberOfVariables];
         List<Integer> listOfUnitVariables = new ArrayList<>();
 
@@ -53,22 +56,22 @@ public class ClauseParser {
                 continue;
             }
 
-            Clause nextClause = parseClause(lines[i], numberOfVariables, clausecounter, listOfUnitVariables);
+            Constraint nextConstraint = parseClause(lines[i], numberOfVariables, clausecounter, listOfUnitVariables);
 
-            if (nextClause != null) {
-                clauses[clausecounter] = nextClause;
+            if (nextConstraint != null) {
+                constraints[clausecounter] = nextConstraint;
             }
 
             clausecounter++;
         }
 
-        if (clauses.length != numberOfClauses) {
+        if (constraints.length != numberOfClauses) {
             throw new IncorrectFirstLineException("The given amount of clauses doesn't match the specified amount of " +
                     "clauses!");
         }
 
 
-        return new Formula(clauses, numberOfClauses, numberOfVariables, listOfUnitVariables);
+        return new ConjunctiveFormula(constraints, numberOfClauses, numberOfVariables, listOfUnitVariables);
 
 
     }
@@ -90,35 +93,49 @@ public class ClauseParser {
         throw new IncorrectFirstLineException("Your input does not contain a defining first line!");
     }
 
-    private Clause parseClause(String line, int numberOfVariables, int formulaPosition,
-                               List<Integer> listOfUnitVariables) throws ClauseNotTerminatedByZeroException,
+    private Constraint parseClause(String line, int numberOfVariables, int formulaPosition,
+                                   List<Integer> listOfUnitVariables) throws ClauseNotTerminatedByZeroException,
             EmptyClauseException, ClauseContainsZeroException {
+
         try {
 
-            int[] variables = checkAndParseInputVariables(line, numberOfVariables);
+            String[] input = Arrays.stream(line.split("\\s+")).filter(part -> !part.equals("")).toArray(String[]::new);
+
+            String identifier = input[0];
+
+            if (identifier.equals("AMO")) {
+                return parseAMOConstraint(input, numberOfVariables);
+            }
+
+            int[] variables = checkAndParseInputVariables(input, numberOfVariables, false);
 
             if (variables.length == 1) {
                 listOfUnitVariables.add(variables[0]);
             }
 
-            return new Clause(numberOfVariables, variables);
+            return new DisjunctiveConstraint(numberOfVariables, variables);
 
         } catch(NumberFormatException e) {
             throw new NumberFormatException("Bad clause variables!");
         }
     }
 
-    private int[] checkAndParseInputVariables(String line, int numberOfVariables) throws
-    ClauseNotTerminatedByZeroException, EmptyClauseException, ClauseContainsZeroException {
+    private AMOConstraint parseAMOConstraint(String[] lineParts, int numberOfVariables) throws EmptyClauseException, ClauseContainsZeroException, ClauseNotTerminatedByZeroException {
+        int[] variables = checkAndParseInputVariables(lineParts, numberOfVariables, true);
+        return new AMOConstraint(numberOfVariables, variables);
+    }
 
-        String[] lineParts = Arrays.stream(line.split("\\s+")).filter(part -> !part.equals("")).toArray(String[]::new);
+    private int[] checkAndParseInputVariables(String[] lineParts, int numberOfVariables, boolean hasIdentifier) throws
+    ClauseNotTerminatedByZeroException, EmptyClauseException, ClauseContainsZeroException {
 
         if (!lineParts[lineParts.length - 1].equals("0")) {
             throw new ClauseNotTerminatedByZeroException("One of the clauses was not terminated by a zero!");
         }
 
+        int startRange = hasIdentifier ? 1 : 0;
+
         int[] variables =
-                Arrays.stream(Arrays.copyOf(lineParts, lineParts.length - 1)).mapToInt(Integer::parseInt).toArray();
+                Arrays.stream(Arrays.copyOfRange(lineParts, startRange,lineParts.length - 1)).mapToInt(Integer::parseInt).toArray();
 
 
         if (!(variables.length > 0)) {
