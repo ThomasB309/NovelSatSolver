@@ -3,7 +3,6 @@ package cas.thomas.SolverAlgorithms;
 import cas.thomas.Formulas.Formula;
 import cas.thomas.utils.Pair;
 
-import java.util.HashSet;
 import java.util.Set;
 
 public class DPLLWithUnitresolution implements ISolverAlgorithm {

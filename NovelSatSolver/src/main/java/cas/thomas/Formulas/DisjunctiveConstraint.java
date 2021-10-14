@@ -19,11 +19,20 @@ public class DisjunctiveConstraint extends Constraint {
 
     @Override
     public Constraint condition(int variable) {
-        int absoluteVariable = Math.abs(variable);
+        Integer index = variableMapping.get(Math.abs(variable));
 
-        assert (absoluteVariable < variables.length);
+        if (index == null) {
+            DisjunctiveConstraint copiedClause = new DisjunctiveConstraint(this.variables.length, this.nonZeroCounter);
+            copiedClause.setVariables(this.variables);
+            copiedClause.setMap(this.variableMapping);
 
-        int compareValue = compareValues(this.variables[absoluteVariable], variable);
+            return copiedClause;
+        }
+
+
+        assert (index < variables.length);
+
+        int compareValue = compareValues(this.variables[index], variable);
 
         if (compareValue == -1) {
 
@@ -35,7 +44,9 @@ public class DisjunctiveConstraint extends Constraint {
 
             clause.setVariables(this.variables);
 
-            clause.variables[absoluteVariable] = 0;
+            clause.setMap(this.variableMapping);
+
+            clause.variables[index] = 0;
 
             return clause;
         } else if (compareValue == 1) {
@@ -44,6 +55,8 @@ public class DisjunctiveConstraint extends Constraint {
 
         DisjunctiveConstraint copiedClause = new DisjunctiveConstraint(this.variables.length, this.nonZeroCounter);
         copiedClause.setVariables(this.variables);
+
+        copiedClause.setMap(this.variableMapping);
 
         return copiedClause;
     }
@@ -59,15 +72,15 @@ public class DisjunctiveConstraint extends Constraint {
         for (int i = 0; i < variables.length; i++) {
             if (output.equals("")) {
                 if (variables[i] < 0) {
-                    output += "-x" + i;
+                    output += "-x" + variableMapping.get(-i);
                 } else if (variables[i] > 0) {
-                    output += "x" + i;
+                    output += "x" + variableMapping.get(-i);
                 }
             } else {
                 if (variables[i] < 0) {
-                    output += " v -x" + i;
+                    output += " v -x" + variableMapping.get(-i);
                 } else if (variables[i] > 0) {
-                    output += " v x" + i;
+                    output += " v x" + variableMapping.get(-i);
                 }
             }
         }
@@ -94,11 +107,11 @@ public class DisjunctiveConstraint extends Constraint {
             return unitVariables;
         }
 
-        for (int i = 1; i < variables.length; i++) {
+        for (int i = 0; i < variables.length; i++) {
             if (variables[i] < 0) {
-                unitVariables.add(-i);
+                unitVariables.add(-variableMapping.get(-i));
             } else if (variables[i] > 0) {
-                unitVariables.add(i);
+                unitVariables.add(variableMapping.get(-i));
             }
         }
 

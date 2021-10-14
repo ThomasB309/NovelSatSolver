@@ -2,24 +2,34 @@ package cas.thomas.Formulas;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public abstract class Constraint {
 
     protected int[] variables;
     protected int nonZeroCounter;
+    protected Map<Integer, Integer> variableMapping;
 
     public Constraint(int numberOfVariables, int[] variables) {
 
-        this.variables = new int[numberOfVariables + 1];
+        this.variableMapping = new HashMap<>(variables.length, 1);
+
+        this.variables = new int[variables.length];
 
         for (int i = 0; i < variables.length; i++) {
+
+            variableMapping.put(Math.abs(variables[i]), i);
+            variableMapping.put(-i, Math.abs(variables[i]));
+
+            int mappedVariable = variableMapping.get(Math.abs(variables[i]));
             int variable = variables[i];
 
             if (variable < 0) {
-                this.variables[Math.abs(variable)] = -1;
+                this.variables[mappedVariable] = -1;
             } else {
-                this.variables[variable] = 1;
+                this.variables[mappedVariable] = 1;
             }
         }
 
@@ -41,6 +51,10 @@ public abstract class Constraint {
 
         this.variables = Arrays.copyOf(variableArray, variableArray.length);
 
+    }
+
+    public void setMap(Map<Integer, Integer> variableMapping) {
+        this.variableMapping = new HashMap<>(variableMapping);
     }
 
     public boolean solve(int[] variables) {
@@ -85,6 +99,10 @@ public abstract class Constraint {
 
     public int[] getVariables() {
         return this.variables;
+    }
+
+    public int getVariableFromClauseArrayIndex(int index) {
+        return variableMapping.get(-index);
     }
 
     public abstract boolean needsUnitResolution();

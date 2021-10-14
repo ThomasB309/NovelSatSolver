@@ -107,8 +107,8 @@ public abstract class Formula {
         Set<Integer> unitVariables = new HashSet<>(listOfUnitVariables);
 
         do {
-            newFormula = newFormula.unitVariableConditioning();
             unitVariables.addAll(newFormula.listOfUnitVariables);
+            newFormula = newFormula.unitVariableConditioning();
         } while (newFormula.listOfUnitVariables.size() > 0);
 
         return new Pair<>(unitVariables, newFormula);
@@ -162,7 +162,7 @@ public abstract class Formula {
         for (int i = 0; i < constraints.length; i++) {
             for (int a = 0; a < constraints[i].variables.length; a++) {
                 if (constraints[i].variables[a] != 0) {
-                    return a * constraints[i].variables[a];
+                    return constraints[i].getVariableFromClauseArrayIndex(a) * constraints[i].variables[a];
                 }
             }
         }

@@ -148,11 +148,6 @@ public class ClauseParser {
             }
         }
 
-        int max = Arrays.stream(variables).max().getAsInt();
-
-        if (max > numberOfVariables) {
-            throw new IllegalArgumentException("The number of variables doesn't match the variables");
-        }
 
         return variables;
 

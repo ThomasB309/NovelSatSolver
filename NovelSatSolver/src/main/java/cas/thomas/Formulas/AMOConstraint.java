@@ -37,21 +37,41 @@ public class AMOConstraint extends Constraint {
 
         clause.hasOneTrueVariable = hasOneTrueVariable;
 
+        clause.setMap(this.variableMapping);
+
+        return clause;
+    }
+
+    private AMOConstraint copyAMOConstraint() {
+        AMOConstraint clause = new AMOConstraint(this.variables.length, this.nonZeroCounter);
+
+        clause.hasBeenPropagated = this.hasBeenPropagated;
+
+        clause.setVariables(this.variables);
+
+        clause.hasOneTrueVariable = hasOneTrueVariable;
+
+        clause.setMap(this.variableMapping);
+
         return clause;
     }
 
     @Override
     public Constraint condition(int variable) {
-        int absoluteVariable = Math.abs(variable);
+        Integer index = variableMapping.get(Math.abs(variable));
 
-        assert (absoluteVariable < variables.length);
+        if (index == null) {
+            return copyAMOConstraint();
+        }
 
-        int compareValue = compareValues(this.variables[absoluteVariable], variable);
+        assert (index < variables.length);
+
+        int compareValue = compareValues(this.variables[index], variable);
 
         if (compareValue == -1) {
 
             if (this.nonZeroCounter > 1) {
-                AMOConstraint clause = reducedAMOconstraint(absoluteVariable, this.hasOneTrueVariable);
+                AMOConstraint clause = reducedAMOconstraint(index, this.hasOneTrueVariable);
 
                 return clause;
             } else if (this.hasOneTrueVariable) {
@@ -66,16 +86,14 @@ public class AMOConstraint extends Constraint {
                 return new EmptyConstraint(this.variables.length);
             }
 
-            AMOConstraint clause = reducedAMOconstraint(absoluteVariable, true);
+            AMOConstraint clause = copyAMOConstraint();
+            clause.hasOneTrueVariable = true;
 
             return clause;
 
         }
 
-        Constraint copiedConstraint = new AMOConstraint(this.variables.length, this.nonZeroCounter);
-        copiedConstraint.setVariables(this.variables);
-
-        return copiedConstraint;
+        return copyAMOConstraint();
     }
 
     @Override
@@ -89,15 +107,15 @@ public class AMOConstraint extends Constraint {
         for (int i = 0; i < variables.length; i++) {
             if (output.equals("AMO(")) {
                 if (variables[i] < 0) {
-                    output += "-x" + i;
+                    output += "-x" + variableMapping.get(-i);
                 } else if (variables[i] > 0) {
-                    output += "x" + i;
+                    output += "x" + variableMapping.get(-i);
                 }
             } else {
                 if (variables[i] < 0) {
-                    output += " ; -x" + i;
+                    output += " ; -x" + variableMapping.get(-i);
                 } else if (variables[i] > 0) {
-                    output += " ; x" + i;
+                    output += " ; x" + variableMapping.get(-i);
                 }
             }
         }
@@ -121,9 +139,9 @@ public class AMOConstraint extends Constraint {
 
         for (int i = 1; i < variables.length; i++) {
             if (variables[i] < 0) {
-                unitVariables.add(i);
+                unitVariables.add(variableMapping.get(-i));
             } else if (variables[i] > 0) {
-                unitVariables.add(-i);
+                unitVariables.add(-variableMapping.get(-i));
             }
         }
 
