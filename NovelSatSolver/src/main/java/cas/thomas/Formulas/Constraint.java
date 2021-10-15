@@ -8,105 +8,46 @@ import java.util.Map;
 
 public abstract class Constraint {
 
-    protected int[] variables;
-    protected int nonZeroCounter;
-    protected Map<Integer, Integer> variableMapping;
+    protected int firstWatchedIndex;
+    protected int secondWatchedIndex;
+    protected boolean isUnitConstraint;
+    protected Literal[] literals;
+    protected List<Literal> unitLiterals;
 
-    public Constraint(int numberOfVariables, int[] variables) {
+    public Constraint(Literal[] literals) {
 
-        this.variableMapping = new HashMap<>(variables.length, 1);
+        this.literals = literals;
+        this.isUnitConstraint = false;
+        this.unitLiterals = new ArrayList<>();
 
-        this.variables = new int[variables.length];
+        if (literals.length > 1) {
+            firstWatchedIndex = 0;
+            secondWatchedIndex = 1;
 
-        for (int i = 0; i < variables.length; i++) {
+            literals[firstWatchedIndex].addConstraintToVariableWatchlist(this);
+            literals[secondWatchedIndex].addConstraintToVariableWatchlist(this);
+        } else if (literals.length == 1) {
+            firstWatchedIndex = 0;
+            secondWatchedIndex = 1;
 
-            variableMapping.put(Math.abs(variables[i]), i);
-            variableMapping.put(-i, Math.abs(variables[i]));
-
-            int mappedVariable = variableMapping.get(Math.abs(variables[i]));
-            int variable = variables[i];
-
-            if (variable < 0) {
-                this.variables[mappedVariable] = -1;
-            } else {
-                this.variables[mappedVariable] = 1;
-            }
-        }
-
-        this.nonZeroCounter = variables.length;
-    }
-
-    public Constraint(int numberOfVariables) {
-        this.variables = new int[numberOfVariables + 1];
-    }
-
-    public Constraint(int numberOfVariables, int nonZeroCounter) {
-        this.variables = new int[numberOfVariables + 1];
-        this.nonZeroCounter = nonZeroCounter;
-    }
-
-
-    public void setVariables(int[] variableArray) {
-        assert (variableArray.length == this.variables.length);
-
-        this.variables = Arrays.copyOf(variableArray, variableArray.length);
-
-    }
-
-    public void setMap(Map<Integer, Integer> variableMapping) {
-        this.variableMapping = new HashMap<>(variableMapping);
-    }
-
-    public boolean solve(int[] variables) {
-        assert(this.variables.length == variables.length);
-
-        for (int i = 0; i < variables.length; i++) {
-
-            int variable = variables[i];
-
-            if (compareValues(this.variables[Math.abs(variable)], variable) == 1) {
-                return true;
-            }
-
-        }
-
-        return false;
-    }
-
-    public abstract Constraint condition(int variable);
-
-    protected int compareValues(int a, int b) {
-        if (a == 1 && b > 0) {
-            return 1;
-        } else if (a == 1 && b < 0) {
-            return -1;
-        } else if (a == -1 && b > 0) {
-            return -1;
-        } else if (a == -1 && b < 0) {
-            return 1;
+            literals[firstWatchedIndex].addConstraintToVariableWatchlist(this);
         } else {
-            return 0;
+            firstWatchedIndex = -1;
+            secondWatchedIndex = -1;
         }
     }
 
-    public boolean isEmpty() {
-        return nonZeroCounter == 0;
+
+    public abstract List<Literal> condition(Literal literal);
+
+    public boolean isUnitConstraint() {
+        return this.isUnitConstraint;
     }
 
-    public boolean isSatisfied() {
-        return false;
+    public List<Literal> getUnitLiterals() {
+        return this.unitLiterals;
     }
 
-    public int[] getVariables() {
-        return this.variables;
-    }
-
-    public int getVariableFromClauseArrayIndex(int index) {
-        return variableMapping.get(-index);
-    }
-
-    public abstract boolean needsUnitResolution();
-
-    public abstract List<Integer> findUnitClauseVariable();
+    protected abstract Literal[] getWatchedLiterals();
 
 }

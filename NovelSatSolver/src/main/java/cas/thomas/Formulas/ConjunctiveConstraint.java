@@ -1,63 +1,46 @@
 package cas.thomas.Formulas;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class ConjunctiveConstraint extends Constraint {
 
-    public ConjunctiveConstraint(int numberOfVariables, int[] variables) {
-        super(numberOfVariables, variables);
-    }
-
-    public ConjunctiveConstraint(int numberOfVariables) {
-        super(numberOfVariables);
-    }
-
-    public ConjunctiveConstraint(int numberOfVariables, int nonZeroCounter) {
-        super(numberOfVariables, nonZeroCounter);
+    public ConjunctiveConstraint(Literal[] literals) {
+        super(literals);
     }
 
     @Override
-    public Constraint condition(int variable) {
-        int absoluteVariable = Math.abs(variable);
+    public List<Literal> condition(Literal literal) {
 
-        assert (absoluteVariable < variables.length);
+        if (literals[firstWatchedIndex].equals(literal)) {
+            Literal literalFirst = literals[firstWatchedIndex];
+            literalFirst.setAssignment(Assignment.NEGATIVE);
 
-        int compareValue = compareValues(this.variables[absoluteVariable], variable);
-
-        if (compareValue == -1) {
-
-            return new EmptyConstraint(this.variables.length);
-
-        } else if (compareValue == 1) {
-
-            if (this.nonZeroCounter == 1) {
-                return new SatisfiedConstraint(this.variables.length);
+            for (int i = 0; i < literals.length; i++) {
+                if (i != firstWatchedIndex && i != secondWatchedIndex && literals[i].getAssignment() == Assignment.OPEN) {
+                    firstWatchedIndex = i;
+                    return null;
+                }
             }
 
-            ConjunctiveConstraint clause = new ConjunctiveConstraint(this.variables.length,
-                    this.nonZeroCounter - 1);
+            firstWatchedIndex = -1;
 
-            clause.setVariables(this.variables);
+        } else if (literals[secondWatchedIndex].equals(literal)) {
+            Literal literalFirst = literals[secondWatchedIndex];
+            literalFirst.setAssignment(Assignment.NEGATIVE);
 
-            clause.variables[absoluteVariable] = 0;
+            for (int i = 0; i < literals.length; i++) {
+                if (i != firstWatchedIndex && i != secondWatchedIndex && literals[i].getAssignment() == Assignment.OPEN) {
+                    firstWatchedIndex = i;
+                    return null;
+                }
+            }
 
-            return clause;
+            secondWatchedIndex = -1;
         }
 
-        DisjunctiveConstraint copiedClause = new DisjunctiveConstraint(this.variables.length, this.nonZeroCounter);
-        copiedClause.setVariables(this.variables);
-
-        return copiedClause;
+        return Arrays.asList(firstWatchedIndex == -1 ? literals[secondWatchedIndex] : literals[firstWatchedIndex]);
     }
 
-    @Override
-    public boolean needsUnitResolution() {
-        return false;
-    }
-
-    @Override
-    public List<Integer> findUnitClauseVariable() {
-        return new ArrayList<>();
-    }
 }

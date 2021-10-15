@@ -9,11 +9,16 @@ import cas.thomas.Exceptions.EmptyClauseException;
 import cas.thomas.Exceptions.IncorrectFirstLineException;
 import cas.thomas.Formulas.DisjunctiveConstraint;
 import cas.thomas.Formulas.Formula;
+import cas.thomas.Formulas.Literal;
 import cas.thomas.Formulas.Variable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class ClauseParser {
 
@@ -44,8 +49,8 @@ public class ClauseParser {
         }
 
         Constraint[] constraints = new Constraint[numberOfClauses];
-        Variable[] variables = new Variable[numberOfVariables];
-        List<Integer> listOfUnitVariables = new ArrayList<>();
+        List<Literal> listOfUnitVariables = new ArrayList<>();
+        Map<Integer, Variable> variableMap = new HashMap<>();
 
         int clausecounter = 0;
         for (int i = indexOfFirstLine + 1; i < indexOfFirstLine + numberOfClauses + 1; i++) {
@@ -56,7 +61,7 @@ public class ClauseParser {
                 continue;
             }
 
-            Constraint nextConstraint = parseClause(lines[i], numberOfVariables, clausecounter, listOfUnitVariables);
+            Constraint nextConstraint = parseClause(lines[i], listOfUnitVariables, variableMap);
 
             if (nextConstraint != null) {
                 constraints[clausecounter] = nextConstraint;
@@ -71,7 +76,7 @@ public class ClauseParser {
         }
 
 
-        return new ConjunctiveFormula(constraints, numberOfClauses, numberOfVariables, listOfUnitVariables);
+        return new ConjunctiveFormula(variableMap.values().toArray(Variable[]::new), listOfUnitVariables, constraints);
 
 
     }
@@ -93,8 +98,8 @@ public class ClauseParser {
         throw new IncorrectFirstLineException("Your input does not contain a defining first line!");
     }
 
-    private Constraint parseClause(String line, int numberOfVariables, int formulaPosition,
-                                   List<Integer> listOfUnitVariables) throws ClauseNotTerminatedByZeroException,
+    private Constraint parseClause(String line,
+                                   List<Literal> listOfUnitLiterals, Map<Integer, Variable> variableMap) throws ClauseNotTerminatedByZeroException,
             EmptyClauseException, ClauseContainsZeroException {
 
         try {
@@ -104,28 +109,43 @@ public class ClauseParser {
             String identifier = input[0];
 
             if (identifier.equals("AMO")) {
-                return parseAMOConstraint(input, numberOfVariables);
+                return parseAMOConstraint(input);
             }
 
-            int[] variables = checkAndParseInputVariables(input, numberOfVariables, false);
+            int[] intVariables = checkAndParseInputVariables(input, false);
 
-            if (variables.length == 1) {
-                listOfUnitVariables.add(variables[0]);
+            List<Literal> literals = new ArrayList<>();
+
+
+            for (int i = 0; i < intVariables.length; i++) {
+                int variable = Math.abs(intVariables[i]);
+                boolean negated = intVariables[i] < 0 ? true : false;
+                if (!variableMap.containsKey(variable)) {
+                    variableMap.put(variable, new Variable(variable));
+                }
+                literals.add(new Literal(variableMap.get(variable), negated));
             }
 
-            return new DisjunctiveConstraint(numberOfVariables, variables);
+
+            if (literals.size() == 1) {
+                listOfUnitLiterals.add(literals.get(0));
+            }
+
+            DisjunctiveConstraint constraint = new DisjunctiveConstraint(literals.toArray(Literal[]::new));
+
+            return constraint;
 
         } catch(NumberFormatException e) {
             throw new NumberFormatException("Bad clause variables!");
         }
     }
 
-    private AMOConstraint parseAMOConstraint(String[] lineParts, int numberOfVariables) throws EmptyClauseException, ClauseContainsZeroException, ClauseNotTerminatedByZeroException {
-        int[] variables = checkAndParseInputVariables(lineParts, numberOfVariables, true);
-        return new AMOConstraint(numberOfVariables, variables);
+    private AMOConstraint parseAMOConstraint(String[] lineParts) throws EmptyClauseException, ClauseContainsZeroException, ClauseNotTerminatedByZeroException {
+        int[] variables = checkAndParseInputVariables(lineParts, true);
+        return null;
     }
 
-    private int[] checkAndParseInputVariables(String[] lineParts, int numberOfVariables, boolean hasIdentifier) throws
+    private int[] checkAndParseInputVariables(String[] lineParts, boolean hasIdentifier) throws
     ClauseNotTerminatedByZeroException, EmptyClauseException, ClauseContainsZeroException {
 
         if (!lineParts[lineParts.length - 1].equals("0")) {

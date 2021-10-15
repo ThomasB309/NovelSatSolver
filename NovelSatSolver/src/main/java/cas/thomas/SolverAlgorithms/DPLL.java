@@ -26,22 +26,6 @@ public class DPLL implements ISolverAlgorithm {
     }
 
     private Set<Integer> DPLL(Formula formula, int depth) {
-        Set<Integer> tempLiteralSet;
-
-        if (formula.isEmptyClause()) {
-            return new HashSet<>();
-        } else if (formula.containsEmptyClause()) {
-            return null;
-        } else if ((tempLiteralSet = DPLL(formula.condition(variableOrdering[depth]), depth + 1)) != null) {
-            tempLiteralSet.add(variableOrdering[depth]);
-
-            return tempLiteralSet;
-        } else if ((tempLiteralSet = DPLL(formula.condition(-variableOrdering[depth]), depth + 1)) != null) {
-            tempLiteralSet.add(-variableOrdering[depth]);
-
-            return tempLiteralSet;
-        } else {
-            return null;
-        }
+        return null;
     }
 }
