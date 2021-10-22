@@ -119,11 +119,11 @@ public class ClauseParser {
 
             for (int i = 0; i < intVariables.length; i++) {
                 int variable = Math.abs(intVariables[i]);
-                boolean negated = intVariables[i] < 0 ? true : false;
+                boolean truthValue = intVariables[i] < 0 ? false : true;
                 if (!variableMap.containsKey(variable)) {
                     variableMap.put(variable, new Variable(variable));
                 }
-                literals.add(new Literal(variableMap.get(variable), negated));
+                literals.add(new Literal(variableMap.get(variable), truthValue));
             }
 
 

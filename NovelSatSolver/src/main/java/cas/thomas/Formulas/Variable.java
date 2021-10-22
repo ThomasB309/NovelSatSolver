@@ -31,23 +31,35 @@ public class Variable {
     }
 
     public List<Literal> conditionNegatively() {
-        this.state = Assignment.NEGATIVE;
-        return condition(this.negativelyWatched, true);
+        this.state = Assignment.POSITIVE;
+        return condition(this.negativelyWatched, false);
     }
 
     public List<Literal> conditionPositively() {
-        this.state = Assignment.POSITIVE;
-        return condition(this.positivelyWatched, false);
+        this.state = Assignment.NEGATIVE;
+        return condition(this.positivelyWatched, true);
     }
 
-    private List<Literal> condition(List<Constraint> watchedList, boolean negated) {
+    private List<Literal> condition(List<Constraint> watchedList, boolean truthValue) {
         List<Literal> unitLiterals = new ArrayList<>();
+        List<Integer> removableIndices = new ArrayList<>();
         for (int i = 0; i < watchedList.size(); i++) {
-            List<Literal> partialUnitLiterals = watchedList.get(i).condition(new Literal(this, negated));
+            Literal conditionedLiteral = new Literal(this, truthValue);
+            List<Literal> partialUnitLiterals = watchedList.get(i).condition(new Literal(this, truthValue));
+
+            Literal[] watchedLiterals = watchedList.get(i).getWatchedLiterals();
+
+            if (!watchedLiterals[0].equals(conditionedLiteral) && !watchedLiterals[1].equals(conditionedLiteral)) {
+                removableIndices.add(i);
+            }
 
             if (partialUnitLiterals != null) {
                 unitLiterals.addAll(partialUnitLiterals);
             }
+        }
+
+        for (int i = removableIndices.size() - 1; i >= 0; i--) {
+            watchedList.remove(removableIndices.get(i).intValue());
         }
 
 

@@ -14,4 +14,9 @@ public class AMOConstraint extends Constraint {
     public List<Literal> condition(Literal literal) {
         return null;
     }
+
+    @Override
+    protected Literal[] getWatchedLiterals() {
+        return new Literal[0];
+    }
 }

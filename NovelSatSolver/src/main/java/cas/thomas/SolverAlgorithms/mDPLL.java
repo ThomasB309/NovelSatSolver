@@ -2,15 +2,15 @@ package cas.thomas.SolverAlgorithms;
 
 import cas.thomas.Formulas.Assignment;
 import cas.thomas.Formulas.Formula;
-import cas.thomas.Formulas.Formula2;
 import cas.thomas.Formulas.Literal;
 import cas.thomas.Formulas.Variable;
-import cas.thomas.utils.Pair;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class mDPLL implements ISolverAlgorithm {
 
@@ -34,47 +34,57 @@ public class mDPLL implements ISolverAlgorithm {
     }
 
     private boolean mDPPLAlgorithm(Formula formula, Set<Literal> partialAssignment) {
-        formula = formula.copy();
         partialAssignment = new HashSet<>(partialAssignment);
         List<Literal> unitliterals = formula.getUnitLiterals();
-        System.out.println(partialAssignment);
+        List<Variable> variablesToRevert = new LinkedList<>();
         while (unitliterals.size() > 0) {
             Literal unitliteral = unitliterals.remove(0);
 
-            if (partialAssignment.contains(unitliteral)) {
+            if (unitliteral.isFalseWithCurrentVariableAssignment()) {
+                for (int i = 0; i < variablesToRevert.size(); i++) {
+                    variablesToRevert.get(i).setAssigment(Assignment.OPEN);
+                }
+                formula.backtrackUnitLiterals();
                 return false;
+            } else if (unitliteral.getVariable().getState() == Assignment.OPEN) {
+                variablesToRevert.add(unitliteral.getVariable());
+                partialAssignment.add(unitliteral);
+                formula.condition(unitliteral.getVariable(), unitliteral.getTruthValue());
             }
-
-            partialAssignment.add(unitliteral);
-            formula.condition(unitliteral);
         }
 
+
         if (partialAssignment.size() == formula.getVariableSize()) {
+            System.out.println(partialAssignment.stream().map(literal -> literal.getVariable()).collect(Collectors.toList()));
             return true;
         }
 
         Variable variable = formula.getLiteral();
-        Literal literal = new Literal(variable, false);
 
-        formula.condition(literal);
+        variablesToRevert.add(variable);
+        Literal literal = new Literal(variable, true);
+
+        formula.condition(variable, true);
         partialAssignment.add(literal);
 
         if (mDPPLAlgorithm(formula, partialAssignment)) {
             return true;
         }
 
-        literal.setState(true);
-        formula.condition(literal);
+        literal.setState(false);
+        formula.condition(variable, false);
 
         if (mDPPLAlgorithm(formula, partialAssignment)) {
             return true;
         }
 
-        variable.setAssigment(Assignment.OPEN);
+        for (int i = 0; i < variablesToRevert.size(); i++) {
+            variablesToRevert.get(i).setAssigment(Assignment.OPEN);
+        }
 
         return false;
 
 
-
     }
+
 }

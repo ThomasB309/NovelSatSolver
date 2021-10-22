@@ -8,11 +8,13 @@ public class Formula {
 
     private Variable[] variables;
     private List<Literal> unitLiterals;
+    private List<Literal> unitLiteralsBacktrack;
     private Constraint[] constraints;
 
     public Formula(Variable[] variables, List<Literal> listOfUnitLiterals, Constraint[] constraints) {
         this.variables = variables;
         this.unitLiterals = listOfUnitLiterals;
+        this.unitLiteralsBacktrack = new ArrayList<>(listOfUnitLiterals);
         this.constraints = constraints;
     }
 
@@ -26,6 +28,7 @@ public class Formula {
 
         formula.variables = Arrays.copyOf(this.variables, this.variables.length);
         formula.unitLiterals = new ArrayList<>(this.unitLiterals);
+        formula.unitLiteralsBacktrack = new ArrayList<>(this.unitLiteralsBacktrack);
         formula.constraints = Arrays.copyOf(this.constraints, this.constraints.length);
 
         return formula;
@@ -43,8 +46,8 @@ public class Formula {
         return this.unitLiterals;
     }
 
-    public void condition(Literal literal) {
-        unitLiterals.addAll(literal.condition());
+    public void condition(Variable variable, boolean truthValue) {
+        unitLiterals.addAll(truthValue ? variable.conditionNegatively() : variable.conditionPositively());
     }
 
     public int getVariableSize() {
@@ -59,6 +62,24 @@ public class Formula {
         }
 
         return null;
+    }
+
+    public void backtrackUnitLiterals() {
+        this.unitLiterals.clear();
+    }
+
+    public Variable[] getVariables() {
+        return variables;
+    }
+
+    public String toString() {
+        String output = "";
+        for (int i = 0; i < this.constraints.length; i++) {
+            output += output.equals("") ? "(" + this.constraints[i].toString() + ")" :
+                    " v (" + this.constraints[i].toString() + ")";
+        }
+
+        return output;
     }
 
 }

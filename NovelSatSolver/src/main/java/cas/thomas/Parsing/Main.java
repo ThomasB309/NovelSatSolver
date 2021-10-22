@@ -24,12 +24,12 @@ public class Main {
             System.err.println("You have to specify exactly one input file!");
         }
 
-        for (int a = 1; a <= 1000; a++) {
+        for (int a = 1; a <= 100; a++) {
             String[] input = null;
 
             try {
                 input =
-                        Files.readAllLines(Paths.get( "InputFiles", "uf20-0" + a+ ".cnf"),
+                        Files.readAllLines(Paths.get( "InputFiles", "UF75.325.100","uf75-0" + a + ".cnf"),
                                 StandardCharsets.UTF_8).toArray(new String[0]);
             } catch (IOException e) {
                 System.err.println("Something went wrong while reading the specified input file!");

@@ -1,6 +1,5 @@
 package cas.thomas.Formulas;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -15,53 +14,74 @@ public class DisjunctiveConstraint extends Constraint {
     public List<Literal> condition(Literal literal) {
 
         if (literals[firstWatchedIndex].equals(literal)) {
-            Literal literalFirst = literals[firstWatchedIndex];
-            literalFirst.setAssignment(Assignment.NEGATIVE);
 
             for (int i = 0; i < literals.length; i++) {
-                if (i != firstWatchedIndex && i != secondWatchedIndex && literals[i].getAssignment() == Assignment.OPEN) {
+                Assignment variableState = literals[i].getVariable().getState();
+                boolean nextLiteralTruthValue = literals[i].getTruthValue();
+                if (i != firstWatchedIndex && i != secondWatchedIndex &&
+                        ((variableState == Assignment.OPEN)
+                                || (variableState == Assignment.POSITIVE && nextLiteralTruthValue)
+                                || variableState == Assignment.NEGATIVE && !nextLiteralTruthValue)) {
                     firstWatchedIndex = i;
+
+                    Literal newWatchedLiteral = literals[i];
+
+                    if (newWatchedLiteral.getTruthValue()) {
+                        newWatchedLiteral.getVariable().addPositivelyWatched(this);
+                    } else {
+                        newWatchedLiteral.getVariable().addNegativelyWatched(this);
+                    }
+
+
                     return null;
                 }
             }
 
-            return Arrays.asList(literals[secondWatchedIndex]);
+            return literals[secondWatchedIndex].propagationNeeded() ?
+                    Arrays.asList(literals[secondWatchedIndex]) : null;
 
 
         } else {
-            Literal literalFirst = literals[secondWatchedIndex];
-            literalFirst.setAssignment(Assignment.NEGATIVE);
-
             for (int i = 0; i < literals.length; i++) {
-                if (i != firstWatchedIndex && i != secondWatchedIndex && literals[i].getAssignment() == Assignment.OPEN) {
-                    firstWatchedIndex = i;
+                Assignment variableState = literals[i].getVariable().getState();
+                boolean nextLiteralTruthValue = literals[i].getTruthValue();
+                if (i != firstWatchedIndex && i != secondWatchedIndex &&
+                        ((variableState == Assignment.OPEN)
+                                || (variableState == Assignment.POSITIVE && nextLiteralTruthValue)
+                                || variableState == Assignment.NEGATIVE && !nextLiteralTruthValue)) {
+                    secondWatchedIndex = i;
+
+                    Literal newWatchedLiteral = literals[i];
+
+                    if (newWatchedLiteral.getTruthValue()) {
+                        newWatchedLiteral.getVariable().addPositivelyWatched(this);
+                    } else {
+                        newWatchedLiteral.getVariable().addNegativelyWatched(this);
+                    }
+
+
                     return null;
                 }
             }
 
-            return Arrays.asList(literals[firstWatchedIndex]);
+            return literals[firstWatchedIndex].propagationNeeded() ?
+                    Arrays.asList(literals[firstWatchedIndex]) : null;
         }
     }
 
     @Override
-    protected Literal[] getUnitLiterals() {
-        return new Literal[0];
-    }
-
-    @Override
     protected Literal[] getWatchedLiterals() {
-        return new Literal[] {literals[firstWatchedIndex], literals[secondWatchedIndex]};
+        return new Literal[]{literals[firstWatchedIndex], literals[secondWatchedIndex]};
     }
 
     public String toString() {
         String output = "";
         for (int i = 0; i < this.literals.length; i++) {
-            output += literals[i].isNegated() ? "v -x" : "v x" + literals[i].getUniqueID();
+            output += output.equals("") ? literals[i].toString() : " v " + literals[i].toString();
         }
 
         return output;
     }
-
 
 
 }

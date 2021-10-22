@@ -1,34 +1,31 @@
 package cas.thomas.Formulas;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class Literal {
 
     private Variable variable;
-    private boolean negated;
-    private Assignment assignment;
+    private boolean truthValue;
 
-    public Literal(Variable variable, boolean negated) {
+    public Literal(Variable variable, boolean truthValue) {
         this.variable = variable;
-        this.negated = negated;
-        this.assignment = Assignment.OPEN;
+        this.truthValue = truthValue;
     }
 
     public int getUniqueID() {
         return this.variable.getUniqueID();
     }
 
-    public boolean isNegated() {
-        return this.negated;
+    public boolean getTruthValue() {
+        return this.truthValue;
     }
 
     public void setState(boolean negated) {
-        this.negated = negated;
+        this.truthValue = negated;
     }
 
     public List<Literal> condition() {
-        return negated ? this.variable.conditionPositively() : this.variable.conditionNegatively();
+        return truthValue ? this.variable.conditionPositively() : this.variable.conditionNegatively();
     }
 
     public boolean equals(Object comparator) {
@@ -44,28 +41,49 @@ public class Literal {
         return this.variable.hashCode();
     }
 
-    public Assignment getAssignment() {
-        return this.assignment;
-    }
-
-    public void setAssignment(Assignment assignment) {
-        this.assignment = assignment;
-    }
-
     public Variable getVariable() {
         return variable;
     }
 
     public void addConstraintToVariableWatchlist(Constraint constraint) {
-        if (this.negated) {
-            this.variable.addNegativelyWatched(constraint);
-        } else {
+        if (this.truthValue) {
             this.variable.addPositivelyWatched(constraint);
+        } else {
+            this.variable.addNegativelyWatched(constraint);
         }
     }
 
     public String toString() {
-        return this.variable.toString();
+        String partialLiteral = this.truthValue ? "x" + this.variable.getUniqueID() : "-x" + this.variable.getUniqueID();
+        if (this.variable.getState() == Assignment.OPEN) {
+            return partialLiteral;
+        } else if (this.variable.getState() == Assignment.POSITIVE) {
+            return partialLiteral + " " + (this.truthValue ? "(TRUE)" : "(FALSE)");
+        } else {
+            return partialLiteral + " " + (this.truthValue ? "(FALSE)" : "(TRUE)");
+        }
+    }
+
+    public boolean isFalseWithCurrentVariableAssignment() {
+        if (this.variable.getState() == Assignment.NEGATIVE && this.truthValue == true) {
+            return true;
+        } else if (this.variable.getState() == Assignment.POSITIVE && this.truthValue == false) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public boolean propagationNeeded() {
+        if (this.variable.getState() == Assignment.NEGATIVE && this.truthValue == true) {
+            return true;
+        } else if (this.variable.getState() == Assignment.POSITIVE && this.truthValue == false) {
+            return true;
+        } else if (this.variable.getState() == Assignment.OPEN) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
 }
