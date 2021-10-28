@@ -2,10 +2,9 @@ package cas.thomas.SolverAlgorithms;
 
 import cas.thomas.Formulas.Formula;
 
-import java.util.HashSet;
 import java.util.Set;
 
-public class DPLL implements ISolverAlgorithm {
+public class DPLL extends SolverAlgorithm {
 
     private int[] variableOrdering;
 

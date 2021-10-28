@@ -1,5 +1,7 @@
 package cas.thomas.Formulas;
 
+import cas.thomas.SolutionChecker.SolutionCheckerConstraint;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,21 +19,6 @@ public abstract class Constraint {
         this.isUnitConstraint = false;
         this.unitLiterals = new ArrayList<>();
 
-        if (literals.length > 1) {
-            firstWatchedIndex = 0;
-            secondWatchedIndex = 1;
-
-            literals[firstWatchedIndex].addConstraintToVariableWatchlist(this);
-            literals[secondWatchedIndex].addConstraintToVariableWatchlist(this);
-        } else if (literals.length == 1) {
-            firstWatchedIndex = 0;
-            secondWatchedIndex = 1;
-
-            literals[firstWatchedIndex].addConstraintToVariableWatchlist(this);
-        } else {
-            firstWatchedIndex = -1;
-            secondWatchedIndex = -1;
-        }
     }
 
 
@@ -46,5 +33,7 @@ public abstract class Constraint {
     }
 
     protected abstract Literal[] getWatchedLiterals();
+
+    public abstract SolutionCheckerConstraint getSolutionCheckerConstraint();
 
 }

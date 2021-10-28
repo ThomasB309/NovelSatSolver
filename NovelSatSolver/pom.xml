@@ -20,17 +20,6 @@
             </plugin>
         </plugins>
     </build>
-    <modules>
-        <module>SudokuConstraintConverter</module>
-    </modules>
-    <dependencies>
-        <dependency>
-            <groupId>cas.thomas</groupId>
-            <artifactId>SudokuConstraintConverter</artifactId>
-            <version>1.0-SNAPSHOT</version>
-            <scope>compile</scope>
-        </dependency>
-    </dependencies>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>

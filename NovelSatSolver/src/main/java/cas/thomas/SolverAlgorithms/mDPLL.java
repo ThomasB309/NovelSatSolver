@@ -4,21 +4,20 @@ import cas.thomas.Formulas.Assignment;
 import cas.thomas.Formulas.Formula;
 import cas.thomas.Formulas.Literal;
 import cas.thomas.Formulas.Variable;
+import cas.thomas.VariableSelection.VariableSelectionStrategy;
 
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class mDPLL implements ISolverAlgorithm {
+public class mDPLL extends SolverAlgorithm {
 
-    private int[] variableOrdering;
-
-
-    public mDPLL() {
-
+    public mDPLL(VariableSelectionStrategy variableSelectionStrategy) {
+        this.variableSelectionStrategy = variableSelectionStrategy;
     }
 
     @Override
@@ -37,6 +36,7 @@ public class mDPLL implements ISolverAlgorithm {
         partialAssignment = new HashSet<>(partialAssignment);
         List<Literal> unitliterals = formula.getUnitLiterals();
         List<Variable> variablesToRevert = new LinkedList<>();
+
         while (unitliterals.size() > 0) {
             Literal unitliteral = unitliterals.remove(0);
 
@@ -55,11 +55,10 @@ public class mDPLL implements ISolverAlgorithm {
 
 
         if (partialAssignment.size() == formula.getVariableSize()) {
-            System.out.println(partialAssignment.stream().map(literal -> literal.getVariable()).collect(Collectors.toList()));
             return true;
         }
 
-        Variable variable = formula.getLiteral();
+        Variable variable = this.variableSelectionStrategy.getNextVariable(formula);
 
         variablesToRevert.add(variable);
         Literal literal = new Literal(variable, true);

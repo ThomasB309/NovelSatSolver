@@ -75,6 +75,8 @@ public class Formula {
     public String toString() {
         String output = "";
         for (int i = 0; i < this.constraints.length; i++) {
+            assert (this.constraints[i] != null);
+
             output += output.equals("") ? "(" + this.constraints[i].toString() + ")" :
                     " v (" + this.constraints[i].toString() + ")";
         }

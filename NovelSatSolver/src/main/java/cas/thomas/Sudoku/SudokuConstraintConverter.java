@@ -107,7 +107,7 @@ public class SudokuConstraintConverter {
                 }
             }
 
-            PrintWriter writer = new PrintWriter(new FileWriter("testfile.cnf"));
+            PrintWriter writer = new PrintWriter(new FileWriter(args[0] + "_AMO.cnf"));
 
             writer.println("p cnf " + size.pow(3) + " " + clauseCounter);
             for (String line : linesToPrint) {

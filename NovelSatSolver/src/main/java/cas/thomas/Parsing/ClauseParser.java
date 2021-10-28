@@ -11,6 +11,10 @@ import cas.thomas.Formulas.DisjunctiveConstraint;
 import cas.thomas.Formulas.Formula;
 import cas.thomas.Formulas.Literal;
 import cas.thomas.Formulas.Variable;
+import cas.thomas.SolutionChecker.SolutionCheckerConjunctiveFormula;
+import cas.thomas.SolutionChecker.SolutionCheckerConstraint;
+import cas.thomas.SolutionChecker.SolutionCheckerFormula;
+import cas.thomas.utils.Pair;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -22,7 +26,8 @@ import java.util.Set;
 
 public class ClauseParser {
 
-    public Formula parseInput(String[] lines) throws IncorrectFirstLineException, ClauseNotTerminatedByZeroException,
+    public Pair<Formula, SolutionCheckerFormula> parseInput(String[] lines) throws IncorrectFirstLineException,
+            ClauseNotTerminatedByZeroException,
             EmptyClauseException, ClauseContainsZeroException {
 
         int indexOfFirstLine = findFirstLine(lines);
@@ -49,6 +54,7 @@ public class ClauseParser {
         }
 
         Constraint[] constraints = new Constraint[numberOfClauses];
+        SolutionCheckerConstraint[] solutionCheckerConstraints = new SolutionCheckerConstraint[numberOfClauses];
         List<Literal> listOfUnitVariables = new ArrayList<>();
         Map<Integer, Variable> variableMap = new HashMap<>();
 
@@ -65,6 +71,7 @@ public class ClauseParser {
 
             if (nextConstraint != null) {
                 constraints[clausecounter] = nextConstraint;
+                solutionCheckerConstraints[clausecounter] = nextConstraint.getSolutionCheckerConstraint();
             }
 
             clausecounter++;
@@ -76,7 +83,7 @@ public class ClauseParser {
         }
 
 
-        return new ConjunctiveFormula(variableMap.values().toArray(Variable[]::new), listOfUnitVariables, constraints);
+        return new Pair<Formula, SolutionCheckerFormula>(new ConjunctiveFormula(variableMap.values().toArray(Variable[]::new), listOfUnitVariables, constraints), new SolutionCheckerConjunctiveFormula(solutionCheckerConstraints));
 
 
     }
@@ -108,11 +115,13 @@ public class ClauseParser {
 
             String identifier = input[0];
 
+            boolean hasIdentifier = false;
+
             if (identifier.equals("AMO")) {
-                return parseAMOConstraint(input);
+                hasIdentifier = true;
             }
 
-            int[] intVariables = checkAndParseInputVariables(input, false);
+            int[] intVariables = checkAndParseInputVariables(input, hasIdentifier);
 
             List<Literal> literals = new ArrayList<>();
 
@@ -124,6 +133,12 @@ public class ClauseParser {
                     variableMap.put(variable, new Variable(variable));
                 }
                 literals.add(new Literal(variableMap.get(variable), truthValue));
+
+                if (truthValue) {
+                    variableMap.get(variable).addPositiveOccurence();
+                } else {
+                    variableMap.get(variable).addNegativeOccurence();
+                }
             }
 
 
@@ -131,9 +146,11 @@ public class ClauseParser {
                 listOfUnitLiterals.add(literals.get(0));
             }
 
-            DisjunctiveConstraint constraint = new DisjunctiveConstraint(literals.toArray(Literal[]::new));
-
-            return constraint;
+            if (identifier.equals("AMO")) {
+                return new AMOConstraint(literals.toArray(Literal[]::new));
+            } else {
+                return new DisjunctiveConstraint(literals.toArray(Literal[]::new));
+            }
 
         } catch(NumberFormatException e) {
             throw new NumberFormatException("Bad clause variables!");

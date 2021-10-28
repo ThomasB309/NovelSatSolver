@@ -24,6 +24,10 @@ public class Literal {
         this.truthValue = negated;
     }
 
+    public void flipState() {
+        this.truthValue = !this.truthValue;
+    }
+
     public List<Literal> condition() {
         return truthValue ? this.variable.conditionPositively() : this.variable.conditionNegatively();
     }
@@ -45,7 +49,15 @@ public class Literal {
         return variable;
     }
 
-    public void addConstraintToVariableWatchlist(Constraint constraint) {
+    public void addConstraintToVariableWatchlist(DisjunctiveConstraint constraint) {
+        if (this.truthValue) {
+            this.variable.addPositivelyWatched(constraint);
+        } else {
+            this.variable.addNegativelyWatched(constraint);
+        }
+    }
+
+    public void addConstraintToVariableWatchList(AMOConstraint constraint) {
         if (this.truthValue) {
             this.variable.addPositivelyWatched(constraint);
         } else {
