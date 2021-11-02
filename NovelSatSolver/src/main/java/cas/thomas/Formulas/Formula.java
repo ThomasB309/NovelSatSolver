@@ -1,87 +1,159 @@
 package cas.thomas.Formulas;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.IntStream;
 
 public class Formula {
 
-    private Variable[] variables;
-    private List<Literal> unitLiterals;
-    private List<Literal> unitLiteralsBacktrack;
+    private int[] variables;
     private Constraint[] constraints;
+    private List<Constraint>[] positivelyWatchedDisjunctiveConstraints;
+    private List<Constraint>[] negativelyWatchedDisjunctiveConstraints;
+    private List<Constraint>[] positivelWatchedAMOConstraints;
+    private List<Constraint>[] negativelyWatchedAMOConstraints;
+    private List<Integer> unitLiterals;
+    int assignedCounter;
 
-    public Formula(Variable[] variables, List<Literal> listOfUnitLiterals, Constraint[] constraints) {
-        this.variables = variables;
-        this.unitLiterals = listOfUnitLiterals;
-        this.unitLiteralsBacktrack = new ArrayList<>(listOfUnitLiterals);
+    public Formula(int variableCount, Constraint[] constraints, List<Integer> unitLiterals,
+                   List<Constraint>[] positivelyWatchedDisjunctiveConstraints
+            , List<Constraint>[] negativelyWatchedDisjunctiveConstraints,
+                   List<Constraint>[] positivelWatchedAMOConstraints,
+                   List<Constraint>[] negativelyWatchedAMOConstraints) {
+        this.variables = new int[variableCount];
+        this.unitLiterals = unitLiterals;
         this.constraints = constraints;
+        this.positivelyWatchedDisjunctiveConstraints = positivelyWatchedDisjunctiveConstraints;
+        this.negativelyWatchedDisjunctiveConstraints = negativelyWatchedDisjunctiveConstraints;
+        this.positivelWatchedAMOConstraints = positivelWatchedAMOConstraints;
+        this.negativelyWatchedAMOConstraints = negativelyWatchedAMOConstraints;
+        this.assignedCounter = 0;
     }
 
-    private Formula() {
-
+    public boolean propagate(int literal) {
+        return propagate(Math.abs(literal), literal < 0 ? false : true);
     }
 
-
-    public Formula copy() {
-        Formula formula = new Formula();
-
-        formula.variables = Arrays.copyOf(this.variables, this.variables.length);
-        formula.unitLiterals = new ArrayList<>(this.unitLiterals);
-        formula.unitLiteralsBacktrack = new ArrayList<>(this.unitLiteralsBacktrack);
-        formula.constraints = Arrays.copyOf(this.constraints, this.constraints.length);
-
-        return formula;
+    public boolean propagateAfterSwappingVariableAssigment(int variable, boolean truthValue) {
+        assignedCounter--;
+        variables[variable] *= -1;
+        return propagate(variable, truthValue);
     }
 
-    public void conditionPositively(Variable variable) {
-        unitLiterals.addAll(variable.conditionPositively());
+    public boolean propagate(int variable, boolean truthValue) {
+
+        if (checkForConflictingVariableAssignment(variable, truthValue)) {
+            return false;
+        }
+
+        assignedCounter++;
+
+        if (truthValue) {
+            variables[variable] = 1;
+            propagateInDisjunctiveConstraints(negativelyWatchedDisjunctiveConstraints[variable], variable);
+            propagateInAMOConstraints(positivelWatchedAMOConstraints[variable], variable);
+        } else {
+            variables[variable] = -1;
+            propagateInDisjunctiveConstraints(positivelyWatchedDisjunctiveConstraints[variable], -variable);
+            propagateInAMOConstraints(negativelyWatchedAMOConstraints[variable], variable);
+        }
+
+        return true;
     }
 
-    public void conditionNegatively(Variable variable) {
-        unitLiterals.addAll(variable.conditionNegatively());
-    }
-
-    public List<Literal> getUnitLiterals() {
-        return this.unitLiterals;
-    }
-
-    public void condition(Variable variable, boolean truthValue) {
-        unitLiterals.addAll(truthValue ? variable.conditionNegatively() : variable.conditionPositively());
-    }
-
-    public int getVariableSize() {
-        return this.variables.length;
-    }
-
-    public Variable getLiteral() {
-        for (int i = 0; i < variables.length; i++) {
-            if (variables[i].getState() == Assignment.OPEN) {
-                return variables[i];
+    private void propagateInDisjunctiveConstraints(List<Constraint> watchedList, int literal) {
+        List<Constraint> stillWatched = new ArrayList<>(watchedList.size());
+        for (int i = 0; i < watchedList.size(); i++) {
+            Constraint currentConstraint = watchedList.get(i);
+            if (currentConstraint.propagate(literal, variables, unitLiterals, positivelyWatchedDisjunctiveConstraints
+                    ,negativelyWatchedDisjunctiveConstraints)) {
+                stillWatched.add(currentConstraint);
             }
         }
 
-        return null;
+        watchedList.clear();
+        watchedList.addAll(stillWatched);
     }
 
-    public void backtrackUnitLiterals() {
-        this.unitLiterals.clear();
+    private void propagateInAMOConstraints(List<Constraint> watchedList, int literal) {
+        for (int i = 0; i < watchedList.size(); i++) {
+            Constraint currentConstraint = watchedList.get(i);
+            currentConstraint.propagate(literal, variables, unitLiterals, positivelWatchedAMOConstraints,
+                    negativelyWatchedAMOConstraints);
+        }
     }
 
-    public Variable[] getVariables() {
+    public int getNumberOfVariables() {
+        return variables.length;
+    }
+
+    public void unassignVariable(int literal) {
+        assignedCounter--;
+        variables[Math.abs(literal)] = 0;
+    }
+
+    public void assignVariable(int literal) {
+        assignedCounter++;
+        variables[Math.abs(literal)] = literal < 0 ? -1 : 1;
+    }
+
+    public void swapLiteralAssignment(int literal) {
+        variables[Math.abs(literal)] *= -1;
+    }
+
+    public int getAssignedCounter() {
+        return assignedCounter;
+    }
+
+    public List<Integer> getUnitLiterals() {
+        return unitLiterals;
+    }
+
+    public boolean checkForConflictingVariableAssignment(int variable, boolean wantedTruthValue) {
+        int variableValue = variables[variable];
+
+        if (variableValue == 0) {
+            return false;
+        }
+
+        return ((variableValue < 0 ? false : true) ^ wantedTruthValue);
+    }
+
+    public int[] getVariables() {
         return variables;
     }
 
-    public String toString() {
-        String output = "";
-        for (int i = 0; i < this.constraints.length; i++) {
-            assert (this.constraints[i] != null);
+    public int getVariableWithMostOccurences() {
 
-            output += output.equals("") ? "(" + this.constraints[i].toString() + ")" :
-                    " v (" + this.constraints[i].toString() + ")";
+       return IntStream.range(1, variables.length).boxed().filter(a -> variables[a] == 0)
+        .max((a,b) -> Integer.compare(positivelyWatchedDisjunctiveConstraints[a].size() + negativelyWatchedDisjunctiveConstraints[a].size(), positivelyWatchedDisjunctiveConstraints[b].size() + positivelyWatchedDisjunctiveConstraints[b].size())).orElse(-1);
+    }
+
+    public void emptyUnitLiterals() {
+        unitLiterals = new LinkedList<>();
+    }
+
+    public List<Integer> getVariablesForSolutionChecker() {
+        List<Integer> variables = new ArrayList<>(this.variables.length);
+
+        for (int i = 0; i < this.variables.length; i++) {
+            if (this.variables[i] < 0) {
+                variables.add(-i);
+            } else if (this.variables[i] > 0) {
+                variables.add(i);
+            }
         }
 
-        return output;
+        return variables;
+    }
+
+    public boolean variableAlreadyHasTheSameValue(int literal) {
+        if (variables[Math.abs(literal)] * literal > 0) {
+            return true;
+        }
+
+        return false;
     }
 
 }

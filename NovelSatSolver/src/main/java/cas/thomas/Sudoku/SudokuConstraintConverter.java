@@ -67,7 +67,8 @@ public class SudokuConstraintConverter {
 
                 for (int a = 0; a < lineParts.length; a++) {
                     if (!lineParts[a].equals("0")) {
-                        linesToPrint.add(createUniqueIdentifier((a+1), i, Integer.parseInt(lineParts[a])) + " 0");
+                        linesToPrint.add(createUniqueIdentifier((a+1), i, Integer.parseInt(lineParts[a]), size.intValue()) + " " +
+                                "0");
                         clauseCounter++;
                     }
                 }
@@ -81,9 +82,10 @@ public class SudokuConstraintConverter {
                     String AMOrowLine = "AMO";
                     String AMOcolumnLine = "AMO";
                     for (int z = 1; z <= size.intValue(); z++) {
-                        line += line.equals("") ?  createUniqueIdentifier(x,y,z) : " " + createUniqueIdentifier(x,y,z);
-                        AMOrowLine += " " + createUniqueIdentifier(z, y, x);
-                        AMOcolumnLine += " " + createUniqueIdentifier(x, z,y);
+                        line += line.equals("") ?  createUniqueIdentifier(x,y,z, size.intValue()) :
+                                " " + createUniqueIdentifier(x,y,z, size.intValue());
+                        AMOrowLine += " " + createUniqueIdentifier(z, y, x, size.intValue());
+                        AMOcolumnLine += " " + createUniqueIdentifier(x, z,y, size.intValue());
                     }
                     linesToPrint.add(line + " 0");
                     linesToPrint.add(AMOrowLine + " 0");
@@ -98,7 +100,7 @@ public class SudokuConstraintConverter {
                         String line = "AMO";
                         for (int x = 1 + gridFactorX; x <= initialSize.intValue() + gridFactorX; x++) {
                             for (int y = 1 + gridFactorY; y <= initialSize.intValue() + gridFactorY; y++) {
-                                line += " " + createUniqueIdentifier(x, y, z);
+                                line += " " + createUniqueIdentifier(x, y, z, size.intValue());
                             }
                         }
                         linesToPrint.add(line + " 0");
@@ -121,8 +123,8 @@ public class SudokuConstraintConverter {
         }
     }
 
-    private static String createUniqueIdentifier(int x, int y, int z) {
-        return String.valueOf(cantoirPairing(cantoirPairing(x,y), z));
+    private static String createUniqueIdentifier(int x, int y, int z, int fieldSize) {
+        return String.valueOf((x-1) * fieldSize * fieldSize + (y-1) * fieldSize + z);
     }
 
     private static int cantoirPairing(int x, int y) {

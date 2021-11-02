@@ -3,7 +3,6 @@ package cas.thomas.Formulas;
 import cas.thomas.SolutionChecker.SolutionCheckerConstraint;
 import cas.thomas.SolutionChecker.SolutionCheckerDisjunctiveConstraint;
 
-import java.util.Arrays;
 import java.util.List;
 
 public class DisjunctiveConstraint extends Constraint {
@@ -11,106 +10,124 @@ public class DisjunctiveConstraint extends Constraint {
     private int firstWatchedIndex;
     private int secondWatchedIndex;
 
-
-    public DisjunctiveConstraint(Literal[] literals) {
-        super(literals);
+    public DisjunctiveConstraint(int[] literals, List<Constraint>[] positivelyWatchedList,
+                                 List<Constraint>[] negativelyWatchedList) {
+        super(literals, positivelyWatchedList, negativelyWatchedList);
 
         assert (literals.length >= 1);
 
+        assignWatchedIndecesAndLiterals(literals, positivelyWatchedList, negativelyWatchedList);
+        assignWatchedLiteralsToWatchList(positivelyWatchedList, negativelyWatchedList);
+    }
 
+
+    @Override
+    public boolean propagate(int propagatedLiteral, int[] variableAssignments, List<Integer> unitLiterals,
+                             List<Constraint>[] positivelyWatched, List<Constraint>[] negativelyWatched) {
+
+        int firstWatchedLiteral = literals[firstWatchedIndex];
+        int secondWatchedLiteral = literals[secondWatchedIndex];
+
+        if (firstWatchedLiteral == -propagatedLiteral) {
+            for (int i = 0; i < literals.length; i++) {
+                if (i != firstWatchedIndex && i != secondWatchedIndex && !checkIfLiteralIsFalse(literals[i], variableAssignments)) {
+                    firstWatchedIndex = i;
+
+                    assignWatchedLiteralToWatchList(firstWatchedIndex, positivelyWatched, negativelyWatched);
+
+                    return false;
+                }
+            }
+
+            if (isNeededForUnitPropagation(secondWatchedLiteral, variableAssignments)) {
+                unitLiterals.add(secondWatchedLiteral);
+            }
+
+        } else if (secondWatchedLiteral == -propagatedLiteral) {
+            for (int i = 0; i < literals.length; i++) {
+                if (i != firstWatchedIndex && i != secondWatchedIndex && !checkIfLiteralIsFalse(literals[i], variableAssignments)) {
+                    secondWatchedIndex = i;
+
+                    assignWatchedLiteralToWatchList(secondWatchedIndex, positivelyWatched, negativelyWatched);
+
+                    return false;
+                }
+            }
+
+            if (isNeededForUnitPropagation(firstWatchedLiteral, variableAssignments)) {
+                unitLiterals.add(firstWatchedLiteral);
+            }
+        }
+
+        return true;
+    }
+
+    @Override
+    protected int[] getWatchedLiterals() {
+        return new int[]{literals[firstWatchedIndex], literals[secondWatchedIndex]};
+    }
+
+    @Override
+    public SolutionCheckerConstraint getSolutionCheckerConstraint() {
+        return new SolutionCheckerDisjunctiveConstraint(literals);
+    }
+
+
+    private void assignWatchedIndecesAndLiterals(int[] literals, List<Constraint>[] positivelyWatchedList,
+                                                 List<Constraint>[] negativelyWatchedList) {
         if (literals.length > 1) {
             firstWatchedIndex = 0;
             secondWatchedIndex = 1;
 
-            literals[firstWatchedIndex].addConstraintToVariableWatchlist(this);
-            literals[secondWatchedIndex].addConstraintToVariableWatchlist(this);
         } else if (literals.length == 1) {
             firstWatchedIndex = 0;
-            secondWatchedIndex = 1;
+            secondWatchedIndex = -1;
 
-            literals[firstWatchedIndex].addConstraintToVariableWatchlist(this);
         } else {
             firstWatchedIndex = -1;
             secondWatchedIndex = -1;
         }
     }
 
-    @Override
-    public List<Literal> condition(Literal literal) {
+    private void assignWatchedLiteralsToWatchList(List<Constraint>[] positivelyWatchedList,
+                                                  List<Constraint>[] negativelyWatchedList) {
 
-        if (literals[firstWatchedIndex].equals(literal)) {
+        if (firstWatchedIndex >= 0) {
+            assignWatchedLiteralToWatchList(firstWatchedIndex, positivelyWatchedList, negativelyWatchedList);
+        }
 
-            for (int i = 0; i < literals.length; i++) {
-                Assignment variableState = literals[i].getVariable().getState();
-                boolean nextLiteralTruthValue = literals[i].getTruthValue();
-                if (i != firstWatchedIndex && i != secondWatchedIndex &&
-                        ((variableState == Assignment.OPEN)
-                                || (variableState == Assignment.POSITIVE && nextLiteralTruthValue)
-                                || variableState == Assignment.NEGATIVE && !nextLiteralTruthValue)) {
-                    firstWatchedIndex = i;
+        if (secondWatchedIndex >= 0) {
+            assignWatchedLiteralToWatchList(secondWatchedIndex, positivelyWatchedList, negativelyWatchedList);
+        }
+    }
 
-                    Literal newWatchedLiteral = literals[i];
+    private void assignWatchedLiteralToWatchList(int index, List<Constraint>[] positivelyWatchedList,
+                                                 List<Constraint>[] negativelyWatchedList) {
 
-                    if (newWatchedLiteral.getTruthValue()) {
-                        newWatchedLiteral.getVariable().addPositivelyWatched(this);
-                    } else {
-                        newWatchedLiteral.getVariable().addNegativelyWatched(this);
-                    }
+        int watchedLiteral = literals[index];
 
-
-                    return null;
-                }
-            }
-
-            return literals[secondWatchedIndex].propagationNeeded() ?
-                    Arrays.asList(literals[secondWatchedIndex]) : null;
-
-
+        if (watchedLiteral < 0) {
+            negativelyWatchedList[Math.abs(watchedLiteral)].add(this);
         } else {
-            for (int i = 0; i < literals.length; i++) {
-                Assignment variableState = literals[i].getVariable().getState();
-                boolean nextLiteralTruthValue = literals[i].getTruthValue();
-                if (i != firstWatchedIndex && i != secondWatchedIndex &&
-                        ((variableState == Assignment.OPEN)
-                                || (variableState == Assignment.POSITIVE && nextLiteralTruthValue)
-                                || variableState == Assignment.NEGATIVE && !nextLiteralTruthValue)) {
-                    secondWatchedIndex = i;
-
-                    Literal newWatchedLiteral = literals[i];
-
-                    if (newWatchedLiteral.getTruthValue()) {
-                        newWatchedLiteral.getVariable().addPositivelyWatched(this);
-                    } else {
-                        newWatchedLiteral.getVariable().addNegativelyWatched(this);
-                    }
-
-
-                    return null;
-                }
-            }
-
-            return literals[firstWatchedIndex].propagationNeeded() ?
-                    Arrays.asList(literals[firstWatchedIndex]) : null;
+            positivelyWatchedList[watchedLiteral].add(this);
         }
     }
 
-    @Override
-    protected Literal[] getWatchedLiterals() {
-        return new Literal[]{literals[firstWatchedIndex], literals[secondWatchedIndex]};
-    }
-
-    @Override
-    public SolutionCheckerConstraint getSolutionCheckerConstraint() {
-        return new SolutionCheckerDisjunctiveConstraint(Arrays.stream(this.literals).mapToInt(literal -> literal.getUniqueID() * (literal.getTruthValue() ? 1 : -1)).toArray());
-    }
-
-    public String toString() {
-        String output = "";
-        for (int i = 0; i < this.literals.length; i++) {
-            output += output.equals("") ? literals[i].toString() : " v " + literals[i].toString();
+    private boolean isNeededForUnitPropagation(int literal, int[] variables) {
+        if (variables[Math.abs(literal)] * literal <= 0) {
+            return true;
         }
 
-        return output;
+        return false;
+    }
+
+
+    private boolean checkIfLiteralIsFalse(int literal, int[] variables) {
+        if (variables[Math.abs(literal)] * literal < 0) {
+            return true;
+        }
+
+        return false;
     }
 
 

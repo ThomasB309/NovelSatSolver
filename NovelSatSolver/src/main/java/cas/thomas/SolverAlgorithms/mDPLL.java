@@ -1,17 +1,13 @@
 package cas.thomas.SolverAlgorithms;
 
-import cas.thomas.Formulas.Assignment;
 import cas.thomas.Formulas.Formula;
-import cas.thomas.Formulas.Literal;
-import cas.thomas.Formulas.Variable;
 import cas.thomas.VariableSelection.VariableSelectionStrategy;
 
+import java.util.ArrayDeque;
 import java.util.Arrays;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.LinkedList;
+import java.util.Deque;
+import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 public class mDPLL extends SolverAlgorithm {
@@ -22,7 +18,9 @@ public class mDPLL extends SolverAlgorithm {
 
     @Override
     public String solve(Formula formula) {
-        boolean solution = mDPPLAlgorithm(formula, new HashSet<>());
+        boolean solution = mDPPLAlgorithm(formula, false);
+
+        System.out.println(formula.getVariablesForSolutionChecker());
 
         if (solution == true) {
             return "SATISFIABLE";
@@ -32,58 +30,77 @@ public class mDPLL extends SolverAlgorithm {
 
     }
 
-    private boolean mDPPLAlgorithm(Formula formula, Set<Literal> partialAssignment) {
-        partialAssignment = new HashSet<>(partialAssignment);
-        List<Literal> unitliterals = formula.getUnitLiterals();
-        List<Variable> variablesToRevert = new LinkedList<>();
+    private boolean mDPPLAlgorithm(Formula formula, boolean firstBranchingDecision) {
+        int numberOfVariables = formula.getNumberOfVariables();
+        Deque<Integer> trail = new ArrayDeque<>();
+        int branchingDecision = firstBranchingDecision ? 1 : -1;
 
-        while (unitliterals.size() > 0) {
-            Literal unitliteral = unitliterals.remove(0);
+        while (formula.getAssignedCounter() < numberOfVariables - 1) {
 
-            if (unitliteral.isFalseWithCurrentVariableAssignment()) {
-                for (int i = 0; i < variablesToRevert.size(); i++) {
-                    variablesToRevert.get(i).setAssigment(Assignment.OPEN);
+            if (!unitPropagation(trail, formula)) {
+                int nextLiteral;
+                if ((nextLiteral = findLastLiteralNotTriedBothValues(trail, branchingDecision, formula)) == -1) {
+                    return false;
                 }
-                formula.backtrackUnitLiterals();
-                return false;
-            } else if (unitliteral.getVariable().getState() == Assignment.OPEN) {
-                variablesToRevert.add(unitliteral.getVariable());
-                partialAssignment.add(unitliteral);
-                formula.condition(unitliteral.getVariable(), unitliteral.getTruthValue());
+
+                trail.push(-trail.pop());
+                formula.propagateAfterSwappingVariableAssigment(Math.abs(nextLiteral), !firstBranchingDecision);
+
+            } else {
+                int nextVariable = variableSelectionStrategy.getNextVariable(formula);
+
+                if (nextVariable == -1) {
+                    continue;
+                }
+
+                formula.propagate(nextVariable, firstBranchingDecision);
+                trail.push(nextVariable);
             }
+
+
+
         }
 
+        return true;
 
-        if (partialAssignment.size() == formula.getVariableSize()) {
-            return true;
+
+    }
+
+    private boolean unitPropagation(Deque<Integer> trail, Formula formula) {
+        List<Integer> unitLiterals = formula.getUnitLiterals();
+        while (unitLiterals.size() > 0) {
+            int nextLiteral = unitLiterals.remove(0);
+
+            if (formula.variableAlreadyHasTheSameValue(nextLiteral)) {
+                continue;
+            }
+
+            if (!formula.propagate(nextLiteral)) {
+                formula.emptyUnitLiterals();
+                return false;
+            }
+            trail.push(-Math.abs(nextLiteral));
         }
 
-        Variable variable = this.variableSelectionStrategy.getNextVariable(formula);
+        return true;
+    }
 
-        variablesToRevert.add(variable);
-        Literal literal = new Literal(variable, true);
+    private int findLastLiteralNotTriedBothValues(Deque<Integer> trail, int firstBranchingDecision, Formula formula) {
+        Iterator<Integer> trailIterator = trail.iterator();
 
-        formula.condition(variable, true);
-        partialAssignment.add(literal);
+        while (trailIterator.hasNext()) {
+            int nextLiteral = trailIterator.next();
 
-        if (mDPPLAlgorithm(formula, partialAssignment)) {
-            return true;
+            if (nextLiteral > 0) {
+                return nextLiteral;
+            }
+
+            formula.unassignVariable(nextLiteral);
+            trailIterator.remove();
+
         }
 
-        literal.setState(false);
-        formula.condition(variable, false);
-
-        if (mDPPLAlgorithm(formula, partialAssignment)) {
-            return true;
-        }
-
-        for (int i = 0; i < variablesToRevert.size(); i++) {
-            variablesToRevert.get(i).setAssigment(Assignment.OPEN);
-        }
-
-        return false;
-
-
+        return -1;
     }
 
 }

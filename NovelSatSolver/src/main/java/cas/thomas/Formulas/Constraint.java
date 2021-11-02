@@ -2,37 +2,24 @@ package cas.thomas.Formulas;
 
 import cas.thomas.SolutionChecker.SolutionCheckerConstraint;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public abstract class Constraint {
 
     protected int firstWatchedIndex;
     protected int secondWatchedIndex;
-    protected boolean isUnitConstraint;
-    protected Literal[] literals;
-    protected List<Literal> unitLiterals;
+    protected int[] literals;
 
-    public Constraint(Literal[] literals) {
-
+    public Constraint(int[] literals, List<Constraint>[] positivelyWatchedList,
+                      List<Constraint>[] negativelyWatchedList) {
         this.literals = literals;
-        this.isUnitConstraint = false;
-        this.unitLiterals = new ArrayList<>();
-
     }
 
 
-    public abstract List<Literal> condition(Literal literal);
+    public abstract boolean propagate(int propagatedLiteral, int[] variableAssignments, List<Integer> unitLiterals,
+                                      List<Constraint>[] positivelyWatched, List<Constraint>[] negativelyWatched);
 
-    public boolean isUnitConstraint() {
-        return this.isUnitConstraint;
-    }
-
-    public List<Literal> getUnitLiterals() {
-        return this.unitLiterals;
-    }
-
-    protected abstract Literal[] getWatchedLiterals();
+    protected abstract int[] getWatchedLiterals();
 
     public abstract SolutionCheckerConstraint getSolutionCheckerConstraint();
 
