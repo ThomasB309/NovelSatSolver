@@ -4,5 +4,5 @@ import cas.thomas.Formulas.Formula;
 
 public interface VariableSelectionStrategy {
 
-    public int getNextVariable(Formula formula);
+    int getNextVariable(Formula formula, boolean conflictLastRound);
 }

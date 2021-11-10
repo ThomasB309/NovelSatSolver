@@ -48,6 +48,7 @@ public class ClauseParser {
 
         numberOfVariables++;
         Constraint[] constraints = new Constraint[numberOfClauses];
+        int[] variableOccurences = new int[numberOfVariables];
         SolutionCheckerConstraint[] solutionCheckerConstraints = new SolutionCheckerConstraint[numberOfClauses];
         List<Constraint>[] positivelyWatchedDisjunctiveConstraints = (ArrayList<Constraint>[]) new ArrayList[numberOfVariables];
         List<Constraint>[] negativelyWatchedDisjunctiveConstraints =
@@ -84,6 +85,7 @@ public class ClauseParser {
             if (nextConstraint != null) {
                 constraints[clausecounter] = nextConstraint;
                 solutionCheckerConstraints[clausecounter] = nextConstraint.getSolutionCheckerConstraint();
+                addVariableOccurenceCount(nextConstraint.getLiterals(), variableOccurences);
             }
 
             clausecounter++;
@@ -95,7 +97,7 @@ public class ClauseParser {
         }
 
 
-        return new Pair<>(new Formula(numberOfVariables, constraints,
+        return new Pair<>(new Formula(numberOfVariables, constraints, variableOccurences,
                 listOfUnitVariables, positivelyWatchedDisjunctiveConstraints, negativelyWatchedDisjunctiveConstraints
                 , positivelyWatchedAMOConstraints, negativelyWatchedAMOConstraints),
                 new SolutionCheckerConjunctiveFormula(solutionCheckerConstraints));
@@ -182,6 +184,12 @@ public class ClauseParser {
 
         return variables;
 
+    }
+
+    private void addVariableOccurenceCount(int[] literals, int[] variableOccurences) {
+        for (int i = 0; i < literals.length; i++) {
+            variableOccurences[Math.abs(literals[i])] += 1;
+        }
     }
 
 

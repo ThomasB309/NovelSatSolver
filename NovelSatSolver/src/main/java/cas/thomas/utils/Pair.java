@@ -18,4 +18,8 @@ public class Pair<X,Y> {
     public Y getSecondPairPart() {
         return secondPairPart;
     }
+
+    public String toString() {
+        return "(" +  firstPairPart.toString() + ", " + secondPairPart.toString() + ")";
+    }
 }

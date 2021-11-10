@@ -5,7 +5,7 @@ import cas.thomas.Formulas.Formula;
 public class FirstOpenVariableSelection implements VariableSelectionStrategy {
 
     @Override
-    public int getNextVariable(Formula formula) {
+    public int getNextVariable(Formula formula, boolean conflictLastRound) {
         int[] variables = formula.getVariables();
 
         for (int i = 1; i < variables.length; i++) {

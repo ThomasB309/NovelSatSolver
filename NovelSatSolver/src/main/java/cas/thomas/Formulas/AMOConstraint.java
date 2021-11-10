@@ -3,9 +3,6 @@ package cas.thomas.Formulas;
 import cas.thomas.SolutionChecker.SolutionCheckerAMOConstraint;
 import cas.thomas.SolutionChecker.SolutionCheckerConstraint;
 
-import javax.security.auth.login.AccountNotFoundException;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class AMOConstraint extends Constraint {
@@ -13,7 +10,7 @@ public class AMOConstraint extends Constraint {
 
     public AMOConstraint(int[] literals, List<Constraint>[] positivelyWatchedList,
                          List<Constraint>[] negativelyWatchedList) {
-        super(literals, positivelyWatchedList, negativelyWatchedList);
+        super(literals);
 
         this.literals = literals;
 
@@ -31,7 +28,8 @@ public class AMOConstraint extends Constraint {
 
     @Override
     public boolean propagate(int propagatedLiteral, int[] variableAssignments, List<Integer> unitLiterals,
-                             List<Constraint>[] positivelyWatched, List<Constraint>[] negativelyWatched) {
+                             List<Constraint>[] positivelyWatched, List<Constraint>[] negativelyWatched,
+                             Constraint[] reasonClauses) {
 
         for (int i = 0; i < literals.length; i++) {
             int currentLiteral = literals[i];
@@ -50,11 +48,6 @@ public class AMOConstraint extends Constraint {
         return false;
     }
 
-
-    @Override
-    protected int[] getWatchedLiterals() {
-        return new int[0];
-    }
 
     @Override
     public SolutionCheckerConstraint getSolutionCheckerConstraint() {

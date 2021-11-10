@@ -127,28 +127,4 @@ public class SudokuConstraintConverter {
         return String.valueOf((x-1) * fieldSize * fieldSize + (y-1) * fieldSize + z);
     }
 
-    private static int cantoirPairing(int x, int y) {
-        return ((x + y) * (x + y + 1)) / 2 + y;
-    }
-
-    public static List<Integer> reverseUniqueIdentifier(String identifier) {
-        int identifierVariable = Integer.parseInt(identifier);
-        List<Integer> split = reverseCantorPairing(identifierVariable);
-
-        int tmp = split.get(0);
-        int z = split.get(1);
-
-        split = reverseCantorPairing(tmp);
-
-        return Arrays.asList(split.get(0), split.get(1), z);
-    }
-
-    private static List<Integer> reverseCantorPairing(int z) {
-        double w = Math.floor((Math.sqrt(8*z + 1) - 1) / 2);
-        double t = ((w * w) + w) / 2;
-        int y = (int) (z - t);
-        int x = (int) (w - y);
-
-        return Arrays.asList(x, y);
-    }
 }

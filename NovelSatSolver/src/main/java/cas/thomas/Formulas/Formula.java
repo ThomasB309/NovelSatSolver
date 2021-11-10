@@ -1,6 +1,8 @@
 package cas.thomas.Formulas;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.IntStream;
@@ -8,22 +10,33 @@ import java.util.stream.IntStream;
 public class Formula {
 
     private int[] variables;
+    private int[] variableOccurences;
+    private int[] phaseSavingLastAssignment;
     private Constraint[] constraints;
     private List<Constraint>[] positivelyWatchedDisjunctiveConstraints;
     private List<Constraint>[] negativelyWatchedDisjunctiveConstraints;
     private List<Constraint>[] positivelWatchedAMOConstraints;
     private List<Constraint>[] negativelyWatchedAMOConstraints;
+
+    private Constraint[] reasonClauses;
+    private Constraint conflictClause;
+    private boolean hasConflict;
     private List<Integer> unitLiterals;
     int assignedCounter;
 
-    public Formula(int variableCount, Constraint[] constraints, List<Integer> unitLiterals,
+    public Formula(int variableCount, Constraint[] constraints, int[] variableOccurences, List<Integer> unitLiterals,
                    List<Constraint>[] positivelyWatchedDisjunctiveConstraints
             , List<Constraint>[] negativelyWatchedDisjunctiveConstraints,
                    List<Constraint>[] positivelWatchedAMOConstraints,
                    List<Constraint>[] negativelyWatchedAMOConstraints) {
         this.variables = new int[variableCount];
+        this.phaseSavingLastAssignment = new int[variableCount];
+        this.variableOccurences = variableOccurences;
+        this.reasonClauses = new Constraint[variableCount];
         this.unitLiterals = unitLiterals;
         this.constraints = constraints;
+        this.conflictClause = null;
+        this.hasConflict = false;
         this.positivelyWatchedDisjunctiveConstraints = positivelyWatchedDisjunctiveConstraints;
         this.negativelyWatchedDisjunctiveConstraints = negativelyWatchedDisjunctiveConstraints;
         this.positivelWatchedAMOConstraints = positivelWatchedAMOConstraints;
@@ -31,21 +44,17 @@ public class Formula {
         this.assignedCounter = 0;
     }
 
-    public boolean propagate(int literal) {
-        return propagate(Math.abs(literal), literal < 0 ? false : true);
+    public void propagate(int literal) {
+        propagate(Math.abs(literal), literal < 0 ? false : true);
     }
 
-    public boolean propagateAfterSwappingVariableAssigment(int variable, boolean truthValue) {
+    public void propagateAfterSwappingVariableAssigment(int variable, boolean truthValue) {
         assignedCounter--;
         variables[variable] *= -1;
-        return propagate(variable, truthValue);
+        propagate(variable, truthValue);
     }
 
-    public boolean propagate(int variable, boolean truthValue) {
-
-        if (checkForConflictingVariableAssignment(variable, truthValue)) {
-            return false;
-        }
+    public void propagate(int variable, boolean truthValue) {
 
         assignedCounter++;
 
@@ -59,28 +68,35 @@ public class Formula {
             propagateInAMOConstraints(negativelyWatchedAMOConstraints[variable], variable);
         }
 
-        return true;
     }
 
     private void propagateInDisjunctiveConstraints(List<Constraint> watchedList, int literal) {
-        List<Constraint> stillWatched = new ArrayList<>(watchedList.size());
-        for (int i = 0; i < watchedList.size(); i++) {
-            Constraint currentConstraint = watchedList.get(i);
-            if (currentConstraint.propagate(literal, variables, unitLiterals, positivelyWatchedDisjunctiveConstraints
-                    ,negativelyWatchedDisjunctiveConstraints)) {
-                stillWatched.add(currentConstraint);
+        for (Iterator<Constraint> constraintIterator = watchedList.listIterator(); constraintIterator.hasNext();) {
+            Constraint currentConstraint = constraintIterator.next();
+
+            if (currentConstraint == null) {
+                constraintIterator.remove();
+                continue;
+            }
+
+            if (!currentConstraint.propagate(literal, variables, unitLiterals, positivelyWatchedDisjunctiveConstraints
+                    ,negativelyWatchedDisjunctiveConstraints, reasonClauses)) {
+                constraintIterator.remove();
+            }
+
+            if (currentConstraint.resetConflictState()) {
+                conflictClause = currentConstraint;
+                hasConflict = true;
+                return;
             }
         }
-
-        watchedList.clear();
-        watchedList.addAll(stillWatched);
     }
 
     private void propagateInAMOConstraints(List<Constraint> watchedList, int literal) {
         for (int i = 0; i < watchedList.size(); i++) {
             Constraint currentConstraint = watchedList.get(i);
             currentConstraint.propagate(literal, variables, unitLiterals, positivelWatchedAMOConstraints,
-                    negativelyWatchedAMOConstraints);
+                    negativelyWatchedAMOConstraints, reasonClauses);
         }
     }
 
@@ -93,15 +109,6 @@ public class Formula {
         variables[Math.abs(literal)] = 0;
     }
 
-    public void assignVariable(int literal) {
-        assignedCounter++;
-        variables[Math.abs(literal)] = literal < 0 ? -1 : 1;
-    }
-
-    public void swapLiteralAssignment(int literal) {
-        variables[Math.abs(literal)] *= -1;
-    }
-
     public int getAssignedCounter() {
         return assignedCounter;
     }
@@ -110,24 +117,8 @@ public class Formula {
         return unitLiterals;
     }
 
-    public boolean checkForConflictingVariableAssignment(int variable, boolean wantedTruthValue) {
-        int variableValue = variables[variable];
-
-        if (variableValue == 0) {
-            return false;
-        }
-
-        return ((variableValue < 0 ? false : true) ^ wantedTruthValue);
-    }
-
     public int[] getVariables() {
         return variables;
-    }
-
-    public int getVariableWithMostOccurences() {
-
-       return IntStream.range(1, variables.length).boxed().filter(a -> variables[a] == 0)
-        .max((a,b) -> Integer.compare(positivelyWatchedDisjunctiveConstraints[a].size() + negativelyWatchedDisjunctiveConstraints[a].size(), positivelyWatchedDisjunctiveConstraints[b].size() + positivelyWatchedDisjunctiveConstraints[b].size())).orElse(-1);
     }
 
     public void emptyUnitLiterals() {
@@ -155,5 +146,63 @@ public class Formula {
 
         return false;
     }
+
+    public boolean hasConflict() {
+        return hasConflict;
+    }
+
+    public Constraint getConflictClause() {
+        return conflictClause;
+    }
+
+    public void resetConflictState() {
+        hasConflict = false;
+    }
+
+    public Constraint getReasonClauses(int literal) {
+        return reasonClauses[Math.abs(literal)];
+    }
+
+    public DisjunctiveConstraint addDisjunctiveConstraint(int[] literals) {
+        return new DisjunctiveConstraint(literals, positivelyWatchedDisjunctiveConstraints,
+                negativelyWatchedDisjunctiveConstraints);
+    }
+
+    public void removeReasonClauses() {
+        reasonClauses = new Constraint[variables.length];
+    }
+
+    public void setReasonClauses(Constraint[] reasonClauses) {
+        this.reasonClauses = Arrays.copyOf(reasonClauses, reasonClauses.length);
+    }
+
+    public void addUnitLiterals(List<Integer> unitLiterals) {
+        this.unitLiterals.addAll(unitLiterals);
+    }
+
+    public void addVariableOccurenceCount(int[] literals) {
+        for (int i = 0; i < literals.length; i++) {
+            variableOccurences[Math.abs(literals[i])] += 1;
+        }
+    }
+
+    public void halfVariableOccurenceCounter() {
+        for (int i = 0; i < variableOccurences.length; i++) {
+            variableOccurences[i] /= 2;
+        }
+    }
+
+    public int[] getVariableOccurences() {
+        return variableOccurences;
+    }
+
+    public void setPhaseSavingLastAssignment(int literal) {
+        phaseSavingLastAssignment[Math.abs(literal)] = literal < 0 ? -1 : 1;
+    }
+
+    public int getPhaseSavingLastAssignment(int literal) {
+        return phaseSavingLastAssignment[Math.abs(literal)];
+    }
+
 
 }
