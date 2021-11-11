@@ -29,6 +29,7 @@ public class Formula {
             , List<Constraint>[] negativelyWatchedDisjunctiveConstraints,
                    List<Constraint>[] positivelWatchedAMOConstraints,
                    List<Constraint>[] negativelyWatchedAMOConstraints) {
+
         this.variables = new int[variableCount];
         this.phaseSavingLastAssignment = new int[variableCount];
         this.variableOccurences = variableOccurences;
@@ -97,6 +98,12 @@ public class Formula {
             Constraint currentConstraint = watchedList.get(i);
             currentConstraint.propagate(literal, variables, unitLiterals, positivelWatchedAMOConstraints,
                     negativelyWatchedAMOConstraints, reasonClauses);
+
+            if (currentConstraint.resetConflictState()) {
+                conflictClause = currentConstraint;
+                hasConflict = true;
+                return;
+            }
         }
     }
 
@@ -161,6 +168,10 @@ public class Formula {
 
     public Constraint getReasonClauses(int literal) {
         return reasonClauses[Math.abs(literal)];
+    }
+
+    public Constraint[] getReasonClauses() {
+        return reasonClauses;
     }
 
     public DisjunctiveConstraint addDisjunctiveConstraint(int[] literals) {

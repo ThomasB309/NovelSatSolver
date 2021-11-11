@@ -36,8 +36,18 @@ public class AMOConstraint extends Constraint {
 
             if (propagatedLiteral == currentLiteral) {
                 for (int a = 0; a < literals.length; a++) {
+                    int unitLiteralCandidate = -literals[a];
+                    int unitLiteralCandidateAbsoluteValue = Math.abs(unitLiteralCandidate);
+
                     if (a != i) {
-                        unitLiterals.add(-literals[a]);
+
+                        if (variableAssignments[unitLiteralCandidateAbsoluteValue] * unitLiteralCandidate < 0) {
+                            hasConflict = true;
+                            conflictLiteral = unitLiteralCandidate;
+                            return true;
+                        } else if (variableAssignments[unitLiteralCandidateAbsoluteValue] == 0) {
+                            unitLiterals.add(unitLiteralCandidate);
+                        }
                     }
                 }
 

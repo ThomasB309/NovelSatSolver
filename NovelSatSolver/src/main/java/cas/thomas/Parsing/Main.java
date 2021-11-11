@@ -41,6 +41,11 @@ public class Main {
 
         Properties properties = new Properties();
 
+        /*
+        This section of reading the properties and input files is only temporary for debugging purposes. Later on the
+         user will be able to choose the input files with command line options.
+         */
+
         try {
             properties.load(new FileReader(new File("C:\\Masterthesis\\NovelSatSolver\\src\\main\\resources\\config" +
                     ".properties")));
@@ -56,7 +61,7 @@ public class Main {
 
             try {
                 input =
-                        Files.readAllLines(Paths.get( "InputFiles","200", "uf200-0" + a + ".cnf"),
+                        Files.readAllLines(Paths.get( "InputFiles", "200","uf200-0" + a + ".cnf"),
                                 StandardCharsets.UTF_8).toArray(new String[0]);
             } catch (IOException e) {
                 System.err.println("Something went wrong while reading the specified input file!");

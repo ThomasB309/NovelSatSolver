@@ -128,10 +128,10 @@ public class DisjunctiveConstraint extends Constraint {
         if (variableAssignments[firstWatchedLiteralAbsoluteValue] * firstWatchedLiteral < 0) {
             hasConflict = true;
             conflictLiteral = firstWatchedLiteral;
+        } else if (variableAssignments[firstWatchedLiteralAbsoluteValue] == 0) {
+            unitLiterals.add(firstWatchedLiteral);
+            reasonClauses[firstWatchedLiteralAbsoluteValue] = this;
         }
-
-        unitLiterals.add(firstWatchedLiteral);
-        reasonClauses[firstWatchedLiteralAbsoluteValue] = this;
 
     }
 

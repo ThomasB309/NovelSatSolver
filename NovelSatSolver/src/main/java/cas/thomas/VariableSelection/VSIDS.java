@@ -31,7 +31,7 @@ public class VSIDS implements VariableSelectionStrategy {
                     IntStream.range(1, variableOccurences.length).boxed().sorted((a,b) -> Integer.compare(variableOccurences[a], variableOccurences[b]) * -1).mapToInt(a -> a.intValue()).toArray();
         }
 
-        if (conflictCounter % 1024 == 0 && conflictCounter > 0) {
+        if (conflictCounter % 256 == 0 && conflictCounter > 0) {
             formula.halfVariableOccurenceCounter();
             currentOrdering =
                     IntStream.range(1, variableOccurences.length).boxed().sorted((a,b) -> Integer.compare(variableOccurences[a], variableOccurences[b]) * -1).mapToInt(a -> a.intValue()).toArray();
