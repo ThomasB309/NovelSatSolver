@@ -48,7 +48,7 @@ public class ClauseParser {
 
         numberOfVariables++;
         Constraint[] constraints = new Constraint[numberOfClauses];
-        int[] variableOccurences = new int[numberOfVariables];
+        double[] variableOccurences = new double[numberOfVariables];
         SolutionCheckerConstraint[] solutionCheckerConstraints = new SolutionCheckerConstraint[numberOfClauses];
         List<Constraint>[] positivelyWatchedDisjunctiveConstraints = (ArrayList<Constraint>[]) new ArrayList[numberOfVariables];
         List<Constraint>[] negativelyWatchedDisjunctiveConstraints =
@@ -186,7 +186,7 @@ public class ClauseParser {
 
     }
 
-    private void addVariableOccurenceCount(int[] literals, int[] variableOccurences) {
+    private void addVariableOccurenceCount(int[] literals, double[] variableOccurences) {
         for (int i = 0; i < literals.length; i++) {
             variableOccurences[Math.abs(literals[i])] += 1;
         }

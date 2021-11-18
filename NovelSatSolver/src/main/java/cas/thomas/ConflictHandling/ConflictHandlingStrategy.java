@@ -6,6 +6,8 @@ import java.util.Deque;
 
 public interface ConflictHandlingStrategy {
 
-    public boolean handleConflict(Deque<Integer> trail, Formula formula, boolean branchingDecision);
+    boolean handleConflict(Deque<Integer> trail, Formula formula, boolean branchingDecision,
+                                  int[] variableDecisionLevel);
+
 
 }

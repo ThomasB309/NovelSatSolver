@@ -5,12 +5,11 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.stream.IntStream;
 
 public class Formula {
 
     private int[] variables;
-    private int[] variableOccurences;
+    private double[] variableOccurences;
     private int[] phaseSavingLastAssignment;
     private Constraint[] constraints;
     private List<Constraint>[] positivelyWatchedDisjunctiveConstraints;
@@ -18,13 +17,16 @@ public class Formula {
     private List<Constraint>[] positivelWatchedAMOConstraints;
     private List<Constraint>[] negativelyWatchedAMOConstraints;
 
+    private int currentDecisionLevel;
+    private int[] decisionLevelOfVariables;
+
     private Constraint[] reasonClauses;
     private Constraint conflictClause;
     private boolean hasConflict;
     private List<Integer> unitLiterals;
     int assignedCounter;
 
-    public Formula(int variableCount, Constraint[] constraints, int[] variableOccurences, List<Integer> unitLiterals,
+    public Formula(int variableCount, Constraint[] constraints, double[] variableOccurences, List<Integer> unitLiterals,
                    List<Constraint>[] positivelyWatchedDisjunctiveConstraints
             , List<Constraint>[] negativelyWatchedDisjunctiveConstraints,
                    List<Constraint>[] positivelWatchedAMOConstraints,
@@ -34,6 +36,7 @@ public class Formula {
         this.phaseSavingLastAssignment = new int[variableCount];
         this.variableOccurences = variableOccurences;
         this.reasonClauses = new Constraint[variableCount];
+        this.decisionLevelOfVariables = new int[variableCount];
         this.unitLiterals = unitLiterals;
         this.constraints = constraints;
         this.conflictClause = null;
@@ -43,6 +46,7 @@ public class Formula {
         this.positivelWatchedAMOConstraints = positivelWatchedAMOConstraints;
         this.negativelyWatchedAMOConstraints = negativelyWatchedAMOConstraints;
         this.assignedCounter = 0;
+        this.currentDecisionLevel = 0;
     }
 
     public void propagate(int literal) {
@@ -75,7 +79,7 @@ public class Formula {
         for (Iterator<Constraint> constraintIterator = watchedList.listIterator(); constraintIterator.hasNext();) {
             Constraint currentConstraint = constraintIterator.next();
 
-            if (currentConstraint == null) {
+            if (currentConstraint.isObsolete()) {
                 constraintIterator.remove();
                 continue;
             }
@@ -191,19 +195,15 @@ public class Formula {
         this.unitLiterals.addAll(unitLiterals);
     }
 
-    public void addVariableOccurenceCount(int[] literals) {
+    public void adjustVariableScores(int[] literals, long conflictIndex) {
         for (int i = 0; i < literals.length; i++) {
-            variableOccurences[Math.abs(literals[i])] += 1;
+            if (literals[i] == 1){
+                variableOccurences[i] += Math.pow(1.01, conflictIndex);
+            }
         }
     }
 
-    public void halfVariableOccurenceCounter() {
-        for (int i = 0; i < variableOccurences.length; i++) {
-            variableOccurences[i] /= 2;
-        }
-    }
-
-    public int[] getVariableOccurences() {
+    public double[] getVariableOccurences() {
         return variableOccurences;
     }
 
@@ -213,6 +213,22 @@ public class Formula {
 
     public int getPhaseSavingLastAssignment(int literal) {
         return phaseSavingLastAssignment[Math.abs(literal)];
+    }
+
+    public void setCurrentDecisionLevel(int currentDecisionLevel) {
+        this.currentDecisionLevel = currentDecisionLevel;
+    }
+
+    public void increaseCurrentDecisionLevel() {
+        currentDecisionLevel++;
+    }
+
+    public int getCurrentDecisionLevel() {
+        return currentDecisionLevel;
+    }
+
+    public int[] getDecisionLevelOfVariables() {
+        return decisionLevelOfVariables;
     }
 
 

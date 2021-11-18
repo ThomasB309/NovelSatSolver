@@ -2,18 +2,22 @@ package cas.thomas.Formulas;
 
 import cas.thomas.SolutionChecker.SolutionCheckerConstraint;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public abstract class Constraint {
 
     protected int[] literals;
     protected boolean hasConflict;
     protected int conflictLiteral;
+    private boolean obsolete;
 
     public Constraint(int[] literals) {
         this.literals = literals;
         this.hasConflict = false;
         conflictLiteral = 0;
+        obsolete = false;
     }
 
 
@@ -32,6 +36,24 @@ public abstract class Constraint {
 
     public int[] getLiterals() {
         return literals;
+    }
+
+    public int getLBDScore(int[] variableDecisionLevels) {
+        Set<Integer> distinctDecisionLevels = new HashSet<>();
+
+        for (int i = 0; i < literals.length; i++) {
+            distinctDecisionLevels.add(variableDecisionLevels[Math.abs(literals[i])]);
+        }
+
+        return distinctDecisionLevels.size();
+    }
+
+    public void setObsolete() {
+        obsolete = true;
+    }
+
+    public boolean isObsolete() {
+        return obsolete;
     }
 
 

@@ -7,16 +7,12 @@ import java.util.List;
 
 public class DisjunctiveConstraint extends Constraint {
 
-    private int firstWatchedIndex;
-    private int secondWatchedIndex;
-
     public DisjunctiveConstraint(int[] literals, List<Constraint>[] positivelyWatchedList,
                                  List<Constraint>[] negativelyWatchedList) {
         super(literals);
 
         assert (literals.length >= 1);
 
-        assignWatchedIndicesAndLiterals(literals, positivelyWatchedList, negativelyWatchedList);
         assignWatchedLiteralsToWatchList(positivelyWatchedList, negativelyWatchedList);
     }
 
@@ -28,7 +24,7 @@ public class DisjunctiveConstraint extends Constraint {
 
 
 
-        int firstWatchedLiteral = literals[firstWatchedIndex];
+        int firstWatchedLiteral = literals[0];
         int firstWatchedLiteralAbsoluteValue = Math.abs(firstWatchedLiteral);
 
         if (literals.length == 1) {
@@ -38,19 +34,19 @@ public class DisjunctiveConstraint extends Constraint {
         }
 
 
-        int secondWatchedLiteral = literals[secondWatchedIndex];
+        int secondWatchedLiteral = literals[1];
         int secondWatchedLiteralAbsoluteValue = Math.abs(secondWatchedLiteral);
 
         boolean unitPropagation = true;
 
         if (firstWatchedLiteral == -propagatedLiteral) {
             unitPropagation = propagateWatchedLiteral(variableAssignments, positivelyWatched, negativelyWatched,
-                     firstWatchedIndex, secondWatchedLiteral, secondWatchedLiteralAbsoluteValue, unitLiterals,
+                     true, secondWatchedLiteral, secondWatchedLiteralAbsoluteValue, unitLiterals,
                     reasonClauses);
 
         } else if (secondWatchedLiteral == -propagatedLiteral) {
             unitPropagation = propagateWatchedLiteral(variableAssignments, positivelyWatched, negativelyWatched,
-                     secondWatchedIndex, firstWatchedLiteral, firstWatchedLiteralAbsoluteValue, unitLiterals,
+                     false, firstWatchedLiteral, firstWatchedLiteralAbsoluteValue, unitLiterals,
                     reasonClauses);
         }
 
@@ -63,39 +59,22 @@ public class DisjunctiveConstraint extends Constraint {
     }
 
 
-
-    private void assignWatchedIndicesAndLiterals(int[] literals, List<Constraint>[] positivelyWatchedList,
-                                                 List<Constraint>[] negativelyWatchedList) {
-        if (literals.length > 1) {
-            firstWatchedIndex = 0;
-            secondWatchedIndex = 1;
-
-        } else if (literals.length == 1) {
-            firstWatchedIndex = 0;
-            secondWatchedIndex = -1;
-
-        } else {
-            firstWatchedIndex = -1;
-            secondWatchedIndex = -1;
-        }
-    }
-
     private void assignWatchedLiteralsToWatchList(List<Constraint>[] positivelyWatchedList,
                                                   List<Constraint>[] negativelyWatchedList) {
 
-        if (firstWatchedIndex >= 0) {
-            assignWatchedLiteralToWatchList(firstWatchedIndex, positivelyWatchedList, negativelyWatchedList);
+        if (literals.length > 0) {
+            assignWatchedLiteralToWatchList(true, positivelyWatchedList, negativelyWatchedList);
         }
 
-        if (secondWatchedIndex >= 0) {
-            assignWatchedLiteralToWatchList(secondWatchedIndex, positivelyWatchedList, negativelyWatchedList);
+        if (literals.length > 1) {
+            assignWatchedLiteralToWatchList(false, positivelyWatchedList, negativelyWatchedList);
         }
     }
 
-    private void assignWatchedLiteralToWatchList(int index, List<Constraint>[] positivelyWatchedList,
+    private void assignWatchedLiteralToWatchList(boolean firstLiteral, List<Constraint>[] positivelyWatchedList,
                                                  List<Constraint>[] negativelyWatchedList) {
 
-        int watchedLiteral = literals[index];
+        int watchedLiteral = firstLiteral ? literals[0] : literals[1];
 
         if (watchedLiteral < 0) {
             negativelyWatchedList[Math.abs(watchedLiteral)].add(this);
@@ -130,27 +109,32 @@ public class DisjunctiveConstraint extends Constraint {
             conflictLiteral = firstWatchedLiteral;
         } else if (variableAssignments[firstWatchedLiteralAbsoluteValue] == 0) {
             unitLiterals.add(firstWatchedLiteral);
-            reasonClauses[firstWatchedLiteralAbsoluteValue] = this;
+            if (reasonClauses[firstWatchedLiteralAbsoluteValue] == null) {
+                reasonClauses[firstWatchedLiteralAbsoluteValue] = this;
+            }
         }
 
     }
 
     private boolean propagateWatchedLiteral(int[] variableAssignments, List<Constraint>[] positivelyWatched,
                                             List<Constraint>[] negativelyWatched,
-                                            int indexOfVariableThatTurnedFalse,
+                                            boolean firstLiteral,
                                             int unitLiteralCandidate, int unitLiteralCandidateAbsoluteValue,
                                             List<Integer> unitLiterals,
                                             Constraint[] reasonClauses) {
 
-        for (int i = 0; i < literals.length; i++) {
-            if (i != firstWatchedIndex && i != secondWatchedIndex && !checkIfLiteralIsFalse(literals[i], variableAssignments)) {
+        for (int i = 2; i < literals.length; i++) {
+            if (!checkIfLiteralIsFalse(literals[i], variableAssignments)) {
 
-                if (firstWatchedIndex == indexOfVariableThatTurnedFalse) {
-                    firstWatchedIndex = i;
-                    assignWatchedLiteralToWatchList(firstWatchedIndex, positivelyWatched, negativelyWatched);
+                int nextWatchedLiteral = literals[i];
+                if (firstLiteral) {
+                    literals[i] = literals[0];
+                    literals[0] = nextWatchedLiteral;
+                    assignWatchedLiteralToWatchList(true, positivelyWatched, negativelyWatched);
                 } else {
-                    secondWatchedIndex = i;
-                    assignWatchedLiteralToWatchList(secondWatchedIndex, positivelyWatched, negativelyWatched);
+                    literals[i] = literals[1];
+                    literals[1] = nextWatchedLiteral;
+                    assignWatchedLiteralToWatchList(false, positivelyWatched, negativelyWatched);
                 }
 
                 return false;

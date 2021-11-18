@@ -1,6 +1,7 @@
 package cas.thomas.SolverAlgorithms;
 
 import cas.thomas.ConflictHandling.ConflictHandlingStrategy;
+import cas.thomas.Formulas.Constraint;
 import cas.thomas.Formulas.Formula;
 import cas.thomas.RestartHandling.RestartSchedulingStrategy;
 import cas.thomas.VariableSelection.VariableSelectionStrategy;
@@ -43,11 +44,16 @@ public class mDPLL extends SolverAlgorithm {
         int numberOfVariables = formula.getNumberOfVariables();
         boolean conflict = false;
         Deque<Integer> trail = new ArrayDeque<>();
+        int[] variables = formula.getVariables();
+        double[] variableOccurences = formula.getVariableOccurences();
+        int[] variableDecisionLevel = formula.getDecisionLevelOfVariables();
+
         while (formula.getAssignedCounter() < numberOfVariables - 1) {
 
-            if (!unitPropagation(trail, formula)) {
+            if (!unitPropagation(trail, formula, variableDecisionLevel)) {
                 conflict = true;
-                if (!conflictHandlingStrategy.handleConflict(trail, formula, firstBranchingDecision)) {
+                if (!conflictHandlingStrategy.handleConflict(trail, formula, firstBranchingDecision,
+                        variableDecisionLevel)) {
                     return false;
                 }
 
@@ -55,14 +61,16 @@ public class mDPLL extends SolverAlgorithm {
 
 
             } else {
-                int nextVariable = variableSelectionStrategy.getNextVariable(formula, conflict);
+                formula.increaseCurrentDecisionLevel();
 
-                conflict = false;
+                int nextVariable = variableSelectionStrategy.getNextVariable(variables, variableOccurences, conflict,
+                        trail.peekFirst() == null ? 0 : trail.peekFirst());
 
                 if (nextVariable == -1) {
                     continue;
                 }
 
+                variableDecisionLevel[nextVariable] = formula.getCurrentDecisionLevel();
                 boolean branching = phaseSaving(formula, nextVariable);
                 formula.propagate(nextVariable, branching);
                 trail.push(nextVariable);
@@ -77,8 +85,16 @@ public class mDPLL extends SolverAlgorithm {
 
     }
 
-    private boolean unitPropagation(Deque<Integer> trail, Formula formula) {
+    private boolean unitPropagation(Deque<Integer> trail, Formula formula,
+                                    int[] variableDecisionLevels) {
         List<Integer> unitLiterals = formula.getUnitLiterals();
+
+        if (formula.hasConflict()) {
+            formula.resetConflictState();
+            formula.emptyUnitLiterals();
+            return false;
+        }
+
         while (unitLiterals.size() > 0) {
             int nextLiteral = unitLiterals.remove(0);
 
@@ -92,6 +108,7 @@ public class mDPLL extends SolverAlgorithm {
                 continue;
             }
 
+            variableDecisionLevels[Math.abs(nextLiteral)] = formula.getCurrentDecisionLevel();
             formula.propagate(nextLiteral);
             trail.push(-Math.abs(nextLiteral));
         }

@@ -9,7 +9,9 @@ public class DPLLConflictHandler implements ConflictHandlingStrategy {
 
 
     @Override
-    public boolean handleConflict(Deque<Integer> trail, Formula formula, boolean branchingDecision) {
+    public boolean handleConflict(Deque<Integer> trail, Formula formula, boolean branchingDecision,
+                                  int[] variableDecisionLevel) {
+
         int nextLiteral;
         if ((nextLiteral = findLastLiteralNotTriedBothValues(trail, formula)) == -1) {
             return false;
@@ -33,6 +35,7 @@ public class DPLLConflictHandler implements ConflictHandlingStrategy {
 
             formula.unassignVariable(nextLiteral);
             trailIterator.remove();
+
 
         }
 
