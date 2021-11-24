@@ -56,12 +56,12 @@ public class Main {
         }
 
 
-        for (int a = 1; a <= 1000; a++) {
+        for (int a = 1; a <= 100; a++) {
             String[] input = null;
 
             try {
                 input =
-                        Files.readAllLines(Paths.get( "InputFiles",    "uf50-0" + a + ".cnf"),
+                        Files.readAllLines(Paths.get( "InputFiles",    "200","uf200-0" + a + ".cnf"),
                                 StandardCharsets.UTF_8).toArray(new String[0]);
             } catch (IOException e) {
                 System.err.println("Something went wrong while reading the specified input file!");
@@ -92,7 +92,7 @@ public class Main {
 
         long endTime = System.nanoTime();
 
-        System.out.println(TimeUnit.MILLISECONDS.convert(endTime - startTime, TimeUnit.NANOSECONDS));
+        System.out.println(TimeUnit.SECONDS.convert(endTime - startTime, TimeUnit.NANOSECONDS));
 
 
     }

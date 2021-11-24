@@ -1,9 +1,10 @@
 package cas.thomas.Formulas;
 
+import cas.thomas.utils.IntegerArrayQueue;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 
 public class Formula {
@@ -23,10 +24,11 @@ public class Formula {
     private Constraint[] reasonClauses;
     private Constraint conflictClause;
     private boolean hasConflict;
-    private List<Integer> unitLiterals;
+    private IntegerArrayQueue unitLiterals;
     int assignedCounter;
 
-    public Formula(int variableCount, Constraint[] constraints, double[] variableOccurences, List<Integer> unitLiterals,
+    public Formula(int variableCount, Constraint[] constraints, double[] variableOccurences,
+                   IntegerArrayQueue unitLiterals,
                    List<Constraint>[] positivelyWatchedDisjunctiveConstraints
             , List<Constraint>[] negativelyWatchedDisjunctiveConstraints,
                    List<Constraint>[] positivelWatchedAMOConstraints,
@@ -76,7 +78,7 @@ public class Formula {
     }
 
     private void propagateInDisjunctiveConstraints(List<Constraint> watchedList, int literal) {
-        for (Iterator<Constraint> constraintIterator = watchedList.listIterator(); constraintIterator.hasNext();) {
+        for (Iterator<Constraint> constraintIterator = watchedList.iterator(); constraintIterator.hasNext();) {
             Constraint currentConstraint = constraintIterator.next();
 
             if (currentConstraint.isObsolete()) {
@@ -124,7 +126,7 @@ public class Formula {
         return assignedCounter;
     }
 
-    public List<Integer> getUnitLiterals() {
+    public IntegerArrayQueue getUnitLiterals() {
         return unitLiterals;
     }
 
@@ -133,7 +135,7 @@ public class Formula {
     }
 
     public void emptyUnitLiterals() {
-        unitLiterals = new LinkedList<>();
+        unitLiterals = new IntegerArrayQueue(variables.length);
     }
 
     public List<Integer> getVariablesForSolutionChecker() {
@@ -192,7 +194,9 @@ public class Formula {
     }
 
     public void addUnitLiterals(List<Integer> unitLiterals) {
-        this.unitLiterals.addAll(unitLiterals);
+        for (Integer unitLiteral : unitLiterals) {
+            this.unitLiterals.offer(unitLiteral);
+        }
     }
 
     public void adjustVariableScores(int[] literals, long conflictIndex) {
@@ -221,6 +225,10 @@ public class Formula {
 
     public void increaseCurrentDecisionLevel() {
         currentDecisionLevel++;
+    }
+
+    public void decreaseCurrentDecisionLevel() {
+        currentDecisionLevel--;
     }
 
     public int getCurrentDecisionLevel() {

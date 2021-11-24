@@ -1,13 +1,12 @@
 package cas.thomas.ConflictHandling;
 
 import cas.thomas.Formulas.Formula;
-
-import java.util.Deque;
+import cas.thomas.utils.IntegerStack;
 
 public interface ConflictHandlingStrategy {
 
-    boolean handleConflict(Deque<Integer> trail, Formula formula, boolean branchingDecision,
-                                  int[] variableDecisionLevel);
+    boolean handleConflict(IntegerStack trail, Formula formula, boolean branchingDecision,
+                           int[] variableDecisionLevel);
 
 
 }

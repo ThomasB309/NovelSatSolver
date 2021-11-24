@@ -1,18 +1,11 @@
 package cas.thomas.SolverAlgorithms;
 
 import cas.thomas.ConflictHandling.ConflictHandlingStrategy;
-import cas.thomas.Formulas.Constraint;
 import cas.thomas.Formulas.Formula;
 import cas.thomas.RestartHandling.RestartSchedulingStrategy;
 import cas.thomas.VariableSelection.VariableSelectionStrategy;
-import cas.thomas.utils.Pair;
-
-import java.util.ArrayDeque;
-import java.util.Arrays;
-import java.util.Deque;
-import java.util.Iterator;
-import java.util.List;
-import java.util.stream.Collectors;
+import cas.thomas.utils.IntegerArrayQueue;
+import cas.thomas.utils.IntegerStack;
 
 public class mDPLL extends SolverAlgorithm {
 
@@ -30,7 +23,7 @@ public class mDPLL extends SolverAlgorithm {
 
         boolean solution = mDPPLAlgorithm(formula, firstBranchingDecision);
 
-        System.out.println(formula.getVariablesForSolutionChecker());
+        //System.out.println(formula.getVariablesForSolutionChecker());
 
         if (solution == true) {
             return "SATISFIABLE";
@@ -43,7 +36,7 @@ public class mDPLL extends SolverAlgorithm {
     private boolean mDPPLAlgorithm(Formula formula, boolean firstBranchingDecision) {
         int numberOfVariables = formula.getNumberOfVariables();
         boolean conflict = false;
-        Deque<Integer> trail = new ArrayDeque<>();
+        IntegerStack trail = new IntegerStack(numberOfVariables);
         int[] variables = formula.getVariables();
         double[] variableOccurences = formula.getVariableOccurences();
         int[] variableDecisionLevel = formula.getDecisionLevelOfVariables();
@@ -57,14 +50,18 @@ public class mDPLL extends SolverAlgorithm {
                     return false;
                 }
 
-                restartSchedulingStrategy.handleRestart(trail, formula);
+                if (restartSchedulingStrategy.handleRestart(trail, formula)) {
+                    variableDecisionLevel = new int[numberOfVariables];
+                }
+
 
 
             } else {
+
                 formula.increaseCurrentDecisionLevel();
 
                 int nextVariable = variableSelectionStrategy.getNextVariable(variables, variableOccurences, conflict,
-                        trail.peekFirst() == null ? 0 : trail.peekFirst());
+                        trail.peekFirst() == 0 ? 0 : trail.peekFirst());
 
                 if (nextVariable == -1) {
                     continue;
@@ -85,9 +82,9 @@ public class mDPLL extends SolverAlgorithm {
 
     }
 
-    private boolean unitPropagation(Deque<Integer> trail, Formula formula,
+    private boolean unitPropagation(IntegerStack trail, Formula formula,
                                     int[] variableDecisionLevels) {
-        List<Integer> unitLiterals = formula.getUnitLiterals();
+        IntegerArrayQueue unitLiterals = formula.getUnitLiterals();
 
         if (formula.hasConflict()) {
             formula.resetConflictState();
@@ -96,7 +93,7 @@ public class mDPLL extends SolverAlgorithm {
         }
 
         while (unitLiterals.size() > 0) {
-            int nextLiteral = unitLiterals.remove(0);
+            int nextLiteral = unitLiterals.poll();
 
             if (formula.hasConflict()) {
                 formula.resetConflictState();

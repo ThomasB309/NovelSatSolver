@@ -1,9 +1,8 @@
 package cas.thomas.RestartHandling;
 
 import cas.thomas.Formulas.Formula;
-import cas.thomas.utils.Pair;
+import cas.thomas.utils.IntegerStack;
 
-import java.util.Deque;
 import java.util.Iterator;
 
 public class ReluctantDoublingRestartStrategy extends RestartSchedulingStrategy {
@@ -21,12 +20,12 @@ public class ReluctantDoublingRestartStrategy extends RestartSchedulingStrategy 
     }
 
     @Override
-    public void handleRestart(Deque<Integer> trail, Formula formula) {
+    public boolean handleRestart(IntegerStack trail, Formula formula) {
 
         conflictCounter++;
 
         if (conflictCounter < currenctConflictLimit) {
-            return;
+            return false;
         }
 
         setNextReluctantDoublingPair();
@@ -35,7 +34,7 @@ public class ReluctantDoublingRestartStrategy extends RestartSchedulingStrategy 
 
         restart(trail, formula);
 
-
+        return true;
     }
 
     private void setNextReluctantDoublingPair() {
@@ -46,15 +45,13 @@ public class ReluctantDoublingRestartStrategy extends RestartSchedulingStrategy 
         vn = v;
     }
 
-    private void restart(Deque<Integer> trail, Formula formula) {
-        for (Iterator<Integer> iterator = trail.iterator(); iterator.hasNext();) {
-            int currentLiteral = iterator.next();
-
+    private void restart(IntegerStack trail, Formula formula) {
+        while (trail.hasNext()) {
+            int currentLiteral = trail.pop();
             formula.unassignVariable(currentLiteral);
-            iterator.remove();
-
         }
 
+        formula.setCurrentDecisionLevel(0);
         formula.removeReasonClauses();
         conflictCounter = 0;
     }

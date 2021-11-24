@@ -1,6 +1,7 @@
 package cas.thomas.Formulas;
 
 import cas.thomas.SolutionChecker.SolutionCheckerConstraint;
+import cas.thomas.utils.IntegerArrayQueue;
 
 import java.util.HashSet;
 import java.util.List;
@@ -21,7 +22,7 @@ public abstract class Constraint {
     }
 
 
-    public abstract boolean propagate(int propagatedLiteral, int[] variableAssignments, List<Integer> unitLiterals,
+    public abstract boolean propagate(int propagatedLiteral, int[] variableAssignments, IntegerArrayQueue unitLiterals,
                                       List<Constraint>[] positivelyWatched, List<Constraint>[] negativelyWatched,
                                       Constraint[] reasonClauses);
 

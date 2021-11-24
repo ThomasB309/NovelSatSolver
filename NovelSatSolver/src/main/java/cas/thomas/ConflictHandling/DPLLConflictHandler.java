@@ -1,42 +1,43 @@
 package cas.thomas.ConflictHandling;
 
 import cas.thomas.Formulas.Formula;
+import cas.thomas.utils.IntegerStack;
 
-import java.util.Deque;
 import java.util.Iterator;
 
 public class DPLLConflictHandler implements ConflictHandlingStrategy {
 
 
     @Override
-    public boolean handleConflict(Deque<Integer> trail, Formula formula, boolean branchingDecision,
+    public boolean handleConflict(IntegerStack trail, Formula formula, boolean branchingDecision,
                                   int[] variableDecisionLevel) {
 
         int nextLiteral;
-        if ((nextLiteral = findLastLiteralNotTriedBothValues(trail, formula)) == -1) {
+        if ((nextLiteral = findLastLiteralNotTriedBothValues(trail, formula, variableDecisionLevel)) == -1) {
             return false;
         }
 
+        int nextLiteralAbsoluteValue = Math.abs(nextLiteral);
+
+        formula.setCurrentDecisionLevel(variableDecisionLevel[nextLiteralAbsoluteValue]);
         trail.push(-trail.pop());
-        formula.propagateAfterSwappingVariableAssigment(Math.abs(nextLiteral), !branchingDecision);
+        formula.propagateAfterSwappingVariableAssigment(nextLiteralAbsoluteValue, !branchingDecision);
 
         return true;
     }
 
-    private int findLastLiteralNotTriedBothValues(Deque<Integer> trail, Formula formula) {
-        Iterator<Integer> trailIterator = trail.iterator();
+    private int findLastLiteralNotTriedBothValues(IntegerStack trail, Formula formula, int[] variableDecisionLevel) {
+        while (trail.hasNext()) {
+            int nextLiteral = trail.peekFirst();
 
-        while (trailIterator.hasNext()) {
-            int nextLiteral = trailIterator.next();
 
             if (nextLiteral > 0) {
                 return nextLiteral;
             }
 
+            variableDecisionLevel[Math.abs(nextLiteral)] = 0;
+            trail.pop();
             formula.unassignVariable(nextLiteral);
-            trailIterator.remove();
-
-
         }
 
         return -1;

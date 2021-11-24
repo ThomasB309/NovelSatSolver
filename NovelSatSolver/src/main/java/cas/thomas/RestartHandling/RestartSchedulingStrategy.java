@@ -1,8 +1,7 @@
 package cas.thomas.RestartHandling;
 
 import cas.thomas.Formulas.Formula;
-
-import java.util.Deque;
+import cas.thomas.utils.IntegerStack;
 
 public abstract class RestartSchedulingStrategy {
 
@@ -14,5 +13,5 @@ public abstract class RestartSchedulingStrategy {
         this.conflictCounter = 0;
     }
 
-    public abstract void handleRestart(Deque<Integer> trail, Formula formula);
+    public abstract boolean handleRestart(IntegerStack trail, Formula formula);
 }

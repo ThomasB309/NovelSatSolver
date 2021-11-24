@@ -3,7 +3,7 @@ package cas.thomas.ConstraintTests;
 import cas.thomas.Formulas.AMOConstraint;
 import cas.thomas.Formulas.Constraint;
 import cas.thomas.Formulas.DisjunctiveConstraint;
-import cas.thomas.Formulas.Formula;
+import cas.thomas.utils.IntegerArrayQueue;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -14,7 +14,11 @@ import java.util.List;
 
 public class ConstraintTests {
 
-    private AMOConstraint amoConstraint;
+    /*
+    Need to be rewritten
+     */
+
+    /*private AMOConstraint amoConstraint;
     private DisjunctiveConstraint disjunctiveConstraint;
     private List<Constraint>[] positivelyWatchedDisjunctiveConstraints;
     private List<Constraint>[] negativelyWatchedDisjunctiveConstraints;
@@ -22,7 +26,7 @@ public class ConstraintTests {
     private List<Constraint>[] negativelyWatchedAMOConstraints;
     private int numberOfVariables;
     private int[] variableAssignments;
-    private List<Integer> unitLiterals;
+    private IntegerArrayQueue unitLiterals;
     private Constraint[] reasonClauses;
 
     @Before
@@ -148,6 +152,6 @@ public class ConstraintTests {
         Assert.assertEquals(unitLiterals.size(), 1);
         Assert.assertEquals(unitLiterals.get(0).intValue(), -3);
 
-    }
+    }*/
 
 }

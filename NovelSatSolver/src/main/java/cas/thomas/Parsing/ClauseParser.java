@@ -11,6 +11,7 @@ import cas.thomas.Formulas.Formula;
 import cas.thomas.SolutionChecker.SolutionCheckerConjunctiveFormula;
 import cas.thomas.SolutionChecker.SolutionCheckerConstraint;
 import cas.thomas.SolutionChecker.SolutionCheckerFormula;
+import cas.thomas.utils.IntegerArrayQueue;
 import cas.thomas.utils.Pair;
 
 import java.util.ArrayList;
@@ -67,7 +68,7 @@ public class ClauseParser {
             negativelyWatchedAMOConstraints[i] = new ArrayList<>();
         }
 
-        List<Integer> listOfUnitVariables = new ArrayList<>();
+        IntegerArrayQueue listOfUnitVariables = new IntegerArrayQueue(numberOfVariables);
 
         int clausecounter = 0;
         for (int i = indexOfFirstLine + 1; i < indexOfFirstLine + numberOfClauses + 1; i++) {
@@ -123,7 +124,7 @@ public class ClauseParser {
     }
 
     private Constraint parseClause(String line,
-                                   List<Integer> listOfUnitLiterals, List<Constraint>[] positivelyWatchedList,
+                                   IntegerArrayQueue listOfUnitLiterals, List<Constraint>[] positivelyWatchedList,
                                    List<Constraint>[] negativelyWatchedList, List<Constraint>[] positivelyWatchedAMOList
             , List<Constraint>[] negativelyWatchedAMOList) throws ClauseNotTerminatedByZeroException,
             EmptyClauseException, ClauseContainsZeroException {
@@ -144,7 +145,7 @@ public class ClauseParser {
 
 
             if (intVariables.length == 1) {
-                listOfUnitLiterals.add(intVariables[0]);
+                listOfUnitLiterals.offer(intVariables[0]);
             }
 
             if (identifier.equals("AMO")) {

@@ -2,6 +2,7 @@ package cas.thomas.Formulas;
 
 import cas.thomas.SolutionChecker.SolutionCheckerAMOConstraint;
 import cas.thomas.SolutionChecker.SolutionCheckerConstraint;
+import cas.thomas.utils.IntegerArrayQueue;
 
 import java.util.List;
 
@@ -27,7 +28,7 @@ public class AMOConstraint extends Constraint {
     }
 
     @Override
-    public boolean propagate(int propagatedLiteral, int[] variableAssignments, List<Integer> unitLiterals,
+    public boolean propagate(int propagatedLiteral, int[] variableAssignments, IntegerArrayQueue unitLiterals,
                              List<Constraint>[] positivelyWatched, List<Constraint>[] negativelyWatched,
                              Constraint[] reasonClauses) {
 
@@ -46,7 +47,7 @@ public class AMOConstraint extends Constraint {
                             conflictLiteral = unitLiteralCandidate;
                             return true;
                         } else if (variableAssignments[unitLiteralCandidateAbsoluteValue] == 0) {
-                            unitLiterals.add(unitLiteralCandidate);
+                            unitLiterals.offer(unitLiteralCandidate);
                         }
                     }
                 }

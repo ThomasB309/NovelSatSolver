@@ -2,6 +2,7 @@ package cas.thomas.Formulas;
 
 import cas.thomas.SolutionChecker.SolutionCheckerConstraint;
 import cas.thomas.SolutionChecker.SolutionCheckerDisjunctiveConstraint;
+import cas.thomas.utils.IntegerArrayQueue;
 
 import java.util.List;
 
@@ -18,7 +19,7 @@ public class DisjunctiveConstraint extends Constraint {
 
 
     @Override
-    public boolean propagate(int propagatedLiteral, int[] variableAssignments, List<Integer> unitLiterals,
+    public boolean propagate(int propagatedLiteral, int[] variableAssignments, IntegerArrayQueue unitLiterals,
                              List<Constraint>[] positivelyWatched, List<Constraint>[] negativelyWatched,
                              Constraint[] reasonClauses) {
 
@@ -101,14 +102,14 @@ public class DisjunctiveConstraint extends Constraint {
     }
 
     private void propagateIfConstraintHasOnlyOneLiteral(int[] variableAssignments,
-                                                           int firstWatchedLiteralAbsoluteValue,
-                                                           int firstWatchedLiteral, List<Integer> unitLiterals,
-                                                           Constraint[] reasonClauses) {
+                                                        int firstWatchedLiteralAbsoluteValue,
+                                                        int firstWatchedLiteral, IntegerArrayQueue unitLiterals,
+                                                        Constraint[] reasonClauses) {
         if (variableAssignments[firstWatchedLiteralAbsoluteValue] * firstWatchedLiteral < 0) {
             hasConflict = true;
             conflictLiteral = firstWatchedLiteral;
         } else if (variableAssignments[firstWatchedLiteralAbsoluteValue] == 0) {
-            unitLiterals.add(firstWatchedLiteral);
+            unitLiterals.offer(firstWatchedLiteral);
             if (reasonClauses[firstWatchedLiteralAbsoluteValue] == null) {
                 reasonClauses[firstWatchedLiteralAbsoluteValue] = this;
             }
@@ -120,7 +121,7 @@ public class DisjunctiveConstraint extends Constraint {
                                             List<Constraint>[] negativelyWatched,
                                             boolean firstLiteral,
                                             int unitLiteralCandidate, int unitLiteralCandidateAbsoluteValue,
-                                            List<Integer> unitLiterals,
+                                            IntegerArrayQueue unitLiterals,
                                             Constraint[] reasonClauses) {
 
         for (int i = 2; i < literals.length; i++) {
@@ -148,7 +149,7 @@ public class DisjunctiveConstraint extends Constraint {
         }
 
         if (isNeededForUnitPropagation(unitLiteralCandidateAbsoluteValue, variableAssignments)) {
-            unitLiterals.add(unitLiteralCandidate);
+            unitLiterals.offer(unitLiteralCandidate);
             if (reasonClauses[unitLiteralCandidateAbsoluteValue] == null) {
                 reasonClauses[unitLiteralCandidateAbsoluteValue] = this;
             }

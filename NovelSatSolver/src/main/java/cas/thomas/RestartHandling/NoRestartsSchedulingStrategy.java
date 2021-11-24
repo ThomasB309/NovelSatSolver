@@ -1,8 +1,7 @@
 package cas.thomas.RestartHandling;
 
 import cas.thomas.Formulas.Formula;
-
-import java.util.Deque;
+import cas.thomas.utils.IntegerStack;
 
 public class NoRestartsSchedulingStrategy extends RestartSchedulingStrategy {
 
@@ -11,8 +10,8 @@ public class NoRestartsSchedulingStrategy extends RestartSchedulingStrategy {
     }
 
     @Override
-    public void handleRestart(Deque<Integer> trail, Formula formula) {
-        return;
+    public boolean handleRestart(IntegerStack trail, Formula formula) {
+        return false;
     }
 
 }
