@@ -5,11 +5,6 @@ import java.util.List;
 
 public abstract class SolutionCheckerConstraint {
 
-    protected int[] literals;
-
-    public SolutionCheckerConstraint(int[] literals) {
-        this.literals = Arrays.copyOf(literals, literals.length);
-    }
 
     public abstract boolean isTrue(List<Integer> literals);
 
@@ -35,4 +30,8 @@ public abstract class SolutionCheckerConstraint {
 
         return false;
     }
+
+    public abstract String toDimacsString();
+
+    public abstract String toDimacsCNFString();
 }

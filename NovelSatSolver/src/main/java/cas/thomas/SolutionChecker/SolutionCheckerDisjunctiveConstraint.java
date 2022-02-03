@@ -1,12 +1,15 @@
 package cas.thomas.SolutionChecker;
 
+import java.util.Arrays;
 import java.util.List;
 
 public class SolutionCheckerDisjunctiveConstraint extends SolutionCheckerConstraint {
 
+    private int[] literals;
 
     public SolutionCheckerDisjunctiveConstraint(int[] literals) {
-        super(literals);
+        super();
+        this.literals = Arrays.copyOf(literals, literals.length);
     }
 
     @Override
@@ -24,6 +27,22 @@ public class SolutionCheckerDisjunctiveConstraint extends SolutionCheckerConstra
         }
 
         return false;
+    }
+
+    @Override
+    public String toDimacsString() {
+        String dimacsString = "";
+        for (int i = 0; i < literals.length; i++) {
+            dimacsString += literals[i] + " ";
+        }
+        dimacsString += "0";
+
+        return dimacsString;
+    }
+
+    @Override
+    public String toDimacsCNFString() {
+        return toDimacsString();
     }
 
 }

@@ -73,4 +73,8 @@ public class IntegerStack {
     public String toString(){
         return Arrays.toString(internalArray);
     }
+
+    public int[] getInternalArray() {
+        return Arrays.copyOf(internalArray, stackPointer);
+    }
 }

@@ -1,11 +1,15 @@
 package cas.thomas.SolutionChecker;
 
+import java.util.Arrays;
 import java.util.List;
 
 public class SolutionCheckerAMOConstraint extends SolutionCheckerConstraint {
 
+    private int[] literals;
+
     public SolutionCheckerAMOConstraint(int[] literals) {
-        super(literals);
+        super();
+        this.literals = Arrays.copyOf(literals, literals.length);
     }
 
     @Override
@@ -29,5 +33,23 @@ public class SolutionCheckerAMOConstraint extends SolutionCheckerConstraint {
 
         return true;
 
+    }
+
+    @Override
+    public String toDimacsString() {
+        String dimacsString = "AMO ";
+
+        for (int i = 0; i < literals.length; i++) {
+            dimacsString += literals[i] + " ";
+        }
+
+        dimacsString += "0";
+
+        return dimacsString;
+    }
+
+    @Override
+    public String toDimacsCNFString() {
+        return null;
     }
 }

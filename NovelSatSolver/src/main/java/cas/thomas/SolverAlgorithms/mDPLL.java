@@ -1,11 +1,14 @@
 package cas.thomas.SolverAlgorithms;
 
 import cas.thomas.ConflictHandling.ConflictHandlingStrategy;
+import cas.thomas.Formulas.Constraint;
 import cas.thomas.Formulas.Formula;
 import cas.thomas.RestartHandling.RestartSchedulingStrategy;
 import cas.thomas.VariableSelection.VariableSelectionStrategy;
 import cas.thomas.utils.IntegerArrayQueue;
 import cas.thomas.utils.IntegerStack;
+
+import java.util.stream.Collectors;
 
 public class mDPLL extends SolverAlgorithm {
 
@@ -23,7 +26,8 @@ public class mDPLL extends SolverAlgorithm {
 
         boolean solution = mDPPLAlgorithm(formula, firstBranchingDecision);
 
-        //System.out.println(formula.getVariablesForSolutionChecker());
+        //System.out.println(formula.getVariablesForSolutionChecker().stream().filter(x -> x > 0).collect(Collectors
+        // .toList()));
 
         if (solution == true) {
             return "SATISFIABLE";
@@ -51,7 +55,7 @@ public class mDPLL extends SolverAlgorithm {
                 }
 
                 if (restartSchedulingStrategy.handleRestart(trail, formula)) {
-                    variableDecisionLevel = new int[numberOfVariables];
+                    variableDecisionLevel = formula.resetDecisionLevelOfVariables();
                 }
 
 
@@ -87,8 +91,13 @@ public class mDPLL extends SolverAlgorithm {
         IntegerArrayQueue unitLiterals = formula.getUnitLiterals();
 
         if (formula.hasConflict()) {
-            formula.resetConflictState();
-            formula.emptyUnitLiterals();
+            int conflictLiteral = formula.getConflictLiteral();
+            int conflictLiteralAbsoluteValue = Math.abs(conflictLiteral);
+
+            variableDecisionLevels[conflictLiteralAbsoluteValue] = formula.getCurrentDecisionLevel();
+            formula.propagate(conflictLiteralAbsoluteValue * formula.getUnitLiteralState()[conflictLiteralAbsoluteValue]);
+            trail.push(-conflictLiteralAbsoluteValue);
+
             return false;
         }
 
@@ -96,8 +105,14 @@ public class mDPLL extends SolverAlgorithm {
             int nextLiteral = unitLiterals.poll();
 
             if (formula.hasConflict()) {
-                formula.resetConflictState();
-                formula.emptyUnitLiterals();
+                int conflictLiteral = formula.getConflictLiteral();
+                int conflictLiteralAbsoluteValue = Math.abs(conflictLiteral);
+
+                variableDecisionLevels[conflictLiteralAbsoluteValue] = formula.getCurrentDecisionLevel();
+                formula.propagate(conflictLiteralAbsoluteValue * formula.getUnitLiteralState()[conflictLiteralAbsoluteValue]);
+                trail.push(-conflictLiteralAbsoluteValue);
+
+
                 return false;
             }
 
@@ -108,6 +123,7 @@ public class mDPLL extends SolverAlgorithm {
             variableDecisionLevels[Math.abs(nextLiteral)] = formula.getCurrentDecisionLevel();
             formula.propagate(nextLiteral);
             trail.push(-Math.abs(nextLiteral));
+            formula.getUnitLiteralState()[Math.abs(nextLiteral)] = 0;
         }
 
         return true;

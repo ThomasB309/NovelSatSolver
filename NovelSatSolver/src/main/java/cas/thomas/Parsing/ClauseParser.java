@@ -6,6 +6,7 @@ import cas.thomas.Exceptions.ClauseContainsZeroException;
 import cas.thomas.Exceptions.ClauseNotTerminatedByZeroException;
 import cas.thomas.Exceptions.EmptyClauseException;
 import cas.thomas.Exceptions.IncorrectFirstLineException;
+import cas.thomas.Formulas.DNFConstraint;
 import cas.thomas.Formulas.DisjunctiveConstraint;
 import cas.thomas.Formulas.Formula;
 import cas.thomas.SolutionChecker.SolutionCheckerConjunctiveFormula;
@@ -60,15 +61,21 @@ public class ClauseParser {
 
         List<Constraint>[] negativelyWatchedAMOConstraints =
                 (ArrayList<Constraint>[]) new ArrayList[numberOfVariables];
+        List<Constraint>[] positivelyWatchedDNFConstraints = (ArrayList<Constraint>[]) new ArrayList[numberOfVariables];
+        List<Constraint>[] negativelyWatchedDNFConstraints = (ArrayList<Constraint>[]) new ArrayList[numberOfVariables];
+
 
         for (int i = 0; i < numberOfVariables; i++) {
             positivelyWatchedDisjunctiveConstraints[i] = new ArrayList<>();
             negativelyWatchedDisjunctiveConstraints[i] = new ArrayList<>();
             positivelyWatchedAMOConstraints[i] = new ArrayList<>();
             negativelyWatchedAMOConstraints[i] = new ArrayList<>();
+            positivelyWatchedDNFConstraints[i] = new ArrayList<>();
+            negativelyWatchedDNFConstraints[i] = new ArrayList<>();
         }
 
         IntegerArrayQueue listOfUnitVariables = new IntegerArrayQueue(numberOfVariables);
+        int[] unitLiteralState = new int[numberOfVariables];
 
         int clausecounter = 0;
         for (int i = indexOfFirstLine + 1; i < indexOfFirstLine + numberOfClauses + 1; i++) {
@@ -79,14 +86,15 @@ public class ClauseParser {
                 continue;
             }
 
-            Constraint nextConstraint = parseClause(lines[i], listOfUnitVariables,
+            Constraint nextConstraint = parseClause(lines[i], listOfUnitVariables, unitLiteralState,
                     positivelyWatchedDisjunctiveConstraints, negativelyWatchedDisjunctiveConstraints,
-                    positivelyWatchedAMOConstraints, negativelyWatchedAMOConstraints);
+                    positivelyWatchedAMOConstraints, negativelyWatchedAMOConstraints, positivelyWatchedDNFConstraints
+                    , negativelyWatchedDNFConstraints);
 
             if (nextConstraint != null) {
                 constraints[clausecounter] = nextConstraint;
                 solutionCheckerConstraints[clausecounter] = nextConstraint.getSolutionCheckerConstraint();
-                addVariableOccurenceCount(nextConstraint.getLiterals(), variableOccurences);
+                nextConstraint.addVariableOccurenceCount(variableOccurences);
             }
 
             clausecounter++;
@@ -99,8 +107,10 @@ public class ClauseParser {
 
 
         return new Pair<>(new Formula(numberOfVariables, constraints, variableOccurences,
-                listOfUnitVariables, positivelyWatchedDisjunctiveConstraints, negativelyWatchedDisjunctiveConstraints
-                , positivelyWatchedAMOConstraints, negativelyWatchedAMOConstraints),
+                listOfUnitVariables, unitLiteralState, positivelyWatchedDisjunctiveConstraints,
+                negativelyWatchedDisjunctiveConstraints
+                , positivelyWatchedAMOConstraints, negativelyWatchedAMOConstraints, positivelyWatchedDNFConstraints,
+                negativelyWatchedDNFConstraints),
                 new SolutionCheckerConjunctiveFormula(solutionCheckerConstraints));
 
 
@@ -124,9 +134,11 @@ public class ClauseParser {
     }
 
     private Constraint parseClause(String line,
-                                   IntegerArrayQueue listOfUnitLiterals, List<Constraint>[] positivelyWatchedList,
+                                   IntegerArrayQueue listOfUnitLiterals, int[] unitLiteralState,
+                                   List<Constraint>[] positivelyWatchedList,
                                    List<Constraint>[] negativelyWatchedList, List<Constraint>[] positivelyWatchedAMOList
-            , List<Constraint>[] negativelyWatchedAMOList) throws ClauseNotTerminatedByZeroException,
+            , List<Constraint>[] negativelyWatchedAMOList, List<Constraint>[] positivelyWatchedDNFConstraints,
+                                   List<Constraint>[] negativelyWatchedDNFConstraints) throws ClauseNotTerminatedByZeroException,
             EmptyClauseException, ClauseContainsZeroException {
 
         try {
@@ -136,20 +148,30 @@ public class ClauseParser {
             String identifier = input[0];
 
             boolean hasIdentifier = false;
+            boolean isDNF = false;
 
-            if (identifier.equals("AMO")) {
+            if (identifier.equals("AMO") || identifier.equals("DNF")) {
                 hasIdentifier = true;
+
+                if (identifier.equals("DNF")) {
+                    isDNF = true;
+                }
             }
 
-            int[] intVariables = checkAndParseInputVariables(input, hasIdentifier);
+            int[] intVariables = checkAndParseInputVariables(input, hasIdentifier, isDNF);
 
 
             if (intVariables.length == 1) {
-                listOfUnitLiterals.offer(intVariables[0]);
+                int literal = intVariables[0];
+                listOfUnitLiterals.offer(literal);
+                unitLiteralState[Math.abs(literal)] = literal < 0 ? -1 : 1;
             }
 
             if (identifier.equals("AMO")) {
                 return new AMOConstraint(intVariables, positivelyWatchedAMOList, negativelyWatchedAMOList);
+            } else if (identifier.equals("DNF")) {
+                return parseDNFConstraint(intVariables, positivelyWatchedDNFConstraints,
+                        negativelyWatchedDNFConstraints, listOfUnitLiterals, unitLiteralState);
             } else {
                 return new DisjunctiveConstraint(intVariables, positivelyWatchedList, negativelyWatchedList);
             }
@@ -159,7 +181,47 @@ public class ClauseParser {
         }
     }
 
-    private int[] checkAndParseInputVariables(String[] lineParts, boolean hasIdentifier) throws
+    private DNFConstraint parseDNFConstraint(int[] variables, List<Constraint>[] positivelyWatchedDNFConstraints,
+                                             List<Constraint>[] negativelyWatchedDNFConstraints,
+                                             IntegerArrayQueue listOfUnitLiterals, int[] unitLiteralState) {
+
+        int termCount = 0;
+
+        for (int i = 0; i < variables.length - 1; i++) {
+            if (variables[i] == 0) {
+                termCount++;
+            }
+        }
+
+        termCount++;
+
+        int[][] terms = new int[termCount][];
+        int start = 0;
+        int end = 0;
+        int counter = 0;
+        for (int i = 0; i < variables.length - 1; i++) {
+            int currentLiteral = variables[i];
+            if (currentLiteral == 0) {
+                terms[counter] = Arrays.copyOfRange(variables, start, end);
+                counter++;
+                start = ++end;
+            } else {
+                end++;
+            }
+
+            if (termCount == 1) {
+                listOfUnitLiterals.offer(currentLiteral);
+                unitLiteralState[Math.abs(currentLiteral)] = currentLiteral < 0 ? -1 : 1;
+            }
+        }
+
+        terms[terms.length - 1] = Arrays.copyOfRange(variables, start, end);
+
+        return new DNFConstraint(terms, positivelyWatchedDNFConstraints, negativelyWatchedDNFConstraints,
+                listOfUnitLiterals, unitLiteralState);
+    }
+
+    private int[] checkAndParseInputVariables(String[] lineParts, boolean hasIdentifier, boolean isDNF) throws
     ClauseNotTerminatedByZeroException, EmptyClauseException, ClauseContainsZeroException {
 
         if (!lineParts[lineParts.length - 1].equals("0")) {
@@ -176,9 +238,11 @@ public class ClauseParser {
             throw new EmptyClauseException("One of the clauses is empty!");
         }
 
-        for (int i = 0; i < variables.length; i++) {
-            if (variables[i] == 0) {
-                throw new ClauseContainsZeroException("One of the clauses contains a 0");
+        if (!isDNF) {
+            for (int i = 0; i < variables.length; i++) {
+                if (variables[i] == 0) {
+                    throw new ClauseContainsZeroException("One of the clauses contains a 0");
+                }
             }
         }
 

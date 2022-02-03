@@ -28,6 +28,7 @@ public class CDCLConflictHandler implements ConflictHandlingStrategy {
     public boolean handleConflict(IntegerStack trail, Formula formula, boolean branchingDecision,
                                   int[] variableDecisionLevel) {
 
+        formula.emptyUnitLiterals();
         conflictCounter++;
         vsidsConflictCounter++;
         decisionLevelOfVariables = variableDecisionLevel;
@@ -46,73 +47,48 @@ public class CDCLConflictHandler implements ConflictHandlingStrategy {
 
         Constraint conflictClause = formula.getConflictClause();
 
-        int[] conflictLiterals = conflictClause.getLiterals();
-
-        int[] stateOfResolvedVariables = new int[formula.getNumberOfVariables()];
-
         int[] variablesInvolvedInConflict = new int[formula.getNumberOfVariables()];
 
-        for (int i = 0; i < conflictLiterals.length; i++) {
-            int currentLiteralAbsoluteValue = Math.abs(conflictLiterals[i]);
-            stateOfResolvedVariables[currentLiteralAbsoluteValue] = conflictLiterals[i];
-            variablesInvolvedInConflict[currentLiteralAbsoluteValue] = 1;
-        }
 
-        trail.prepareIterationWithoutPop();
-        while (trail.hasNextWithoutPop()) {
-            int literal = trail.peekNextWithoutPop();
-            Constraint reasonClause = formula.getReasonClauses(literal);
+        List<Constraint> learnedConstraints = conflictClause.handleConflict(formula.getNumberOfVariables(), trail,
+                variableDecisionLevel, variablesInvolvedInConflict,formula);
 
-            int counter = 0;
-            boolean resolve = false;
-            for (int i = 0; i < conflictLiterals.length; i++) {
-                int currentLiteral = conflictLiterals[i];
-                int currentLiteralAbsoluteValue = Math.abs(currentLiteral);
-
-                if (variableDecisionLevel[Math.abs(currentLiteralAbsoluteValue)] == formula.getCurrentDecisionLevel()) {
-                    counter++;
-                }
-
-                if (currentLiteralAbsoluteValue == Math.abs(literal)) {
-                    resolve = true;
-                }
-            }
-
-            if (counter == 1) {
-                break;
-            }
-
-            if (reasonClause == null || !resolve) {
-                continue;
-            }
-
-            conflictLiterals = resolveClauses(formula.getNumberOfVariables(), conflictLiterals,
-                    reasonClause, Math.abs(literal));
-
-        }
-
-
-
-        if (conflictLiterals.length == 1) {
-            int unitLiteral = conflictLiterals[0];
-            int unitLiteralAbsoluteValue = Math.abs(unitLiteral);
-
-            if (learnedUnitClauses[unitLiteralAbsoluteValue] == -unitLiteral) {
-                formula.resetConflictState();
-                return false;
-            } else {
-                learnedUnitClauses[unitLiteralAbsoluteValue] = unitLiteral;
-            }
-        }
-
-        if (conflictLiterals.length == 0) {
+        if (learnedConstraints.size() == 0) {
             formula.resetConflictState();
             return false;
         }
 
+        for (Constraint constraint : learnedConstraints) {
+
+            //System.out.println(Arrays.toString(constraint.getLiterals()));
+
+            if (constraint.isEmpty()) {
+                formula.resetConflictState();
+                return false;
+            }
+
+
+            if (constraint.isUnitConstraint()) {
+
+                int[] unitLiterals = constraint.getUnitLiterals();
+
+                for (int i = 0; i < unitLiterals.length; i++) {
+                    int unitLiteral = unitLiterals[i];
+                    int unitLiteralAbsoluteValue = Math.abs(unitLiteral);
+
+
+                    if (learnedUnitClauses[unitLiteralAbsoluteValue] == -unitLiteral) {
+                        formula.resetConflictState();
+                        return false;
+                    } else {
+                        learnedUnitClauses[unitLiteralAbsoluteValue] = unitLiteral;
+                    }
+                }
+            }
+        }
+
         backtrackTrailToHighestDecisionLevelOfConflictClause(formula, trail,
-                conflictLiterals,
-                stateOfResolvedVariables);
+                learnedConstraints);
 
         formula.adjustVariableScores(variablesInvolvedInConflict, vsidsConflictCounter);
 
@@ -125,62 +101,15 @@ public class CDCLConflictHandler implements ConflictHandlingStrategy {
             conflictCounter = 0;
         }
 
+        formula.resetConflictState();
         return true;
     }
 
-    private int[] resolveClauses(int numberOfVariables, int[] conflictLiterals,
-                                      Constraint reasonClause, int conflictLiteral) {
-
-        int[] stateOfResolvedVariables = new int[numberOfVariables];
-        int[] reasonClauseLiterals = reasonClause.getLiterals();
-        IntegerArrayQueue newConflictLiteralsQueue =
-                new IntegerArrayQueue(conflictLiterals.length + reasonClauseLiterals.length - 2);
-
-        int maxLength = Math.max(conflictLiterals.length, reasonClauseLiterals.length);
-
-        for (int i = 0; i < maxLength; i++) {
-
-            if (i < conflictLiterals.length) {
-                int currentLiteral = conflictLiterals[i];
-                int currentLiteralAbsoluteValue = Math.abs(currentLiteral);
-
-                if (stateOfResolvedVariables[currentLiteralAbsoluteValue] != 1) {
-                    if (currentLiteralAbsoluteValue != conflictLiteral) {
-                        stateOfResolvedVariables[currentLiteralAbsoluteValue] = 1;
-                        newConflictLiteralsQueue.offer(currentLiteral);
-                    }
-                }
-
-            }
-
-            if (i < reasonClauseLiterals.length) {
-                int currentLiteral = reasonClauseLiterals[i];
-                int currentLiteralAbsoluteValue = Math.abs(currentLiteral);
-
-                if (stateOfResolvedVariables[currentLiteralAbsoluteValue] != 1) {
-                    if (currentLiteralAbsoluteValue != conflictLiteral) {
-                        stateOfResolvedVariables[currentLiteralAbsoluteValue] = 1;
-                        newConflictLiteralsQueue.offer(currentLiteral);
-                    }
-                }
-            }
-
-        }
-
-        return newConflictLiteralsQueue.getInternalArray();
-    }
-
     private void backtrackTrailToHighestDecisionLevelOfConflictClause(Formula formula, IntegerStack trail,
-                                                                      int learnedConstraintLiterals[],
-                                                                      int[] newConstraintLiterals) {
-        learnedConstraintLiterals =
-                Arrays.stream(learnedConstraintLiterals).boxed().sorted(Comparator.comparingInt(a -> decisionLevelOfVariables[Math.abs(a)] * -1)).mapToInt(i -> i).toArray();
+                                                                      List<Constraint> learnedConstraints) {
+        int[] unitLiteralState = formula.getUnitLiteralState();
 
-        int neededDecisionlevel = learnedConstraintLiterals.length == 1 ?
-                decisionLevelOfVariables[Math.abs(learnedConstraintLiterals[0])] :
-                decisionLevelOfVariables[Math.abs(learnedConstraintLiterals[1])];
-
-
+        int neededDecisionlevel = findNeededDecisionLevel(learnedConstraints, formula.getCurrentDecisionLevel());
 
         int currentDecisionLevel = formula.getCurrentDecisionLevel();
 
@@ -205,17 +134,18 @@ public class CDCLConflictHandler implements ConflictHandlingStrategy {
 
         formula.setCurrentDecisionLevel(currentDecisionLevel);
 
-        DisjunctiveConstraint learnedConstraint =
-                formula.addDisjunctiveConstraint(learnedConstraintLiterals);
-
-        if (learnedConstraintLiterals.length == 1) {
-            this.unitLiterals.add(learnedConstraintLiterals[0]);
-            reasonClauses[Math.abs(learnedConstraintLiterals[0])] = learnedConstraint;
+        for (Constraint learnedConstraint : learnedConstraints) {
+            int[] unitLiterals = learnedConstraint.getUnitLiterals();
+            for (int i = 0; i < unitLiterals.length; i++) {
+                int unitLiteral = unitLiterals[i];
+                this.unitLiterals.add(unitLiteral);
+                reasonClauses[Math.abs(unitLiteral)] = learnedConstraint;
+            }
+            learnedClauses.add(learnedConstraint);
         }
 
         formula.addUnitLiterals(this.unitLiterals);
         formula.setReasonClauses(reasonClauses);
-        learnedClauses.add(learnedConstraint);
     }
 
     private void reduceClauseDatabaseSize(Constraint[] sortedLearnedClauses) {
@@ -223,7 +153,7 @@ public class CDCLConflictHandler implements ConflictHandlingStrategy {
         int halfSize = learnedClauses.size() / 2;
         List<Constraint> reducedLearnedClauses = new ArrayList<>(halfSize);
         for (int i = 0; i < sortedLearnedClauses.length; i++) {
-            if (counter < halfSize || sortedLearnedClauses[i].getLiterals().length == 1) {
+            if (counter < halfSize || sortedLearnedClauses[i].isUnitConstraint()) {
                 reducedLearnedClauses.add(sortedLearnedClauses[i]);
             } else {
                 sortedLearnedClauses[i].setObsolete();
@@ -232,6 +162,16 @@ public class CDCLConflictHandler implements ConflictHandlingStrategy {
         }
 
         learnedClauses = reducedLearnedClauses;
+    }
+
+    private int findNeededDecisionLevel(List<Constraint> learnedConstraints, int currentDecisionLevel) {
+        int neededDecisionLevel = Integer.MAX_VALUE;
+
+        for (Constraint learnedConstraint : learnedConstraints) {
+            neededDecisionLevel = Math.min(neededDecisionLevel, learnedConstraint.getNeededDecisionLevel(decisionLevelOfVariables));
+        }
+
+        return neededDecisionLevel;
     }
 
 

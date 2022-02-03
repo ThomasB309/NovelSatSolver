@@ -2,7 +2,9 @@ package cas.thomas.Formulas;
 
 import cas.thomas.SolutionChecker.SolutionCheckerConstraint;
 import cas.thomas.utils.IntegerArrayQueue;
+import cas.thomas.utils.IntegerStack;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -14,29 +16,33 @@ public abstract class Constraint {
     protected int conflictLiteral;
     private boolean obsolete;
 
-    public Constraint(int[] literals) {
-        this.literals = literals;
+    public Constraint() {
         this.hasConflict = false;
         conflictLiteral = 0;
         obsolete = false;
     }
 
 
-    public abstract boolean propagate(int propagatedLiteral, int[] variableAssignments, IntegerArrayQueue unitLiterals,
+    public abstract boolean propagate(int propagatedLiteral, int[] variableAssignments, int[] unitLiteralState,
+                                      IntegerArrayQueue unitLiterals,
                                       List<Constraint>[] positivelyWatched, List<Constraint>[] negativelyWatched,
                                       Constraint[] reasonClauses);
 
     public abstract SolutionCheckerConstraint getSolutionCheckerConstraint();
 
-    public boolean resetConflictState() {
-        boolean conflictState = hasConflict;
+    public int resetConflictState() {
         hasConflict = false;
+        int conflictLiteralCopy = conflictLiteral;
         conflictLiteral = 0;
-        return conflictState;
+        return conflictLiteralCopy;
     }
 
     public int[] getLiterals() {
         return literals;
+    }
+
+    public int getConflictLiteral() {
+        return this.conflictLiteral;
     }
 
     public int getLBDScore(int[] variableDecisionLevels) {
@@ -57,5 +63,42 @@ public abstract class Constraint {
         return obsolete;
     }
 
+    public abstract List<Constraint> handleConflict(int numberOfVariables, IntegerStack trail,
+                                int[] variableDecisionLevel, int[] variablesInvolvedInConflict,Formula formula);
 
+
+    public abstract List<Constraint> resolveConflict(Constraint conflictConstraint, IntegerStack trail,
+                                                     int[] stateOfResolvedVariables,
+                                                     Formula formula, int[] variablesInvolvedInConflict);
+
+    public abstract List<Constraint> resolveConflict(AMOConstraint conflictConstraint, IntegerStack trail,
+                                                     int[] stateOfResolvedvariables, Formula formula,
+                                                     int[] variablesInvolvedInConflict);
+
+    public abstract List<Constraint> resolveConflict(DNFConstraint conflictConstraint, IntegerStack trail,
+                                                     int[] stateOfResolvedVariables, Formula formula,
+                                                     int[] variablesInvolvedInConflict);
+
+
+    public abstract ConstraintType getConstraintType();
+
+    protected boolean checkIfLiteralIsFalse(int literal, int[] variables) {
+        if (variables[Math.abs(literal)] * literal < 0) {
+            return true;
+        }
+
+        return false;
+    }
+
+    public abstract boolean isUnitConstraint();
+
+    public abstract int[] getUnitLiterals();
+
+    public abstract boolean isEmpty();
+
+    public abstract int getNeededDecisionLevel(int[] decisionLevelOfVariables);
+
+    public abstract void addVariableOccurenceCount(double[] variableOccurences);
+
+    public abstract boolean isStillWatched(int literal);
 }

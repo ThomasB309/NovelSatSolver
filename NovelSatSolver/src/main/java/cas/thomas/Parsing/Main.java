@@ -26,8 +26,10 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 public class Main {
 
@@ -61,8 +63,18 @@ public class Main {
 
             try {
                 input =
-                        Files.readAllLines(Paths.get( "InputFiles",    "200","uf200-0" + a + ".cnf"),
-                                StandardCharsets.UTF_8).toArray(new String[0]);
+                        /*Files.readAllLines(Paths.get( "InputFiles",   "uf20-0" + a + ".cnf"),
+                                StandardCharsets.UTF_8).toArray(new String[0]);*/
+                        /*Files.readAllLines(Paths.get( "puzzle05b.sudoku_AMO.cnf"),
+                                StandardCharsets.UTF_8).toArray(new String[0]);*/
+                /*Files.readAllLines(Paths.get( "InputFiles", "test.cnf"),
+                        StandardCharsets.UTF_8).toArray(new String[0]);*/
+                /*Files.readAllLines(Paths.get( "GeneratedBenchmarks", "cls_5000_amo_5000_" + a +
+                                ".cnf"),
+                        StandardCharsets.UTF_8).toArray(new String[0]);*/
+                Files.readAllLines(Paths.get( "GeneratedBenchmarks", "dnf_1000","dnf_1000_" + a +
+                                ".cnf"),
+                        StandardCharsets.UTF_8).toArray(new String[0]);
             } catch (IOException e) {
                 System.err.println("Something went wrong while reading the specified input file!");
                 System.exit(-1);
