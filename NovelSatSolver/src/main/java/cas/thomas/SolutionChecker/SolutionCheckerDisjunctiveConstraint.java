@@ -1,5 +1,7 @@
 package cas.thomas.SolutionChecker;
 
+import cas.thomas.utils.Pair;
+
 import java.util.Arrays;
 import java.util.List;
 
@@ -35,14 +37,15 @@ public class SolutionCheckerDisjunctiveConstraint extends SolutionCheckerConstra
         for (int i = 0; i < literals.length; i++) {
             dimacsString += literals[i] + " ";
         }
-        dimacsString += "0";
+        dimacsString += "0\n";
 
         return dimacsString;
     }
 
     @Override
-    public String toDimacsCNFString() {
-        return toDimacsString();
+    public Pair<Integer, Integer> toDimacsCNFString(StringBuilder cnfString, int maxVariables) {
+        cnfString.append(toDimacsString());
+        return new Pair<>(maxVariables, 1);
     }
 
 }

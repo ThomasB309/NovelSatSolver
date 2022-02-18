@@ -1,16 +1,19 @@
 package cas.thomas.ConflictHandling;
 
 import cas.thomas.Formulas.Constraint;
+import cas.thomas.Formulas.ConstraintType;
 import cas.thomas.Formulas.DisjunctiveConstraint;
 import cas.thomas.Formulas.Formula;
 import cas.thomas.utils.IntegerArrayQueue;
 import cas.thomas.utils.IntegerStack;
 
+import javax.print.attribute.SetOfIntegerSyntax;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 public class CDCLConflictHandler implements ConflictHandlingStrategy {
 
@@ -60,32 +63,29 @@ public class CDCLConflictHandler implements ConflictHandlingStrategy {
 
         for (Constraint constraint : learnedConstraints) {
 
-            //System.out.println(Arrays.toString(constraint.getLiterals()));
+            //System.out.println(constraint.toString());
 
             if (constraint.isEmpty()) {
                 formula.resetConflictState();
                 return false;
             }
 
-
-            if (constraint.isUnitConstraint()) {
-
-                int[] unitLiterals = constraint.getUnitLiterals();
-
-                for (int i = 0; i < unitLiterals.length; i++) {
-                    int unitLiteral = unitLiterals[i];
-                    int unitLiteralAbsoluteValue = Math.abs(unitLiteral);
+            Set<Integer> unitLiterals = constraint.getUnitLiteralsNeededBeforePropagation();
 
 
-                    if (learnedUnitClauses[unitLiteralAbsoluteValue] == -unitLiteral) {
-                        formula.resetConflictState();
-                        return false;
-                    } else {
-                        learnedUnitClauses[unitLiteralAbsoluteValue] = unitLiteral;
-                    }
+            for (Integer unitLiteral : unitLiterals) {
+                int unitLiteralAbsoluteValue = Math.abs(unitLiteral);
+
+                if (learnedUnitClauses[unitLiteralAbsoluteValue] == -unitLiteral) {
+                    formula.resetConflictState();
+                    return false;
+                } else if (constraint.getConstraintType() == ConstraintType.DISJUNCTIVE) {
+                    learnedUnitClauses[unitLiteralAbsoluteValue] = unitLiteral;
                 }
+
             }
         }
+
 
         backtrackTrailToHighestDecisionLevelOfConflictClause(formula, trail,
                 learnedConstraints);
@@ -102,6 +102,7 @@ public class CDCLConflictHandler implements ConflictHandlingStrategy {
         }
 
         formula.resetConflictState();
+        formula.setUnitLiteralsBeforePropagation();
         return true;
     }
 
@@ -135,16 +136,15 @@ public class CDCLConflictHandler implements ConflictHandlingStrategy {
         formula.setCurrentDecisionLevel(currentDecisionLevel);
 
         for (Constraint learnedConstraint : learnedConstraints) {
-            int[] unitLiterals = learnedConstraint.getUnitLiterals();
-            for (int i = 0; i < unitLiterals.length; i++) {
-                int unitLiteral = unitLiterals[i];
+            Set<Integer> unitLiterals = learnedConstraint.getUnitLiteralsNeededBeforePropagation();
+            for (Integer unitLiteral : unitLiterals) {
                 this.unitLiterals.add(unitLiteral);
                 reasonClauses[Math.abs(unitLiteral)] = learnedConstraint;
+                formula.addUnitLiteralBeforePropagation(unitLiteral);
             }
             learnedClauses.add(learnedConstraint);
         }
 
-        formula.addUnitLiterals(this.unitLiterals);
         formula.setReasonClauses(reasonClauses);
     }
 

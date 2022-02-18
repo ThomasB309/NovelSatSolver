@@ -4,8 +4,11 @@ import cas.thomas.utils.IntegerArrayQueue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
+import java.util.Set;
 
 public class Formula {
 
@@ -31,6 +34,8 @@ public class Formula {
     int assignedCounter;
     private int conflictLiteral;
 
+    private Set<Integer> unitLiteralsBeforePropagation;
+
     public Formula(int variableCount, Constraint[] constraints, double[] variableOccurences,
                    IntegerArrayQueue unitLiterals, int[] unitLiteralState,
                    List<Constraint>[] positivelyWatchedDisjunctiveConstraints
@@ -38,7 +43,7 @@ public class Formula {
                    List<Constraint>[] positivelWatchedAMOConstraints,
                    List<Constraint>[] negativelyWatchedAMOConstraints,
                    List<Constraint>[] positivelyWatchedDNFConstraints,
-                   List<Constraint>[] negativelyWatchedDNFConstraints) {
+                   List<Constraint>[] negativelyWatchedDNFConstraints, List<Integer> unitLiteralsBeforePropagation) {
 
         this.variables = new int[variableCount];
         this.unitLiteralState = unitLiteralState;
@@ -59,6 +64,7 @@ public class Formula {
         this.assignedCounter = 0;
         this.currentDecisionLevel = 0;
         this.conflictLiteral = 0;
+        this.unitLiteralsBeforePropagation = new HashSet<>(unitLiteralsBeforePropagation);
     }
 
     public void propagate(int literal) {
@@ -150,11 +156,10 @@ public class Formula {
                 continue;
             }
 
-            if (!currentConstraint.propagate(literal, variables, unitLiteralState, unitLiterals,
+            currentConstraint.propagate(literal, variables, unitLiteralState, unitLiterals,
                     positivelyWatchedDNFConstraints
-                    ,negativelyWatchedDNFConstraints, reasonClauses)) {
-                constraintIterator.remove();
-            }
+                    ,negativelyWatchedDNFConstraints, reasonClauses);
+
 
             int conflictLiteralClause = currentConstraint.resetConflictState();
 
@@ -175,8 +180,24 @@ public class Formula {
     }
 
     public void unassignVariable(int literal) {
+        int literalAbsoluteValue = Math.abs(literal);
+
+        ListIterator<Constraint> watchedList = positivelyWatchedDNFConstraints[literalAbsoluteValue].listIterator();
+        while (watchedList.hasNext()) {
+            watchedList.next().backtrack(literalAbsoluteValue, unitLiteralState, unitLiteralsBeforePropagation,
+                    positivelyWatchedDNFConstraints, negativelyWatchedDNFConstraints, watchedList);
+        }
+
+        watchedList = negativelyWatchedDNFConstraints[literalAbsoluteValue].listIterator();
+
+        while (watchedList.hasNext()) {
+            watchedList.next().backtrack(-literalAbsoluteValue, unitLiteralState, unitLiteralsBeforePropagation,
+                    positivelyWatchedDNFConstraints, negativelyWatchedDNFConstraints, watchedList);
+        }
+
+
         assignedCounter--;
-        variables[Math.abs(literal)] = 0;
+        variables[literalAbsoluteValue] = 0;
     }
 
     public int getAssignedCounter() {
@@ -194,6 +215,17 @@ public class Formula {
     public void emptyUnitLiterals() {
         unitLiterals = new IntegerArrayQueue(variables.length);
         unitLiteralState = new int[unitLiteralState.length];
+    }
+
+    public void setUnitLiteralsBeforePropagation() {
+        for (Integer literal : unitLiteralsBeforePropagation) {
+            unitLiterals.offer(literal);
+            unitLiteralState[Math.abs(literal)] = literal < 0 ? -1 : 1;
+        }
+    }
+
+    public void addUnitLiteralBeforePropagation(int literal) {
+        unitLiteralsBeforePropagation.add(literal);
     }
 
     public List<Integer> getVariablesForSolutionChecker() {
@@ -260,7 +292,7 @@ public class Formula {
 
     public DNFConstraint addDNFConstraints(int[][] terms) {
         return new DNFConstraint(terms, positivelyWatchedDNFConstraints, negativelyWatchedDNFConstraints,
-                unitLiterals, unitLiteralState);
+                unitLiterals, variables, unitLiteralState, decisionLevelOfVariables);
     }
 
     public void removeReasonClauses() {

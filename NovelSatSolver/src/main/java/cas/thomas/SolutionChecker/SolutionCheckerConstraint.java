@@ -2,6 +2,7 @@ package cas.thomas.SolutionChecker;
 
 import java.util.Arrays;
 import java.util.List;
+import cas.thomas.utils.Pair;
 
 public abstract class SolutionCheckerConstraint {
 
@@ -33,5 +34,5 @@ public abstract class SolutionCheckerConstraint {
 
     public abstract String toDimacsString();
 
-    public abstract String toDimacsCNFString();
+    public abstract Pair<Integer, Integer> toDimacsCNFString(StringBuilder cnfString, int maxVariables);
 }

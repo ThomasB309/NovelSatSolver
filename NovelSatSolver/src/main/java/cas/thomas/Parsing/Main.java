@@ -23,10 +23,15 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -37,9 +42,15 @@ public class Main {
 
         long startTime = System.nanoTime();
 
-        if (args.length != 1) {
-            System.err.println("You have to specify exactly one input file!");
+        if (args.length < 2) {
+            System.out.println("Not enough input parameters!");
+            System.exit(-1);
+        } else if (args.length > 3) {
+            System.out.println("Too many parameters!");
+            System.exit(-1);
         }
+
+        String executionMethod = args[0];
 
         Properties properties = new Properties();
 
@@ -53,30 +64,48 @@ public class Main {
                     ".properties")));
         } catch (FileNotFoundException e) {
             e.printStackTrace();
+            System.exit(-1);
         } catch (IOException e) {
             e.printStackTrace();
+            System.exit(-1);
         }
 
+        Path inputPath = Paths.get(new File(args[1]).toURI());
 
-        for (int a = 1; a <= 100; a++) {
-            String[] input = null;
+
+        List<Path> cnfFiles = new ArrayList<>();
+
+        try {
+
+            if (Files.isDirectory(inputPath)) {
+
+                cnfFiles =
+                        Files.list(inputPath).filter(path -> path.toString().endsWith(".cnf") || path.toString().endsWith(".txt")).collect(Collectors.toList());
+
+            } else if (Files.exists(inputPath)) {
+
+                cnfFiles = new ArrayList<>();
+                cnfFiles.add(inputPath);
+            } else {
+                System.err.println("The input file or directory doesn't exist!");
+                System.exit(-1);
+            }
+
+        } catch (IOException e) {
+            System.err.println(e.getMessage());
+            System.exit(-1);
+        }
+
+        int counter = 1;
+        for (Path inputFile : cnfFiles) {
+
+            String[] input = new String[0];
 
             try {
-                input =
-                        /*Files.readAllLines(Paths.get( "InputFiles",   "uf20-0" + a + ".cnf"),
-                                StandardCharsets.UTF_8).toArray(new String[0]);*/
-                        /*Files.readAllLines(Paths.get( "puzzle05b.sudoku_AMO.cnf"),
-                                StandardCharsets.UTF_8).toArray(new String[0]);*/
-                /*Files.readAllLines(Paths.get( "InputFiles", "test.cnf"),
-                        StandardCharsets.UTF_8).toArray(new String[0]);*/
-                /*Files.readAllLines(Paths.get( "GeneratedBenchmarks", "cls_5000_amo_5000_" + a +
-                                ".cnf"),
-                        StandardCharsets.UTF_8).toArray(new String[0]);*/
-                Files.readAllLines(Paths.get( "GeneratedBenchmarks", "dnf_1000","dnf_1000_" + a +
-                                ".cnf"),
+                input = Files.readAllLines(inputFile,
                         StandardCharsets.UTF_8).toArray(new String[0]);
             } catch (IOException e) {
-                System.err.println("Something went wrong while reading the specified input file!");
+                System.err.println(e.getMessage());
                 System.exit(-1);
             }
 
@@ -96,15 +125,46 @@ public class Main {
             SolverAlgorithm dpllSolver = new mDPLL(getSelectionStrategy(properties),
                     getConflictHandlingStrategy(properties), getRestartSchedulingStrategy(properties),
                     getPhaseSavingStrategy(properties), getFirstBranchingDecision(properties));
-            System.out.print(a + ": ");
-            String isSatisfiable = dpllSolver.solve(formula);
-            System.out.println(isSatisfiable);
-            assert (solutionCheckerFormula.isTrue(formula.getVariablesForSolutionChecker()));
+
+
+            if (executionMethod.equals("-c") || executionMethod.equals("--convert")) {
+
+                if (args.length < 3) {
+                    System.err.println("Missing output parameter!");
+                    System.exit(-1);
+                }
+
+                Path outputPath = Paths.get(new File(args[2]).toURI());
+
+                if (!Files.isDirectory(outputPath)) {
+                    System.err.println("The output directory does not exist!");
+                    System.exit(-1);
+                }
+
+                try {
+                    solutionCheckerFormula.toDimacsCNFFile(Paths.get(outputPath.toString(),
+                            inputFile.getFileName().toString()));
+                } catch (IOException e) {
+                    System.err.println(e.getMessage());
+                    System.exit(-1);
+                }
+
+            } else if (executionMethod.equals("-s") || executionMethod.equals("--solve")) {
+                String isSatisfiable = dpllSolver.solve(formula);
+                System.out.print(counter + ": ");
+                System.out.println(isSatisfiable);
+                //assert (solutionCheckerFormula.isTrue(formula.getVariablesForSolutionChecker()));
+            } else {
+                System.err.println("Incorrect execution method!");
+                System.exit(-1);
+            }
+
+            counter++;
         }
 
         long endTime = System.nanoTime();
 
-        System.out.println(TimeUnit.SECONDS.convert(endTime - startTime, TimeUnit.NANOSECONDS));
+        System.out.println(TimeUnit.MILLISECONDS.convert(endTime - startTime, TimeUnit.NANOSECONDS));
 
 
     }

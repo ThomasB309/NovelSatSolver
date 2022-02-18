@@ -6,7 +6,9 @@ import cas.thomas.utils.IntegerStack;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Set;
 
 public abstract class Constraint {
@@ -101,4 +103,14 @@ public abstract class Constraint {
     public abstract void addVariableOccurenceCount(double[] variableOccurences);
 
     public abstract boolean isStillWatched(int literal);
+
+    public void backtrack(int variable, int[] unitLiteralState, Set<Integer> unitLiteralsBeforePropagation,
+                          List<Constraint>[] positivelyWatched, List<Constraint>[] negativelyWatched,
+                          ListIterator<Constraint> listIterator) {
+        return;
+    }
+
+    public abstract String toString();
+
+    public abstract Set<Integer> getUnitLiteralsNeededBeforePropagation();
 }

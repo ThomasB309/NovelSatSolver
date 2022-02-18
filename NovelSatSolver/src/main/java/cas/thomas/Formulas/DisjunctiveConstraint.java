@@ -8,7 +8,9 @@ import cas.thomas.utils.IntegerStack;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class DisjunctiveConstraint extends Constraint {
 
@@ -309,8 +311,36 @@ public class DisjunctiveConstraint extends Constraint {
 
     @Override
     public List<Constraint> resolveConflict(DNFConstraint conflictConstraint, IntegerStack trail, int[] stateOfResolvedVariables, Formula formula, int[] variablesInvolvedInConflict) {
-        return conflictConstraint.resolveConflict(this, trail, stateOfResolvedVariables, formula,
-                variablesInvolvedInConflict);
+        int[] reasonLiterals = this.literals;
+        int[][] conflictTerms = conflictConstraint.getTerms();
+        int conflictLiteral = formula.getConflictLiteral();
+
+        ArrayList<int[]> resolutionTerms = new ArrayList<>();
+
+        for (int i = 0; i < reasonLiterals.length; i++) {
+            int currentLiteral = reasonLiterals[i];
+            variablesInvolvedInConflict[Math.abs(currentLiteral)] = 1;
+            if (currentLiteral != -conflictLiteral) {
+                resolutionTerms.add(new int[]{currentLiteral});
+            }
+        }
+
+        for (int i = 0; i < conflictTerms.length; i++) {
+            boolean containsConflictLiteral = false;
+            for (int j = 0; j < conflictTerms[i].length; j++) {
+                if (conflictTerms[i][j] == conflictLiteral) {
+                    containsConflictLiteral = true;
+                    break;
+                }
+            }
+
+            if (!containsConflictLiteral) {
+                resolutionTerms.add(conflictTerms[i]);
+            }
+        }
+
+
+        return Arrays.asList(formula.addDNFConstraints(resolutionTerms.toArray(int[][]::new)));
     }
 
     @Override
@@ -344,6 +374,8 @@ public class DisjunctiveConstraint extends Constraint {
         } else {
             return decisionLevelOfVariables[Math.abs(literals[1])];
         }
+
+
     }
 
     @Override
@@ -356,6 +388,28 @@ public class DisjunctiveConstraint extends Constraint {
     @Override
     public boolean isStillWatched(int literal) {
         return false;
+    }
+
+    @Override
+    public String toString() {
+        String constraint = "[";
+
+        for (int i = 0; i < literals.length; i++) {
+            constraint += " " + literals[i];
+        }
+
+        constraint += "]";
+
+        return constraint;
+    }
+
+    @Override
+    public Set<Integer> getUnitLiteralsNeededBeforePropagation() {
+        if (literals.length == 1) {
+            return new HashSet<>(Arrays.asList(literals[0]));
+        } else {
+            return new HashSet<>();
+        }
     }
 
     public int[] resolveClauses(int numberOfVariables, int[] conflictLiterals,

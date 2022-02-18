@@ -18,6 +18,7 @@ import cas.thomas.utils.Pair;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 public class ClauseParser {
 
@@ -63,6 +64,7 @@ public class ClauseParser {
                 (ArrayList<Constraint>[]) new ArrayList[numberOfVariables];
         List<Constraint>[] positivelyWatchedDNFConstraints = (ArrayList<Constraint>[]) new ArrayList[numberOfVariables];
         List<Constraint>[] negativelyWatchedDNFConstraints = (ArrayList<Constraint>[]) new ArrayList[numberOfVariables];
+        List<Integer> unitLiteralsBeforePropagation = new ArrayList<>();
 
 
         for (int i = 0; i < numberOfVariables; i++) {
@@ -89,7 +91,7 @@ public class ClauseParser {
             Constraint nextConstraint = parseClause(lines[i], listOfUnitVariables, unitLiteralState,
                     positivelyWatchedDisjunctiveConstraints, negativelyWatchedDisjunctiveConstraints,
                     positivelyWatchedAMOConstraints, negativelyWatchedAMOConstraints, positivelyWatchedDNFConstraints
-                    , negativelyWatchedDNFConstraints);
+                    , negativelyWatchedDNFConstraints, numberOfVariables, unitLiteralsBeforePropagation);
 
             if (nextConstraint != null) {
                 constraints[clausecounter] = nextConstraint;
@@ -110,8 +112,8 @@ public class ClauseParser {
                 listOfUnitVariables, unitLiteralState, positivelyWatchedDisjunctiveConstraints,
                 negativelyWatchedDisjunctiveConstraints
                 , positivelyWatchedAMOConstraints, negativelyWatchedAMOConstraints, positivelyWatchedDNFConstraints,
-                negativelyWatchedDNFConstraints),
-                new SolutionCheckerConjunctiveFormula(solutionCheckerConstraints));
+                negativelyWatchedDNFConstraints, unitLiteralsBeforePropagation),
+                new SolutionCheckerConjunctiveFormula(solutionCheckerConstraints, numberOfVariables));
 
 
     }
@@ -138,7 +140,8 @@ public class ClauseParser {
                                    List<Constraint>[] positivelyWatchedList,
                                    List<Constraint>[] negativelyWatchedList, List<Constraint>[] positivelyWatchedAMOList
             , List<Constraint>[] negativelyWatchedAMOList, List<Constraint>[] positivelyWatchedDNFConstraints,
-                                   List<Constraint>[] negativelyWatchedDNFConstraints) throws ClauseNotTerminatedByZeroException,
+                                   List<Constraint>[] negativelyWatchedDNFConstraints, int numberOfVariables,
+                                   List<Integer> unitLiteralsBeforePropagation) throws ClauseNotTerminatedByZeroException,
             EmptyClauseException, ClauseContainsZeroException {
 
         try {
@@ -163,15 +166,40 @@ public class ClauseParser {
 
             if (intVariables.length == 1) {
                 int literal = intVariables[0];
-                listOfUnitLiterals.offer(literal);
-                unitLiteralState[Math.abs(literal)] = literal < 0 ? -1 : 1;
+                int literalAbsoluteValue = Math.abs(literal);
+
+                if (unitLiteralState[literalAbsoluteValue] * literal < 0) {
+                    throw new EmptyClauseException("The formula is not satisfiable");
+                } else if (unitLiteralState[literalAbsoluteValue] == 0) {
+                    listOfUnitLiterals.offer(literal);
+                    unitLiteralsBeforePropagation.add(literal);
+                    unitLiteralState[Math.abs(literal)] = literal < 0 ? -1 : 1;
+                }
             }
 
             if (identifier.equals("AMO")) {
                 return new AMOConstraint(intVariables, positivelyWatchedAMOList, negativelyWatchedAMOList);
             } else if (identifier.equals("DNF")) {
-                return parseDNFConstraint(intVariables, positivelyWatchedDNFConstraints,
-                        negativelyWatchedDNFConstraints, listOfUnitLiterals, unitLiteralState);
+                DNFConstraint dnfConstraint =  parseDNFConstraint(intVariables, positivelyWatchedDNFConstraints,
+                        negativelyWatchedDNFConstraints, listOfUnitLiterals, unitLiteralState, line, numberOfVariables);
+
+                Set<Integer> unitLiterals = dnfConstraint.getUnitLiteralsNeededBeforePropagation();
+
+                for (Integer literal : unitLiterals) {
+                    int literalAbsoluteValue = Math.abs(literal);
+
+                    if (unitLiteralState[literalAbsoluteValue] * literal < 0) {
+                        throw new EmptyClauseException("The formula is not satisfiable");
+                    } else if (unitLiteralState[literalAbsoluteValue] == 0) {
+                        listOfUnitLiterals.offer(literal);
+                        unitLiteralsBeforePropagation.add(literal);
+                        unitLiteralState[Math.abs(literal)] = literal < 0 ? -1 : 1;
+                    }
+                }
+
+                return dnfConstraint;
+
+
             } else {
                 return new DisjunctiveConstraint(intVariables, positivelyWatchedList, negativelyWatchedList);
             }
@@ -183,7 +211,8 @@ public class ClauseParser {
 
     private DNFConstraint parseDNFConstraint(int[] variables, List<Constraint>[] positivelyWatchedDNFConstraints,
                                              List<Constraint>[] negativelyWatchedDNFConstraints,
-                                             IntegerArrayQueue listOfUnitLiterals, int[] unitLiteralState) {
+                                             IntegerArrayQueue listOfUnitLiterals, int[] unitLiteralState,
+                                             String line, int numberOfVariables) {
 
         int termCount = 0;
 
@@ -209,16 +238,20 @@ public class ClauseParser {
                 end++;
             }
 
-            if (termCount == 1) {
-                listOfUnitLiterals.offer(currentLiteral);
-                unitLiteralState[Math.abs(currentLiteral)] = currentLiteral < 0 ? -1 : 1;
-            }
         }
 
         terms[terms.length - 1] = Arrays.copyOfRange(variables, start, end);
 
+
+
+
+        assert(terms.length > 0);
+        for (int i = 0; i < terms.length; i++){
+            assert (terms[i].length > 0);
+        }
+
         return new DNFConstraint(terms, positivelyWatchedDNFConstraints, negativelyWatchedDNFConstraints,
-                listOfUnitLiterals, unitLiteralState);
+                listOfUnitLiterals, new int[numberOfVariables], unitLiteralState, new int[numberOfVariables]);
     }
 
     private int[] checkAndParseInputVariables(String[] lineParts, boolean hasIdentifier, boolean isDNF) throws

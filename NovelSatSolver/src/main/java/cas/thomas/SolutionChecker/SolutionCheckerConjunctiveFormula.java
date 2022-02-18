@@ -1,5 +1,7 @@
 package cas.thomas.SolutionChecker;
 
+import cas.thomas.utils.Pair;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -10,8 +12,8 @@ import java.util.ListIterator;
 
 public class SolutionCheckerConjunctiveFormula extends SolutionCheckerFormula {
 
-    public SolutionCheckerConjunctiveFormula(SolutionCheckerConstraint[] constraints) {
-        super(constraints);
+    public SolutionCheckerConjunctiveFormula(SolutionCheckerConstraint[] constraints, int variables) {
+        super(constraints,variables);
     }
 
     @Override
@@ -26,11 +28,11 @@ public class SolutionCheckerConjunctiveFormula extends SolutionCheckerFormula {
     }
 
     @Override
-    public void toDimacsFile(Path filePath, int variables) throws IOException {
+    public void toDimacsFile(Path filePath) throws IOException {
         String dimacsString = "p cnf " + variables + " " + constraints.length + "\n";
 
         for (int i = 0; i < constraints.length; i++) {
-            dimacsString += constraints[i].toDimacsString() + "\n";
+            dimacsString += constraints[i].toDimacsString();
         }
 
         PrintWriter writer = new PrintWriter(new FileWriter(filePath.toFile()));
@@ -41,16 +43,27 @@ public class SolutionCheckerConjunctiveFormula extends SolutionCheckerFormula {
     }
 
     @Override
-    public void toDimacsCNFFile(Path filePath, int variables) throws IOException {
-        String dimacsString = "p cnf " + variables + " " + constraints.length + "\n";
+    public void toDimacsCNFFile(Path filePath) throws IOException {
+        int maxVariables = variables;
+        int constraintCounter = 0;
+
+        StringBuilder dimacsString = new StringBuilder();
 
         for (int i = 0; i < constraints.length; i++) {
-            dimacsString += constraints[i].toDimacsCNFString();
+            Pair<Integer,Integer> intPair = constraints[i].toDimacsCNFString(dimacsString, maxVariables);
+            maxVariables = intPair.getFirstPairPart();
+            constraintCounter += intPair.getSecondPairPart();
         }
+
+        StringBuilder finalDimacsString = new StringBuilder();
+
+        finalDimacsString.append("p cnf " + maxVariables + " " + constraintCounter + "\n");
+
+        finalDimacsString.append(dimacsString);
 
         PrintWriter writer = new PrintWriter(new FileWriter(filePath.toFile()));
 
-        writer.write(dimacsString);
+        writer.write(finalDimacsString.toString());
 
         writer.close();
     }

@@ -19,20 +19,13 @@ public class BenchmarkGenerator {
 
     public static void main(String[] args) {
 
-        /*for (int i = 1; i <= 1000; i++) {
-            try {
-                random(150, 0, 20000,0,i).toDimacsFile(Paths.get("GeneratedBenchmarks", "amo_" + i + ".cnf"), 150);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }*/
-
         IntStream.range(1, 101).parallel().forEach(a -> {
 
             try {
-                random(4000, 0, 0,1000,a).toDimacsFile(Paths.get("GeneratedBenchmarks", "dnf_1000","dnf_1000_" + a +
-                                ".cnf"),
-                        4000);
+                random(10000, 0, 10000,0,a).toDimacsFile(Paths.get("GeneratedBenchmarks",
+                        "amo_40000_10000",
+                        "amo_40000_10000_" + + a +
+                                ".cnf"));
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -57,14 +50,14 @@ public class BenchmarkGenerator {
         generateAMOConstraints(vars, amo, constraints, rnd, solution);
         generateDNFConstraints(vars, dnf, constraints, rnd, solution);
 
-        return new SolutionCheckerConjunctiveFormula(constraints.toArray(SolutionCheckerConstraint[]::new));
+        return new SolutionCheckerConjunctiveFormula(constraints.toArray(SolutionCheckerConstraint[]::new), vars);
     }
 
     public static void generateClauseConstraints(int vars, int cls, List<SolutionCheckerConstraint> constraints, Random rnd,
                                           List<Integer> solution) {
         int constraintCounter = 0;
         while (constraintCounter< cls) {
-            int[] clause = new int[rnd.nextInt(3) + 2];
+            int[] clause = new int[rnd.nextInt(7) + 2];
             HashSet<Integer> usedVariables = new HashSet<>();
             for (int i = 0; i < clause.length; i++) {
                 int var;
@@ -115,10 +108,15 @@ public class BenchmarkGenerator {
 
         int constraintCounter = 0;
         while (constraintCounter< dnf) {
-            int[][] clause = new int[rnd.nextInt(3) + 2][rnd.nextInt(3) + 2];
+            int[][] clause = new int[rnd.nextInt(3) + 2][rnd.nextInt(3) + 4];
             for (int i = 0; i < clause.length; i++) {
+                HashSet<Integer> usedVariables = new HashSet<>();
                 for (int j = 0; j < clause[i].length; j++) {
-                    int var = rnd.nextInt(vars) + 1;
+                    int var;
+                    do {
+                        var = rnd.nextInt(vars) + 1;
+                    } while (usedVariables.contains(var));
+                    usedVariables.add(var);
                     clause[i][j] = rnd.nextBoolean() ? var : -var;
                 }
             }

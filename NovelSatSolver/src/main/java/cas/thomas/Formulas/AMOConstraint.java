@@ -8,7 +8,9 @@ import cas.thomas.utils.IntegerStack;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class AMOConstraint extends Constraint {
 
@@ -272,7 +274,38 @@ public class AMOConstraint extends Constraint {
 
     @Override
     public List<Constraint> resolveConflict(DNFConstraint conflictConstraint, IntegerStack trail, int[] stateOfResolvedVariables, Formula formula, int[] variablesInvolvedInConflict) {
-        return null;
+        int[] reasonLiterals = this.literals;
+        int[][] conflictTerms = conflictConstraint.getTerms();
+        int conflictLiteral = formula.getConflictLiteral();
+
+        ArrayList<int[]> resolutionTerms = new ArrayList<>();
+        int[] termFromAmoLiterals = new int[reasonLiterals.length - 1];
+        int counter = 0;
+        for (int i = 0; i < reasonLiterals.length; i++) {
+            variablesInvolvedInConflict[Math.abs(reasonLiterals[i])] = 1;
+            if (reasonLiterals[i] != conflictLiteral) {
+                termFromAmoLiterals[counter] = -reasonLiterals[i];
+                counter++;
+            }
+        }
+
+        resolutionTerms.add(termFromAmoLiterals);
+
+        for (int i = 0; i < conflictTerms.length; i++) {
+            boolean containsConflictLiteral = false;
+            for (int j = 0; j < conflictTerms[i].length; j++) {
+                if (conflictTerms[i][j] == conflictLiteral) {
+                    containsConflictLiteral = true;
+                    break;
+                }
+            }
+
+            if (!containsConflictLiteral) {
+                resolutionTerms.add(conflictTerms[i]);
+            }
+        }
+
+        return Arrays.asList(formula.addDNFConstraints(resolutionTerms.toArray(int[][]::new)));
     }
 
     @Override
@@ -297,7 +330,13 @@ public class AMOConstraint extends Constraint {
 
     @Override
     public int getNeededDecisionLevel(int[] decisionLevelOfVariables) {
-        return 0;
+        int decisionLevel = Integer.MAX_VALUE;
+
+        for (int i = 0; i < literals.length; i++) {
+            decisionLevel = Math.min(decisionLevel, decisionLevelOfVariables[Math.abs(literals[i])]);
+        }
+
+        return decisionLevel;
     }
 
     @Override
@@ -310,6 +349,22 @@ public class AMOConstraint extends Constraint {
     @Override
     public boolean isStillWatched(int literal) {
         return false;
+    }
+
+    @Override
+    public String toString() {
+        String constraint = "AMO";
+
+        for (int i = 0; i < literals.length; i++) {
+            constraint += " " + literals[i];
+        }
+
+        return constraint;
+    }
+
+    @Override
+    public Set<Integer> getUnitLiteralsNeededBeforePropagation() {
+        return new HashSet<>();
     }
 
 

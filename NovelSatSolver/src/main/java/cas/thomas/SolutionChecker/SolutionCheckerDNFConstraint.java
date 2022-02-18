@@ -1,5 +1,7 @@
 package cas.thomas.SolutionChecker;
 
+import cas.thomas.utils.Pair;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.ListIterator;
@@ -64,13 +66,39 @@ public class SolutionCheckerDNFConstraint extends SolutionCheckerConstraint {
             dimacsString += " 0";
         }
 
-        dimacsString += " 0";
+        dimacsString += " 0\n";
 
         return dimacsString;
     }
 
     @Override
-    public String toDimacsCNFString() {
-        return null;
+    public Pair<Integer,Integer> toDimacsCNFString(StringBuilder cnfString, int maxVariable) {
+        int nextHelperVariable = maxVariable + 1;
+        int constraintCounter = 0;
+        int[] dnfClause = new int[terms.length];
+        for (int i = 0; i < terms.length; i++) {
+            int[] term = terms[i];
+            if (term.length < 2) {
+                dnfClause[i] = term[0];
+            } else {
+                int termHelper = nextHelperVariable++;
+                dnfClause[i] = termHelper;
+                int[] termClause = new int[term.length + 1];
+                termClause[0] = termHelper;
+                for (int j = 0; j < term.length; j++) {
+                    int lit = term[j];
+                    termClause[j + 1] = -lit;
+                    cnfString.append(new SolutionCheckerDisjunctiveConstraint(new int[] { -termHelper, lit }).toDimacsString());
+                    constraintCounter++;
+
+                }
+                cnfString.append(new SolutionCheckerDisjunctiveConstraint(termClause).toDimacsString());
+                constraintCounter++;
+            }
+        }
+        cnfString.append(new SolutionCheckerDisjunctiveConstraint(dnfClause).toDimacsString());
+        constraintCounter++;
+
+        return new Pair<>(nextHelperVariable - 1, constraintCounter);
     }
 }
