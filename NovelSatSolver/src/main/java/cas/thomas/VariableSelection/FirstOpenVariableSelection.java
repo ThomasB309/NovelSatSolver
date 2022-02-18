@@ -14,4 +14,9 @@ public class FirstOpenVariableSelection implements VariableSelectionStrategy {
 
         return -1;
     }
+
+    @Override
+    public void addUnassignedVariable(int variable) {
+
+    }
 }

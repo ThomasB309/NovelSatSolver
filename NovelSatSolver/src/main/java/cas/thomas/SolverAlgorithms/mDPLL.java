@@ -50,7 +50,7 @@ public class mDPLL extends SolverAlgorithm {
             if (!unitPropagation(trail, formula, variableDecisionLevel)) {
                 conflict = true;
                 if (!conflictHandlingStrategy.handleConflict(trail, formula, firstBranchingDecision,
-                        variableDecisionLevel)) {
+                        variableDecisionLevel, variableSelectionStrategy)) {
                     return false;
                 }
 

@@ -153,7 +153,7 @@ public class Main {
                 String isSatisfiable = dpllSolver.solve(formula);
                 System.out.print(counter + ": ");
                 System.out.println(isSatisfiable);
-                //assert (solutionCheckerFormula.isTrue(formula.getVariablesForSolutionChecker()));
+                assert (solutionCheckerFormula.isTrue(formula.getVariablesForSolutionChecker()));
             } else {
                 System.err.println("Incorrect execution method!");
                 System.exit(-1);

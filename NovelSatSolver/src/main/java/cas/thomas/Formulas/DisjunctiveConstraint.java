@@ -111,6 +111,7 @@ public class DisjunctiveConstraint extends Constraint {
         if (variableAssignments[firstWatchedLiteralAbsoluteValue] * firstWatchedLiteral < 0 || unitLiteralState[firstWatchedLiteralAbsoluteValue] * firstWatchedLiteral < 0) {
             hasConflict = true;
             conflictLiteral = firstWatchedLiteral;
+            return;
         } else if (isNeededForUnitPropagation(firstWatchedLiteral, variableAssignments, unitLiteralState)) {
             unitLiterals.offer(firstWatchedLiteral);
             unitLiteralState[firstWatchedLiteralAbsoluteValue] = firstWatchedLiteral < 0 ? -1 : 1;
@@ -164,7 +165,7 @@ public class DisjunctiveConstraint extends Constraint {
         return true;
     }
 
-    private boolean isNeededForUnitPropagation(int literal, int[] variables, int[] unitLiteralState) {
+    protected boolean isNeededForUnitPropagation(int literal, int[] variables, int[] unitLiteralState) {
         int literalAbsoluteValue = Math.abs(literal);
         if (variables[literalAbsoluteValue] * literal == 0 && unitLiteralState[literalAbsoluteValue] == 0) {
             return true;

@@ -21,12 +21,12 @@ import java.util.stream.IntStream;
 
 public class DNFConstraint extends Constraint {
 
-    private int[][] terms;
+    protected int[][] terms;
     private int[] firstWatchedLiterals;
     private int[] secondWatchedLiterals;
     private Map<Integer, Set<Integer>> literalIntersections;
     private Set<Integer>[] termSets;
-    private Set<Integer> unitLiteralsPropagatedDuringInitialization;
+    protected Set<Integer> unitLiteralsPropagatedDuringInitialization;
     private Set<Integer> currentWatchedLiterals;
     private LinkedList<int[][]> lastWatchedLiterals;
 
@@ -88,6 +88,10 @@ public class DNFConstraint extends Constraint {
 
         assignWatchedLiteralsToWatchList(positivelyWatchedList, negativelyWatchedList, variableAssignment,
                 unitLiteralState, decisionLevelOfVariables);
+    }
+
+    protected DNFConstraint() {
+
     }
 
     @Override

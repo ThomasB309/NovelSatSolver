@@ -286,12 +286,21 @@ public class Formula {
     }
 
     public DisjunctiveConstraint addDisjunctiveConstraint(int[] literals) {
-        return new DisjunctiveConstraint(literals, positivelyWatchedDisjunctiveConstraints,
-                negativelyWatchedDisjunctiveConstraints);
+        if (literals.length == 2) {
+            return new BinaryDisjunctiveConstraint(literals, positivelyWatchedDisjunctiveConstraints,
+                    negativelyWatchedDisjunctiveConstraints);
+        } else {
+            return new DisjunctiveConstraint(literals, positivelyWatchedDisjunctiveConstraints,
+                    negativelyWatchedDisjunctiveConstraints);
+        }
     }
 
     public DNFConstraint addDNFConstraints(int[][] terms) {
-        return new DNFConstraint(terms, positivelyWatchedDNFConstraints, negativelyWatchedDNFConstraints,
+        return terms.length == 2 ? new BinaryDNFConstraint(terms, positivelyWatchedDNFConstraints,
+                negativelyWatchedDNFConstraints, variables) :
+                new DNFConstraint(terms,
+                positivelyWatchedDNFConstraints,
+                negativelyWatchedDNFConstraints,
                 unitLiterals, variables, unitLiteralState, decisionLevelOfVariables);
     }
 

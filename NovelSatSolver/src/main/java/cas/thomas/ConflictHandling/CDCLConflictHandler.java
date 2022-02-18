@@ -4,6 +4,7 @@ import cas.thomas.Formulas.Constraint;
 import cas.thomas.Formulas.ConstraintType;
 import cas.thomas.Formulas.DisjunctiveConstraint;
 import cas.thomas.Formulas.Formula;
+import cas.thomas.VariableSelection.VariableSelectionStrategy;
 import cas.thomas.utils.IntegerArrayQueue;
 import cas.thomas.utils.IntegerStack;
 
@@ -29,7 +30,7 @@ public class CDCLConflictHandler implements ConflictHandlingStrategy {
 
     @Override
     public boolean handleConflict(IntegerStack trail, Formula formula, boolean branchingDecision,
-                                  int[] variableDecisionLevel) {
+                                  int[] variableDecisionLevel, VariableSelectionStrategy variableSelectionStrategy) {
 
         formula.emptyUnitLiterals();
         conflictCounter++;
@@ -88,7 +89,7 @@ public class CDCLConflictHandler implements ConflictHandlingStrategy {
 
 
         backtrackTrailToHighestDecisionLevelOfConflictClause(formula, trail,
-                learnedConstraints);
+                learnedConstraints, variableSelectionStrategy);
 
         formula.adjustVariableScores(variablesInvolvedInConflict, vsidsConflictCounter);
 
@@ -107,7 +108,8 @@ public class CDCLConflictHandler implements ConflictHandlingStrategy {
     }
 
     private void backtrackTrailToHighestDecisionLevelOfConflictClause(Formula formula, IntegerStack trail,
-                                                                      List<Constraint> learnedConstraints) {
+                                                                      List<Constraint> learnedConstraints,
+                                                                      VariableSelectionStrategy variableSelectionStrategy) {
         int[] unitLiteralState = formula.getUnitLiteralState();
 
         int neededDecisionlevel = findNeededDecisionLevel(learnedConstraints, formula.getCurrentDecisionLevel());
@@ -124,6 +126,7 @@ public class CDCLConflictHandler implements ConflictHandlingStrategy {
 
 
             formula.unassignVariable(currentLiteral);
+            variableSelectionStrategy.addUnassignedVariable(currentLiteralAbsoluteValue);
             decisionLevelOfVariables[currentLiteralAbsoluteValue] = 0;
 
             if (currentDecisionLevel < neededDecisionlevel) {

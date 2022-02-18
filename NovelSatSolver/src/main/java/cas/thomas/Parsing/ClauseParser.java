@@ -1,6 +1,8 @@
 package cas.thomas.Parsing;
 
 import cas.thomas.Formulas.AMOConstraint;
+import cas.thomas.Formulas.BinaryDNFConstraint;
+import cas.thomas.Formulas.BinaryDisjunctiveConstraint;
 import cas.thomas.Formulas.Constraint;
 import cas.thomas.Exceptions.ClauseContainsZeroException;
 import cas.thomas.Exceptions.ClauseNotTerminatedByZeroException;
@@ -201,7 +203,9 @@ public class ClauseParser {
 
 
             } else {
-                return new DisjunctiveConstraint(intVariables, positivelyWatchedList, negativelyWatchedList);
+                return intVariables.length == 2 ? new BinaryDisjunctiveConstraint(intVariables, positivelyWatchedList,
+                        negativelyWatchedList) : new DisjunctiveConstraint(intVariables, positivelyWatchedList,
+                        negativelyWatchedList);
             }
 
         } catch(NumberFormatException e) {
@@ -250,7 +254,11 @@ public class ClauseParser {
             assert (terms[i].length > 0);
         }
 
-        return new DNFConstraint(terms, positivelyWatchedDNFConstraints, negativelyWatchedDNFConstraints,
+        return  terms.length == 2 ? new BinaryDNFConstraint(terms, positivelyWatchedDNFConstraints,
+                negativelyWatchedDNFConstraints, new int[numberOfVariables]) :
+                new DNFConstraint(terms,
+                positivelyWatchedDNFConstraints,
+                negativelyWatchedDNFConstraints,
                 listOfUnitLiterals, new int[numberOfVariables], unitLiteralState, new int[numberOfVariables]);
     }
 
