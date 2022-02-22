@@ -109,4 +109,20 @@ public class BinaryDNFConstraint extends DNFConstraint {
                           ListIterator<Constraint> listIterator) {
         return;
     }
+
+    @Override
+    public int getNeededDecisionLevel(int[] decisionLevelOfVariables) {
+        int decisionLevel = Integer.MAX_VALUE;
+
+        for (int i = 0; i < terms[0].length; i++) {
+            decisionLevel = Math.min(decisionLevel, decisionLevelOfVariables[Math.abs(terms[0][i])]);
+        }
+
+        for (int i = 0; i < terms[1].length; i++) {
+            decisionLevel = Math.min(decisionLevel, decisionLevelOfVariables[Math.abs(terms[1][i])]);
+        }
+
+        return decisionLevel;
+
+    }
 }

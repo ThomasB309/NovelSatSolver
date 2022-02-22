@@ -91,7 +91,9 @@ public class CDCLConflictHandler implements ConflictHandlingStrategy {
         backtrackTrailToHighestDecisionLevelOfConflictClause(formula, trail,
                 learnedConstraints, variableSelectionStrategy);
 
-        formula.adjustVariableScores(variablesInvolvedInConflict, vsidsConflictCounter);
+        if (formula.adjustVariableScores(variablesInvolvedInConflict, vsidsConflictCounter)) {
+            vsidsConflictCounter = 0;
+        }
 
 
         if (conflictCounter == 20000 + 500 * reductionCounter) {

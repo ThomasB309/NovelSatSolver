@@ -322,12 +322,22 @@ public class Formula {
         }
     }
 
-    public void adjustVariableScores(int[] literals, long conflictIndex) {
+    public boolean adjustVariableScores(int[] literals, long conflictIndex) {
         for (int i = 0; i < literals.length; i++) {
             if (literals[i] == 1){
                 variableOccurences[i] += Math.pow(1.01, conflictIndex);
+
+                if (Double.isInfinite(variableOccurences[i])) {
+                    double max  = Arrays.stream(variableOccurences).max().getAsDouble();
+
+                    variableOccurences = Arrays.stream(variableOccurences).map(a -> a / max).toArray();
+
+                    return true;
+                }
             }
         }
+
+        return false;
     }
 
     public double[] getVariableOccurences() {
