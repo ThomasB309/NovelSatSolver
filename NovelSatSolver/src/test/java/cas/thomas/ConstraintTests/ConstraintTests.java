@@ -1,17 +1,5 @@
 package cas.thomas.ConstraintTests;
 
-import cas.thomas.Formulas.AMOConstraint;
-import cas.thomas.Formulas.Constraint;
-import cas.thomas.Formulas.DisjunctiveConstraint;
-import cas.thomas.utils.IntegerArrayQueue;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-
 public class ConstraintTests {
 
     /*
