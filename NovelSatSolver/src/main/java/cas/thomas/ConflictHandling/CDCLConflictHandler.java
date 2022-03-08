@@ -33,6 +33,7 @@ public class CDCLConflictHandler implements ConflictHandlingStrategy {
                                   int[] variableDecisionLevel, VariableSelectionStrategy variableSelectionStrategy) {
 
         formula.emptyUnitLiterals();
+        formula.setUnitLiteralsBeforePropagation();
         conflictCounter++;
         vsidsConflictCounter++;
         decisionLevelOfVariables = variableDecisionLevel;
@@ -77,7 +78,7 @@ public class CDCLConflictHandler implements ConflictHandlingStrategy {
             for (Integer unitLiteral : unitLiterals) {
                 int unitLiteralAbsoluteValue = Math.abs(unitLiteral);
 
-                if (learnedUnitClauses[unitLiteralAbsoluteValue] == -unitLiteral) {
+                if (learnedUnitClauses[unitLiteralAbsoluteValue] == -unitLiteral || formula.hasUnitLiteralConflict(unitLiteral)) {
                     formula.resetConflictState();
                     return false;
                 } else if (constraint.getConstraintType() == ConstraintType.DISJUNCTIVE) {
@@ -105,7 +106,6 @@ public class CDCLConflictHandler implements ConflictHandlingStrategy {
         }
 
         formula.resetConflictState();
-        formula.setUnitLiteralsBeforePropagation();
         return true;
     }
 

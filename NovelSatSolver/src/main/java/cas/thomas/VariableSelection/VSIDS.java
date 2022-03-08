@@ -34,6 +34,8 @@ public class VSIDS implements VariableSelectionStrategy {
     }
 
     public void addUnassignedVariable(int variable) {
-        maxScoreVariables.add(variable);
+        if (maxScoreVariables != null) {
+            maxScoreVariables.add(variable);
+        }
     }
 }

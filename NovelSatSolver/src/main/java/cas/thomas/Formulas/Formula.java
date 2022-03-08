@@ -1,5 +1,6 @@
 package cas.thomas.Formulas;
 
+import cas.thomas.Exceptions.UnitLiteralConflictException;
 import cas.thomas.utils.IntegerArrayQueue;
 
 import java.util.ArrayList;
@@ -35,6 +36,7 @@ public class Formula {
     private int conflictLiteral;
 
     private Set<Integer> unitLiteralsBeforePropagation;
+    private Set<Integer> assumptions;
 
     public Formula(int variableCount, Constraint[] constraints, double[] variableOccurences,
                    IntegerArrayQueue unitLiterals, int[] unitLiteralState,
@@ -65,6 +67,17 @@ public class Formula {
         this.currentDecisionLevel = 0;
         this.conflictLiteral = 0;
         this.unitLiteralsBeforePropagation = new HashSet<>(unitLiteralsBeforePropagation);
+        this.assumptions = new HashSet<>();
+    }
+
+    public Formula(List<int[]> clauses, List<int[]> amoConstraints, List<int[][]> dnfConstraints, int maxVariable) throws UnitLiteralConflictException {
+        instantiateIncremental(maxVariable);
+
+        addClausesIncremental(clauses);
+
+        addAMOConstraintsIncremental(amoConstraints);
+
+        addDNFConstraintsIncremental(dnfConstraints);
     }
 
     public void propagate(int literal) {
@@ -222,6 +235,11 @@ public class Formula {
             unitLiterals.offer(literal);
             unitLiteralState[Math.abs(literal)] = literal < 0 ? -1 : 1;
         }
+
+        for (Integer literal : assumptions) {
+            unitLiterals.offer(literal);
+            unitLiteralState[Math.abs(literal)] = literal < 0 ? -1 : 1;
+        }
     }
 
     public void addUnitLiteralBeforePropagation(int literal) {
@@ -340,6 +358,126 @@ public class Formula {
         return false;
     }
 
+    public void instantiateIncremental(int maxVariable) {
+        int variableCount = maxVariable + 1;
+        this.variables = new int[variableCount];
+        this.unitLiteralState = new int[variableCount];
+        this.phaseSavingLastAssignment = new int[variableCount];
+        this.variableOccurences = new double[variableCount];
+        this.reasonClauses = new Constraint[variableCount];
+        this.decisionLevelOfVariables = new int[variableCount];
+        this.unitLiterals = new IntegerArrayQueue(variableCount);
+        this.conflictClause = null;
+        this.hasConflict = false;
+        this.positivelyWatchedDisjunctiveConstraints = new ArrayList[variableCount];
+        this.negativelyWatchedDisjunctiveConstraints = new ArrayList[variableCount];
+        this.positivelWatchedAMOConstraints = new ArrayList[variableCount];
+        this.negativelyWatchedAMOConstraints = new ArrayList[variableCount];
+        this.positivelyWatchedDNFConstraints = new ArrayList[variableCount];
+        this.negativelyWatchedDNFConstraints = new ArrayList[variableCount];
+
+        for (int i = 0; i < variableCount; i++) {
+            positivelyWatchedDisjunctiveConstraints[i] = new ArrayList<>();
+            negativelyWatchedDisjunctiveConstraints[i] = new ArrayList<>();
+            positivelWatchedAMOConstraints[i] = new ArrayList<>();
+            negativelyWatchedAMOConstraints[i] = new ArrayList<>();
+            positivelyWatchedDNFConstraints[i] = new ArrayList<>();
+            negativelyWatchedDNFConstraints[i] = new ArrayList<>();
+        }
+
+
+        this.assignedCounter = 0;
+        this.currentDecisionLevel = 0;
+        this.conflictLiteral = 0;
+        this.unitLiteralsBeforePropagation = new HashSet<>();
+        this.assumptions = new HashSet<>();
+    }
+
+    private void addDNFConstraintsIncremental(List<int[][]> dnfConstraints) throws UnitLiteralConflictException {
+        for (int[][] term : dnfConstraints) {
+
+            for (int i = 0; i < term.length; i++) {
+                for (int j = 0; j < term[i].length; j++) {
+                    int literalAbsoluteValue = Math.abs(term[i][j]);
+                    variableOccurences[literalAbsoluteValue] += 1;
+                }
+            }
+
+            DNFConstraint dnfConstraint = addDNFConstraints(term);
+
+            Set<Integer> unitLiteralsNeededBeforePropagation = dnfConstraint.getUnitLiteralsNeededBeforePropagation();
+
+            for (Integer literal : unitLiteralsNeededBeforePropagation) {
+                int literalAbsoluteValue = Math.abs(literal);
+                if (unitLiteralState[literalAbsoluteValue] * literal < 0) {
+                    throw new UnitLiteralConflictException("The formula is not satisfiable");
+                } else if (unitLiteralState[literalAbsoluteValue] == 0) {
+                    unitLiterals.offer(literal);
+                    unitLiteralsBeforePropagation.add(literal);
+                    unitLiteralState[Math.abs(literal)] = literal < 0 ? -1 : 1;
+                }
+            }
+        }
+    }
+
+    private void addAMOConstraintsIncremental(List<int[]> amoConstraints) {
+        for (int[] amoConstraint : amoConstraints) {
+            for (int i = 0; i < amoConstraint.length; i++) {
+                int literalAbsoluteValue = Math.abs(amoConstraint[i]);
+                variableOccurences[literalAbsoluteValue] += 1;
+            }
+
+            addAMOConstraint(amoConstraint);
+        }
+    }
+
+    private void addClausesIncremental(List<int[]> clauses) throws UnitLiteralConflictException {
+        for (int[] clause : clauses) {
+
+            for (int i = 0; i < clause.length; i++) {
+                int literalAbsoluteValue = Math.abs(clause[i]);
+                variableOccurences[literalAbsoluteValue] += 1;
+            }
+
+            DisjunctiveConstraint disjunctiveConstraint = addDisjunctiveConstraint(clause);
+
+            Set<Integer> unitLiteralsNeededBeforePropagation =
+                    disjunctiveConstraint.getUnitLiteralsNeededBeforePropagation();
+
+            for (Integer literal : unitLiteralsNeededBeforePropagation) {
+                int literalAbsoluteValue = Math.abs(literal);
+                if (unitLiteralState[literalAbsoluteValue] * literal < 0) {
+                    throw new UnitLiteralConflictException("The formula is not satisfiable");
+                } else if (unitLiteralState[literalAbsoluteValue] == 0) {
+                    unitLiterals.offer(literal);
+                    unitLiteralsBeforePropagation.add(literal);
+                    unitLiteralState[Math.abs(literal)] = literal < 0 ? -1 : 1;
+                }
+
+            }
+
+
+        }
+    }
+
+    private AMOConstraint addAMOConstraint(int[] literals) {
+        return new AMOConstraint(literals, positivelWatchedAMOConstraints,
+                negativelyWatchedAMOConstraints);
+    }
+
+    public void addAssumptions(int[] assumptions) throws UnitLiteralConflictException {
+        for (Integer literal : assumptions) {
+            int literalAbsoluteValue = Math.abs(literal);
+            if (unitLiteralState[literalAbsoluteValue] * literal < 0) {
+                throw new UnitLiteralConflictException("The formula is not satisfiable");
+            } else if (unitLiteralState[literalAbsoluteValue] == 0) {
+                unitLiterals.offer(literal);
+                this.assumptions.add(literal);
+                unitLiteralState[Math.abs(literal)] = literal < 0 ? -1 : 1;
+            }
+        }
+    }
+
     public double[] getVariableOccurences() {
         return variableOccurences;
     }
@@ -383,6 +521,14 @@ public class Formula {
 
     public int[] getUnitLiteralState() {
         return unitLiteralState;
+    }
+
+    public boolean hasUnitLiteralConflict(int literal) {
+        if (unitLiteralState[Math.abs(literal)] * literal < 0) {
+            return true;
+        }
+
+        return false;
     }
 
 

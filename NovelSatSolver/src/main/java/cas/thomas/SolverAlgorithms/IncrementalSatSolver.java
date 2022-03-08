@@ -1,6 +1,9 @@
 package cas.thomas.SolverAlgorithms;
 
 import cas.thomas.Exceptions.SolverTimeoutException;
+import cas.thomas.Exceptions.UnitLiteralConflictException;
+
+import java.util.concurrent.TimeoutException;
 
 public interface IncrementalSatSolver {
 	
@@ -18,7 +21,7 @@ public interface IncrementalSatSolver {
 	 * @return
 	 * @throws SolverTimeoutException
 	 */
-	public boolean solve(int[] assumptions) throws SolverTimeoutException;
+	public boolean solve(int[] assumptions) throws SolverTimeoutException, UnitLiteralConflictException, TimeoutException;
 	
 	// if solve returns true, then get the truth values with this method
 	public boolean getValue(int variable) throws IllegalStateException;

@@ -37,7 +37,7 @@ public class mDPLL extends SolverAlgorithm {
 
     }
 
-    private boolean mDPPLAlgorithm(Formula formula, boolean firstBranchingDecision) {
+    protected boolean mDPPLAlgorithm(Formula formula, boolean firstBranchingDecision) {
         int numberOfVariables = formula.getNumberOfVariables();
         boolean conflict = false;
         IntegerStack trail = new IntegerStack(numberOfVariables);
