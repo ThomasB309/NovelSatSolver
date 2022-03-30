@@ -4,11 +4,8 @@ import cas.thomas.SolutionChecker.SolutionCheckerConstraint;
 import cas.thomas.utils.IntegerArrayQueue;
 import cas.thomas.utils.IntegerStack;
 
-import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Set;
 
 public abstract class Constraint {
@@ -66,7 +63,7 @@ public abstract class Constraint {
     }
 
     public abstract List<Constraint> handleConflict(int numberOfVariables, IntegerStack trail,
-                                int[] variableDecisionLevel, int[] variablesInvolvedInConflict,Formula formula);
+                                                    int[] variableDecisionLevel, int[] variablesInvolvedInConflict, Formula formula);
 
 
     public abstract List<Constraint> resolveConflict(Constraint conflictConstraint, IntegerStack trail,
@@ -104,9 +101,7 @@ public abstract class Constraint {
 
     public abstract boolean isStillWatched(int literal);
 
-    public void backtrack(int variable, int[] unitLiteralState, Set<Integer> unitLiteralsBeforePropagation,
-                          List<Constraint>[] positivelyWatched, List<Constraint>[] negativelyWatched,
-                          ListIterator<Constraint> listIterator) {
+    public void backtrack(int variable, int[] variableAssignments) {
         return;
     }
 

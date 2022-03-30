@@ -2,17 +2,12 @@ package cas.thomas.Formulas;
 
 import cas.thomas.utils.IntegerArrayQueue;
 
-import java.awt.desktop.AboutEvent;
 import java.util.List;
 
 public class BinaryDisjunctiveConstraint extends DisjunctiveConstraint {
 
     public BinaryDisjunctiveConstraint(int[] literals, List<Constraint>[] positivelyWatchedList, List<Constraint>[] negativelyWatchedList) {
         super(literals, positivelyWatchedList, negativelyWatchedList);
-    }
-
-    public BinaryDisjunctiveConstraint(int[] literals) {
-        super(literals);
     }
 
     @Override
@@ -23,7 +18,7 @@ public class BinaryDisjunctiveConstraint extends DisjunctiveConstraint {
 
         if (propagatedLiteral == -literals[0]) {
             propagateBinaryLiteral(literals[1], variableAssignments, unitLiteralState, unitLiterals,
-                   reasonClauses);
+                    reasonClauses);
         } else {
             propagateBinaryLiteral(literals[0], variableAssignments, unitLiteralState, unitLiterals,
                     reasonClauses);
@@ -33,7 +28,7 @@ public class BinaryDisjunctiveConstraint extends DisjunctiveConstraint {
     }
 
     private void propagateBinaryLiteral(int literal, int[] variableAssignments, int[] unitLiteralState,
-                                              IntegerArrayQueue unitLiterals, Constraint[] reasonClauses) {
+                                        IntegerArrayQueue unitLiterals, Constraint[] reasonClauses) {
         int literalAbsoluteValue = Math.abs(literal);
         if (variableAssignments[literalAbsoluteValue] * literal < 0 || unitLiteralState[literalAbsoluteValue] * literal < 0) {
             hasConflict = true;

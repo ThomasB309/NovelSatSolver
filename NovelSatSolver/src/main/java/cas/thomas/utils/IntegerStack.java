@@ -4,8 +4,8 @@ import java.util.Arrays;
 
 public class IntegerStack {
 
-    private int stackPointer = 0;
     private static final int INITIAL_CAPACITY = 10;
+    private int stackPointer = 0;
     private int[] internalArray;
     private int stackPointerWithoutPop = 0;
 
@@ -17,16 +17,16 @@ public class IntegerStack {
         internalArray = new int[initialCapacity];
     }
 
+    public void push(int i) {
+        checkArrayLength();
+        internalArray[stackPointer] = i;
+        stackPointer++;
+    }
+
     private void checkArrayLength() {
         if (stackPointer == internalArray.length) {
             internalArray = Arrays.copyOf(internalArray, stackPointer * 2);
         }
-    }
-
-    public void push(int i){
-        checkArrayLength();
-        internalArray[stackPointer] = i;
-        stackPointer++;
     }
 
     public int pop() {
@@ -70,7 +70,7 @@ public class IntegerStack {
         return internalArray[stackPointerWithoutPop];
     }
 
-    public String toString(){
+    public String toString() {
         return Arrays.toString(internalArray);
     }
 

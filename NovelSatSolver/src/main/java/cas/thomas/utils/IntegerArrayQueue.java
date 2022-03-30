@@ -4,9 +4,9 @@ import java.util.Arrays;
 
 public class IntegerArrayQueue {
 
+    private static final int INITIAL_CAPACITY = 10;
     private int headPointer = 0;
     private int tailPointer = 0;
-    private static final int INITIAL_CAPACITY = 10;
     private int[] internalArray;
     private int elementCounter = 0;
 
@@ -18,13 +18,7 @@ public class IntegerArrayQueue {
         internalArray = new int[initialCapacity];
     }
 
-    public void checkArrayLength() {
-        if (elementCounter == internalArray.length) {
-            internalArray = Arrays.copyOf(internalArray, elementCounter * 2);
-        }
-    }
-
-    public void offer(int i){
+    public void offer(int i) {
 
         checkArrayLength();
 
@@ -41,6 +35,12 @@ public class IntegerArrayQueue {
         }
 
 
+    }
+
+    public void checkArrayLength() {
+        if (elementCounter == internalArray.length) {
+            internalArray = Arrays.copyOf(internalArray, elementCounter * 2);
+        }
     }
 
     public int poll() {

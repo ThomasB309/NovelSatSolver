@@ -13,48 +13,44 @@ import java.util.Set;
 
 public class Formula {
 
+    int assignedCounter;
     private int[] variables;
     private int[] unitLiteralState;
     private double[] variableOccurences;
     private int[] phaseSavingLastAssignment;
-    private Constraint[] constraints;
     private List<Constraint>[] positivelyWatchedDisjunctiveConstraints;
     private List<Constraint>[] negativelyWatchedDisjunctiveConstraints;
     private List<Constraint>[] positivelWatchedAMOConstraints;
     private List<Constraint>[] negativelyWatchedAMOConstraints;
     private List<Constraint>[] positivelyWatchedDNFConstraints;
     private List<Constraint>[] negativelyWatchedDNFConstraints;
-
     private int currentDecisionLevel;
     private int[] decisionLevelOfVariables;
-
-    private Constraint[] reasonClauses;
+    private Constraint[] reasonConstraints;
+    private Constraint[] reasonConstraintsBeforePropagation;
     private Constraint conflictClause;
     private boolean hasConflict;
     private IntegerArrayQueue unitLiterals;
-    int assignedCounter;
     private int conflictLiteral;
 
     private Set<Integer> unitLiteralsBeforePropagation;
     private Set<Integer> assumptions;
 
-    public Formula(int variableCount, Constraint[] constraints, double[] variableOccurences,
-                   IntegerArrayQueue unitLiterals, int[] unitLiteralState,
+    public Formula(int variableCount, Constraint[] reasonConstraints, double[] variableOccurences,
                    List<Constraint>[] positivelyWatchedDisjunctiveConstraints
             , List<Constraint>[] negativelyWatchedDisjunctiveConstraints,
                    List<Constraint>[] positivelWatchedAMOConstraints,
                    List<Constraint>[] negativelyWatchedAMOConstraints,
                    List<Constraint>[] positivelyWatchedDNFConstraints,
-                   List<Constraint>[] negativelyWatchedDNFConstraints, List<Integer> unitLiteralsBeforePropagation) {
+                   List<Constraint>[] negativelyWatchedDNFConstraints, List<Integer> unitLiteralsBeforePropagation) throws UnitLiteralConflictException {
 
         this.variables = new int[variableCount];
-        this.unitLiteralState = unitLiteralState;
+        this.unitLiteralState = new int[variableCount];
         this.phaseSavingLastAssignment = new int[variableCount];
         this.variableOccurences = variableOccurences;
-        this.reasonClauses = new Constraint[variableCount];
+        this.reasonConstraintsBeforePropagation = reasonConstraints;
         this.decisionLevelOfVariables = new int[variableCount];
-        this.unitLiterals = unitLiterals;
-        this.constraints = constraints;
+        this.unitLiterals = new IntegerArrayQueue(variableCount + 1);
         this.conflictClause = null;
         this.hasConflict = false;
         this.positivelyWatchedDisjunctiveConstraints = positivelyWatchedDisjunctiveConstraints;
@@ -68,6 +64,41 @@ public class Formula {
         this.conflictLiteral = 0;
         this.unitLiteralsBeforePropagation = new HashSet<>(unitLiteralsBeforePropagation);
         this.assumptions = new HashSet<>();
+
+        setUnitLiteralsBeforePropagation();
+
+    }
+
+    public void setUnitLiteralsBeforePropagation() throws UnitLiteralConflictException {
+        setUnitLiterals();
+        setAssumptions();
+        reasonConstraints = Arrays.copyOf(reasonConstraintsBeforePropagation,
+                reasonConstraintsBeforePropagation.length);
+    }
+
+    private void setUnitLiterals() throws UnitLiteralConflictException {
+        for (Integer literal : unitLiteralsBeforePropagation) {
+            int literalAbsoluteValue = Math.abs(literal);
+            if (unitLiteralState[literalAbsoluteValue] * literal < 0) {
+                throw new UnitLiteralConflictException("The formula is not satisfiable");
+            } else if (unitLiteralState[literalAbsoluteValue] == 0) {
+                unitLiterals.offer(literal);
+                unitLiteralState[Math.abs(literal)] = literal < 0 ? -1 : 1;
+            }
+        }
+    }
+
+    private void setAssumptions() throws UnitLiteralConflictException {
+        for (Integer literal : assumptions) {
+            int literalAbsoluteValue = Math.abs(literal);
+            if (unitLiteralState[literalAbsoluteValue] * literal < 0) {
+                throw new UnitLiteralConflictException("The formula is not satisfiable");
+            } else if (unitLiteralState[literalAbsoluteValue] == 0) {
+                unitLiterals.offer(literal);
+                unitLiteralsBeforePropagation.add(literal);
+                unitLiteralState[Math.abs(literal)] = literal < 0 ? -1 : 1;
+            }
+        }
     }
 
     public Formula(List<int[]> clauses, List<int[]> amoConstraints, List<int[][]> dnfConstraints, int maxVariable) throws UnitLiteralConflictException {
@@ -78,284 +109,8 @@ public class Formula {
         addAMOConstraintsIncremental(amoConstraints);
 
         addDNFConstraintsIncremental(dnfConstraints);
-    }
 
-    public void propagate(int literal) {
-        propagate(Math.abs(literal), literal < 0 ? false : true);
-    }
-
-    public void propagateAfterSwappingVariableAssigment(int variable, boolean truthValue) {
-        assignedCounter--;
-        variables[variable] *= -1;
-        propagate(variable, truthValue);
-    }
-
-    public void propagate(int variable, boolean truthValue) {
-
-        assignedCounter++;
-
-        if (truthValue) {
-            variables[variable] = 1;
-            propagateInDisjunctiveConstraints(negativelyWatchedDisjunctiveConstraints[variable], variable);
-            propagateInAMOConstraints(positivelWatchedAMOConstraints[variable], variable);
-            propagateInDNFConstraints(negativelyWatchedDNFConstraints[variable], variable);
-        } else {
-            variables[variable] = -1;
-            propagateInDisjunctiveConstraints(positivelyWatchedDisjunctiveConstraints[variable], -variable);
-            propagateInAMOConstraints(negativelyWatchedAMOConstraints[variable], -variable);
-            propagateInDNFConstraints(positivelyWatchedDNFConstraints[variable], -variable);
-        }
-
-    }
-
-    private void propagateInDisjunctiveConstraints(List<Constraint> watchedList, int literal) {
-        for (Iterator<Constraint> constraintIterator = watchedList.iterator(); constraintIterator.hasNext();) {
-            Constraint currentConstraint = constraintIterator.next();
-
-            if (currentConstraint.isObsolete()) {
-                constraintIterator.remove();
-                continue;
-            }
-
-            if (!currentConstraint.propagate(literal, variables, unitLiteralState, unitLiterals,
-                    positivelyWatchedDisjunctiveConstraints
-                    ,negativelyWatchedDisjunctiveConstraints, reasonClauses)) {
-                constraintIterator.remove();
-            }
-
-            int conflictLiteralClause = currentConstraint.resetConflictState();
-
-            if (conflictLiteral == 0) {
-                conflictLiteral = conflictLiteralClause;
-            }
-
-            if (!hasConflict && conflictLiteral != 0) {
-                conflictClause = currentConstraint;
-                hasConflict = true;
-                return;
-            }
-        }
-    }
-
-    private void propagateInAMOConstraints(List<Constraint> watchedList, int literal) {
-        for (Iterator<Constraint> constraintIterator = watchedList.iterator(); constraintIterator.hasNext();) {
-            Constraint currentConstraint = constraintIterator.next();
-
-
-            currentConstraint.propagate(literal, variables, unitLiteralState, unitLiterals,
-                    positivelWatchedAMOConstraints,
-                    negativelyWatchedAMOConstraints, reasonClauses);
-
-            int conflictLiteralAMO = currentConstraint.resetConflictState();
-
-            if (conflictLiteral == 0) {
-                conflictLiteral = conflictLiteralAMO;
-            }
-
-            if (!hasConflict && conflictLiteral != 0) {
-                conflictClause = currentConstraint;
-                hasConflict = true;
-                return;
-            }
-        }
-    }
-
-    private void propagateInDNFConstraints(List<Constraint> watchedList, int literal) {
-        for (Iterator<Constraint> constraintIterator = watchedList.iterator(); constraintIterator.hasNext();) {
-            Constraint currentConstraint = constraintIterator.next();
-
-            if (currentConstraint.isObsolete() || !currentConstraint.isStillWatched(literal)) {
-                constraintIterator.remove();
-                continue;
-            }
-
-            currentConstraint.propagate(literal, variables, unitLiteralState, unitLiterals,
-                    positivelyWatchedDNFConstraints
-                    ,negativelyWatchedDNFConstraints, reasonClauses);
-
-
-            int conflictLiteralClause = currentConstraint.resetConflictState();
-
-            if (conflictLiteral == 0) {
-                conflictLiteral = conflictLiteralClause;
-            }
-
-            if (!hasConflict && conflictLiteral != 0) {
-                conflictClause = currentConstraint;
-                hasConflict = true;
-                return;
-            }
-        }
-    }
-
-    public int getNumberOfVariables() {
-        return variables.length;
-    }
-
-    public void unassignVariable(int literal) {
-        int literalAbsoluteValue = Math.abs(literal);
-
-        ListIterator<Constraint> watchedList = positivelyWatchedDNFConstraints[literalAbsoluteValue].listIterator();
-        while (watchedList.hasNext()) {
-            watchedList.next().backtrack(literalAbsoluteValue, unitLiteralState, unitLiteralsBeforePropagation,
-                    positivelyWatchedDNFConstraints, negativelyWatchedDNFConstraints, watchedList);
-        }
-
-        watchedList = negativelyWatchedDNFConstraints[literalAbsoluteValue].listIterator();
-
-        while (watchedList.hasNext()) {
-            watchedList.next().backtrack(-literalAbsoluteValue, unitLiteralState, unitLiteralsBeforePropagation,
-                    positivelyWatchedDNFConstraints, negativelyWatchedDNFConstraints, watchedList);
-        }
-
-
-        assignedCounter--;
-        variables[literalAbsoluteValue] = 0;
-    }
-
-    public int getAssignedCounter() {
-        return assignedCounter;
-    }
-
-    public IntegerArrayQueue getUnitLiterals() {
-        return unitLiterals;
-    }
-
-    public int[] getVariables() {
-        return variables;
-    }
-
-    public void emptyUnitLiterals() {
-        unitLiterals = new IntegerArrayQueue(variables.length);
-        unitLiteralState = new int[unitLiteralState.length];
-    }
-
-    public void setUnitLiteralsBeforePropagation() {
-        for (Integer literal : unitLiteralsBeforePropagation) {
-            unitLiterals.offer(literal);
-            unitLiteralState[Math.abs(literal)] = literal < 0 ? -1 : 1;
-        }
-
-        for (Integer literal : assumptions) {
-            unitLiterals.offer(literal);
-            unitLiteralState[Math.abs(literal)] = literal < 0 ? -1 : 1;
-        }
-    }
-
-    public void addUnitLiteralBeforePropagation(int literal) {
-        unitLiteralsBeforePropagation.add(literal);
-    }
-
-    public List<Integer> getVariablesForSolutionChecker() {
-        List<Integer> variables = new ArrayList<>(this.variables.length);
-
-        for (int i = 0; i < this.variables.length; i++) {
-            if (this.variables[i] < 0) {
-                variables.add(-i);
-            } else if (this.variables[i] > 0) {
-                variables.add(i);
-            }
-        }
-
-        return variables;
-    }
-
-    public boolean variableAlreadyHasTheSameValue(int literal) {
-        if (variables[Math.abs(literal)] * literal > 0) {
-            return true;
-        }
-
-        return false;
-    }
-
-    public boolean hasConflict() {
-        return hasConflict;
-    }
-
-    public Constraint getConflictClause() {
-        return conflictClause;
-    }
-
-    public int getConflictLiteral() {
-        return conflictLiteral;
-    }
-
-    public void resetConflictState() {
-        hasConflict = false;
-        conflictLiteral = 0;
-    }
-
-    public Constraint getReasonClauses(int literal) {
-        int literalsAbsoluteValue = Math.abs(literal);
-        Constraint reasonConstraint = reasonClauses[literalsAbsoluteValue];
-
-        if (reasonConstraint == null) {
-            return null;
-        } else if (reasonConstraint.isObsolete()) {
-            reasonClauses[literalsAbsoluteValue] = null;
-            return null;
-        }
-
-        return reasonClauses[literalsAbsoluteValue];
-    }
-
-    public Constraint[] getReasonClauses() {
-        return reasonClauses;
-    }
-
-    public DisjunctiveConstraint addDisjunctiveConstraint(int[] literals) {
-        if (literals.length == 2) {
-            return new BinaryDisjunctiveConstraint(literals, positivelyWatchedDisjunctiveConstraints,
-                    negativelyWatchedDisjunctiveConstraints);
-        } else {
-            return new DisjunctiveConstraint(literals, positivelyWatchedDisjunctiveConstraints,
-                    negativelyWatchedDisjunctiveConstraints);
-        }
-    }
-
-    public DNFConstraint addDNFConstraints(int[][] terms) {
-        return terms.length == 2 ? new BinaryDNFConstraint(terms, positivelyWatchedDNFConstraints,
-                negativelyWatchedDNFConstraints, variables) :
-                new DNFConstraint(terms,
-                positivelyWatchedDNFConstraints,
-                negativelyWatchedDNFConstraints,
-                unitLiterals, variables, unitLiteralState, decisionLevelOfVariables);
-    }
-
-    public void removeReasonClauses() {
-        reasonClauses = new Constraint[variables.length];
-    }
-
-    public void setReasonClauses(Constraint[] reasonClauses) {
-
-        for (int i = 0; i < reasonClauses.length; i++) {
-            this.reasonClauses[i] = reasonClauses[i];
-        }
-    }
-
-    public void addUnitLiterals(List<Integer> unitLiterals) {
-        for (Integer unitLiteral : unitLiterals) {
-            this.unitLiterals.offer(unitLiteral);
-            this.unitLiteralState[Math.abs(unitLiteral)] = unitLiteral < 0 ? -1 : 1;
-        }
-    }
-
-    public boolean adjustVariableScores(int[] literals, long conflictIndex) {
-        for (int i = 0; i < literals.length; i++) {
-            if (literals[i] == 1){
-                variableOccurences[i] += Math.pow(1.01, conflictIndex);
-
-                if (Double.isInfinite(variableOccurences[i])) {
-                    double max  = Arrays.stream(variableOccurences).max().getAsDouble();
-
-                    variableOccurences = Arrays.stream(variableOccurences).map(a -> a / max).toArray();
-
-                    return true;
-                }
-            }
-        }
-
-        return false;
+        setUnitLiteralsBeforePropagation();
     }
 
     public void instantiateIncremental(int maxVariable) {
@@ -364,7 +119,8 @@ public class Formula {
         this.unitLiteralState = new int[variableCount];
         this.phaseSavingLastAssignment = new int[variableCount];
         this.variableOccurences = new double[variableCount];
-        this.reasonClauses = new Constraint[variableCount];
+        this.reasonConstraintsBeforePropagation = new Constraint[variableCount];
+        this.reasonConstraints = new Constraint[variableCount];
         this.decisionLevelOfVariables = new int[variableCount];
         this.unitLiterals = new IntegerArrayQueue(variableCount);
         this.conflictClause = null;
@@ -393,30 +149,22 @@ public class Formula {
         this.assumptions = new HashSet<>();
     }
 
-    private void addDNFConstraintsIncremental(List<int[][]> dnfConstraints) throws UnitLiteralConflictException {
-        for (int[][] term : dnfConstraints) {
+    private void addClausesIncremental(List<int[]> clauses) throws UnitLiteralConflictException {
+        for (int[] clause : clauses) {
 
-            for (int i = 0; i < term.length; i++) {
-                for (int j = 0; j < term[i].length; j++) {
-                    int literalAbsoluteValue = Math.abs(term[i][j]);
-                    variableOccurences[literalAbsoluteValue] += 1;
-                }
+            for (int i = 0; i < clause.length; i++) {
+                int literalAbsoluteValue = Math.abs(clause[i]);
+                variableOccurences[literalAbsoluteValue] += 1;
             }
 
-            DNFConstraint dnfConstraint = addDNFConstraints(term);
+            DisjunctiveConstraint disjunctiveConstraint = addDisjunctiveConstraint(clause);
 
-            Set<Integer> unitLiteralsNeededBeforePropagation = dnfConstraint.getUnitLiteralsNeededBeforePropagation();
+            Set<Integer> unitLiteralsNeededBeforePropagation =
+                    disjunctiveConstraint.getUnitLiteralsNeededBeforePropagation();
 
-            for (Integer literal : unitLiteralsNeededBeforePropagation) {
-                int literalAbsoluteValue = Math.abs(literal);
-                if (unitLiteralState[literalAbsoluteValue] * literal < 0) {
-                    throw new UnitLiteralConflictException("The formula is not satisfiable");
-                } else if (unitLiteralState[literalAbsoluteValue] == 0) {
-                    unitLiterals.offer(literal);
-                    unitLiteralsBeforePropagation.add(literal);
-                    unitLiteralState[Math.abs(literal)] = literal < 0 ? -1 : 1;
-                }
-            }
+            addUnitLiteralsNeededBeforePropagation(disjunctiveConstraint, unitLiteralsNeededBeforePropagation);
+
+
         }
     }
 
@@ -431,31 +179,48 @@ public class Formula {
         }
     }
 
-    private void addClausesIncremental(List<int[]> clauses) throws UnitLiteralConflictException {
-        for (int[] clause : clauses) {
+    private void addDNFConstraintsIncremental(List<int[][]> dnfConstraints) throws UnitLiteralConflictException {
+        for (int[][] term : dnfConstraints) {
 
-            for (int i = 0; i < clause.length; i++) {
-                int literalAbsoluteValue = Math.abs(clause[i]);
-                variableOccurences[literalAbsoluteValue] += 1;
-            }
-
-            DisjunctiveConstraint disjunctiveConstraint = addDisjunctiveConstraint(clause);
-
-            Set<Integer> unitLiteralsNeededBeforePropagation =
-                    disjunctiveConstraint.getUnitLiteralsNeededBeforePropagation();
-
-            for (Integer literal : unitLiteralsNeededBeforePropagation) {
-                int literalAbsoluteValue = Math.abs(literal);
-                if (unitLiteralState[literalAbsoluteValue] * literal < 0) {
-                    throw new UnitLiteralConflictException("The formula is not satisfiable");
-                } else if (unitLiteralState[literalAbsoluteValue] == 0) {
-                    unitLiterals.offer(literal);
-                    unitLiteralsBeforePropagation.add(literal);
-                    unitLiteralState[Math.abs(literal)] = literal < 0 ? -1 : 1;
+            for (int i = 0; i < term.length; i++) {
+                for (int j = 0; j < term[i].length; j++) {
+                    int literalAbsoluteValue = Math.abs(term[i][j]);
+                    variableOccurences[literalAbsoluteValue] += 1;
                 }
-
             }
 
+            DNFConstraint dnfConstraint = addDNFConstraints(term);
+
+            Set<Integer> unitLiteralsNeededBeforePropagation = dnfConstraint.getUnitLiteralsNeededBeforePropagation();
+
+            addUnitLiteralsNeededBeforePropagation(dnfConstraint, unitLiteralsNeededBeforePropagation);
+        }
+    }
+
+    public DisjunctiveConstraint addDisjunctiveConstraint(int[] literals) {
+        if (literals.length == 2) {
+            return new BinaryDisjunctiveConstraint(literals, positivelyWatchedDisjunctiveConstraints,
+                    negativelyWatchedDisjunctiveConstraints);
+        } else {
+            return new DisjunctiveConstraint(literals, positivelyWatchedDisjunctiveConstraints,
+                    negativelyWatchedDisjunctiveConstraints);
+        }
+    }
+
+    private void addUnitLiteralsNeededBeforePropagation(Constraint constraint,
+                                                        Set<Integer> unitLiteralsNeededBeforePropagation) throws UnitLiteralConflictException {
+        for (Integer literal : unitLiteralsNeededBeforePropagation) {
+            int literalAbsoluteValue = Math.abs(literal);
+            if (unitLiteralState[literalAbsoluteValue] * literal < 0) {
+                throw new UnitLiteralConflictException("The formula is not satisfiable");
+            } else if (unitLiteralState[literalAbsoluteValue] == 0) {
+                unitLiterals.offer(literal);
+                unitLiteralsBeforePropagation.add(literal);
+                unitLiteralState[Math.abs(literal)] = literal < 0 ? -1 : 1;
+                if (reasonConstraintsBeforePropagation[Math.abs(literal)] == null) {
+                    reasonConstraintsBeforePropagation[Math.abs(literal)] = constraint;
+                }
+            }
 
         }
     }
@@ -463,6 +228,236 @@ public class Formula {
     private AMOConstraint addAMOConstraint(int[] literals) {
         return new AMOConstraint(literals, positivelWatchedAMOConstraints,
                 negativelyWatchedAMOConstraints);
+    }
+
+    public DNFConstraint addDNFConstraints(int[][] terms) {
+        return terms.length == 2 ? new BinaryDNFConstraint(terms, positivelyWatchedDNFConstraints,
+                negativelyWatchedDNFConstraints, variables) :
+                new DNFConstraint(terms,
+                        positivelyWatchedDNFConstraints,
+                        negativelyWatchedDNFConstraints);
+    }
+
+    public void propagate(int literal) {
+        propagate(Math.abs(literal), literal >= 0);
+    }
+
+    public void propagate(int variable, boolean truthValue) {
+
+        assignedCounter++;
+
+        if (truthValue) {
+            variables[variable] = 1;
+            propagateInDisjunctiveConstraints(negativelyWatchedDisjunctiveConstraints[variable], variable);
+            propagateInAMOConstraints(positivelWatchedAMOConstraints[variable], variable);
+            propagateInDNFConstraints(negativelyWatchedDNFConstraints[variable], variable);
+        } else {
+            variables[variable] = -1;
+            propagateInDisjunctiveConstraints(positivelyWatchedDisjunctiveConstraints[variable], -variable);
+            propagateInAMOConstraints(negativelyWatchedAMOConstraints[variable], -variable);
+            propagateInDNFConstraints(positivelyWatchedDNFConstraints[variable], -variable);
+        }
+
+    }
+
+    private void propagateInDisjunctiveConstraints(List<Constraint> watchedList, int literal) {
+        for (Iterator<Constraint> constraintIterator = watchedList.iterator(); constraintIterator.hasNext(); ) {
+            Constraint currentConstraint = constraintIterator.next();
+
+            if (currentConstraint.isObsolete()) {
+                constraintIterator.remove();
+                continue;
+            }
+
+            if (!currentConstraint.propagate(literal, variables, unitLiteralState, unitLiterals,
+                    positivelyWatchedDisjunctiveConstraints
+                    , negativelyWatchedDisjunctiveConstraints, reasonConstraints)) {
+                constraintIterator.remove();
+            }
+
+            int conflictLiteralClause = currentConstraint.resetConflictState();
+
+            if (hasConflict(currentConstraint, conflictLiteralClause)) return;
+        }
+    }
+
+    private void propagateInAMOConstraints(List<Constraint> watchedList, int literal) {
+        for (Iterator<Constraint> constraintIterator = watchedList.iterator(); constraintIterator.hasNext(); ) {
+            Constraint currentConstraint = constraintIterator.next();
+
+
+            currentConstraint.propagate(literal, variables, unitLiteralState, unitLiterals,
+                    positivelWatchedAMOConstraints,
+                    negativelyWatchedAMOConstraints, reasonConstraints);
+
+            int conflictLiteralAMO = currentConstraint.resetConflictState();
+
+            if (hasConflict(currentConstraint, conflictLiteralAMO)) return;
+        }
+    }
+
+    private void propagateInDNFConstraints(List<Constraint> watchedList, int literal) {
+        for (Iterator<Constraint> constraintIterator = watchedList.iterator(); constraintIterator.hasNext(); ) {
+            Constraint currentConstraint = constraintIterator.next();
+
+            if (currentConstraint.isObsolete()) {
+                constraintIterator.remove();
+                continue;
+            }
+
+            if (!currentConstraint.isStillWatched(literal)) {
+                continue;
+            }
+
+            currentConstraint.propagate(literal, variables, unitLiteralState, unitLiterals,
+                    positivelyWatchedDNFConstraints
+                    , negativelyWatchedDNFConstraints, reasonConstraints);
+
+
+            int conflictLiteralClause = currentConstraint.resetConflictState();
+
+            if (hasConflict(currentConstraint, conflictLiteralClause)) return;
+        }
+    }
+
+    private boolean hasConflict(Constraint currentConstraint, int conflictLiteralClause) {
+        if (conflictLiteral == 0) {
+            conflictLiteral = conflictLiteralClause;
+        }
+
+        if (!hasConflict && conflictLiteral != 0) {
+            conflictClause = currentConstraint;
+            hasConflict = true;
+            return true;
+        }
+        return false;
+    }
+
+    public void propagateAfterSwappingVariableAssigment(int variable, boolean truthValue) {
+        assignedCounter--;
+        variables[variable] *= -1;
+        propagate(variable, truthValue);
+    }
+
+    public int getNumberOfVariables() {
+        return variables.length;
+    }
+
+    public void unassignVariable(int literal) {
+        int literalAbsoluteValue = Math.abs(literal);
+
+        if (variables[literalAbsoluteValue] < 0) {
+            ListIterator<Constraint> watchedList = positivelyWatchedDNFConstraints[literalAbsoluteValue].listIterator();
+            while (watchedList.hasNext()) {
+                watchedList.next().backtrack(literalAbsoluteValue * variables[literalAbsoluteValue], variables);
+            }
+
+        } else if (variables[literalAbsoluteValue] > 0) {
+            ListIterator<Constraint> watchedList = negativelyWatchedDNFConstraints[literalAbsoluteValue].listIterator();
+            while (watchedList.hasNext()) {
+                watchedList.next().backtrack(literalAbsoluteValue * variables[literalAbsoluteValue], variables);
+            }
+        }
+
+        assignedCounter--;
+        variables[literalAbsoluteValue] = 0;
+    }
+
+    public int getAssignedCounter() {
+        return assignedCounter;
+    }
+
+    public IntegerArrayQueue getUnitLiterals() {
+        return unitLiterals;
+    }
+
+    public int[] getVariables() {
+        return variables;
+    }
+
+    public void emptyUnitLiterals() {
+        unitLiterals = new IntegerArrayQueue(variables.length + 1);
+        unitLiteralState = new int[unitLiteralState.length];
+    }
+
+    public void addUnitLiteralBeforePropagation(int literal, Constraint reasonConstraint) {
+        unitLiteralsBeforePropagation.add(literal);
+        reasonConstraintsBeforePropagation[Math.abs(literal)] = reasonConstraint;
+    }
+
+    public List<Integer> getVariablesForSolutionChecker() {
+        List<Integer> variables = new ArrayList<>(this.variables.length);
+
+        for (int i = 0; i < this.variables.length; i++) {
+            if (this.variables[i] < 0) {
+                variables.add(-i);
+            } else if (this.variables[i] > 0) {
+                variables.add(i);
+            }
+        }
+
+        return variables;
+    }
+
+    public boolean variableAlreadyHasTheSameValue(int literal) {
+        return variables[Math.abs(literal)] * literal > 0;
+    }
+
+    public boolean hasConflict() {
+        return hasConflict;
+    }
+
+    public Constraint getConflictClause() {
+        return conflictClause;
+    }
+
+    public int getConflictLiteral() {
+        return conflictLiteral;
+    }
+
+    public void setConflictLiteral(int literal) {
+        this.conflictLiteral = literal;
+    }
+
+    public void resetConflictState() {
+        hasConflict = false;
+        conflictLiteral = 0;
+    }
+
+    public Constraint getReasonClauses(int literal) {
+        int literalsAbsoluteValue = Math.abs(literal);
+        Constraint reasonConstraint = reasonConstraints[literalsAbsoluteValue];
+
+        if (reasonConstraint == null) {
+            return null;
+        } else if (reasonConstraint.isObsolete()) {
+            reasonConstraints[literalsAbsoluteValue] = null;
+            return null;
+        }
+
+        return reasonConstraints[literalsAbsoluteValue];
+    }
+
+    public void removeReasonClauses() {
+        reasonConstraints = new Constraint[variables.length];
+    }
+
+    public boolean adjustVariableScores(int[] literals, long conflictIndex) {
+        for (int i = 0; i < literals.length; i++) {
+            if (literals[i] == 1) {
+                variableOccurences[i] += Math.pow(1.01, conflictIndex);
+
+                if (Double.isInfinite(variableOccurences[i])) {
+                    double max = Arrays.stream(variableOccurences).max().getAsDouble();
+
+                    variableOccurences = Arrays.stream(variableOccurences).map(a -> a / max).toArray();
+
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     public void addAssumptions(int[] assumptions) throws UnitLiteralConflictException {
@@ -490,20 +485,16 @@ public class Formula {
         return phaseSavingLastAssignment[Math.abs(literal)];
     }
 
-    public void setCurrentDecisionLevel(int currentDecisionLevel) {
-        this.currentDecisionLevel = currentDecisionLevel;
-    }
-
     public void increaseCurrentDecisionLevel() {
         currentDecisionLevel++;
     }
 
-    public void decreaseCurrentDecisionLevel() {
-        currentDecisionLevel--;
-    }
-
     public int getCurrentDecisionLevel() {
         return currentDecisionLevel;
+    }
+
+    public void setCurrentDecisionLevel(int currentDecisionLevel) {
+        this.currentDecisionLevel = currentDecisionLevel;
     }
 
     public int[] getDecisionLevelOfVariables() {
@@ -515,20 +506,8 @@ public class Formula {
         return decisionLevelOfVariables;
     }
 
-    public int getLiteralFromVariableAssignment(int variable) {
-        return variables[variable] * variable;
-    }
-
     public int[] getUnitLiteralState() {
         return unitLiteralState;
-    }
-
-    public boolean hasUnitLiteralConflict(int literal) {
-        if (unitLiteralState[Math.abs(literal)] * literal < 0) {
-            return true;
-        }
-
-        return false;
     }
 
 

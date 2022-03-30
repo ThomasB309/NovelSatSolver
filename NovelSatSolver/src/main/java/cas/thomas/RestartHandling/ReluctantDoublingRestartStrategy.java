@@ -1,9 +1,8 @@
 package cas.thomas.RestartHandling;
 
 import cas.thomas.Formulas.Formula;
+import cas.thomas.VariableSelection.VariableSelectionStrategy;
 import cas.thomas.utils.IntegerStack;
-
-import java.util.Iterator;
 
 public class ReluctantDoublingRestartStrategy extends RestartSchedulingStrategy {
 
@@ -20,7 +19,7 @@ public class ReluctantDoublingRestartStrategy extends RestartSchedulingStrategy 
     }
 
     @Override
-    public boolean handleRestart(IntegerStack trail, Formula formula) {
+    public boolean handleRestart(IntegerStack trail, Formula formula, VariableSelectionStrategy variableSelectionStrategy) {
 
         conflictCounter++;
 
@@ -32,7 +31,7 @@ public class ReluctantDoublingRestartStrategy extends RestartSchedulingStrategy 
 
         currenctConflictLimit = numberOfInitialConflicts * vn;
 
-        restart(trail, formula);
+        restart(trail, formula, variableSelectionStrategy);
 
         return true;
     }
@@ -45,10 +44,11 @@ public class ReluctantDoublingRestartStrategy extends RestartSchedulingStrategy 
         vn = v;
     }
 
-    private void restart(IntegerStack trail, Formula formula) {
+    private void restart(IntegerStack trail, Formula formula, VariableSelectionStrategy variableSelectionStrategy) {
         while (trail.hasNext()) {
             int currentLiteral = trail.pop();
             formula.unassignVariable(currentLiteral);
+            variableSelectionStrategy.addUnassignedVariable(Math.abs(currentLiteral));
         }
 
         formula.setCurrentDecisionLevel(0);

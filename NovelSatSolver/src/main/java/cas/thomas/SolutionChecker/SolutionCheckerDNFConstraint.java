@@ -24,7 +24,7 @@ public class SolutionCheckerDNFConstraint extends SolutionCheckerConstraint {
     public boolean isTrue(List<Integer> literals) {
         int[] stateOfLiterals = new int[literals.stream().map(a -> Math.abs(a)).max(Integer::compareTo).get() + 1];
 
-        for (ListIterator<Integer> listIterator = literals.listIterator(); listIterator.hasNext();) {
+        for (ListIterator<Integer> listIterator = literals.listIterator(); listIterator.hasNext(); ) {
             int currentLiteral = listIterator.next();
             int currentLiteralAbsoluteValue = Math.abs(currentLiteral);
 
@@ -38,6 +38,10 @@ public class SolutionCheckerDNFConstraint extends SolutionCheckerConstraint {
             int trueCounter = 0;
             for (int j = 0; j < terms[i].length; j++) {
                 int currentLiteral = terms[i][j];
+                if (Math.abs(currentLiteral) >= stateOfLiterals.length) {
+                    break;
+                }
+
                 if (isEqualLiteral(currentLiteral, stateOfLiterals[Math.abs(currentLiteral)])) {
                     if (!compareLiterals(currentLiteral, stateOfLiterals[Math.abs(currentLiteral)])) {
                         break;
@@ -51,7 +55,6 @@ public class SolutionCheckerDNFConstraint extends SolutionCheckerConstraint {
                 break;
             }
         }
-
         return formualSatisfied;
     }
 
@@ -72,7 +75,7 @@ public class SolutionCheckerDNFConstraint extends SolutionCheckerConstraint {
     }
 
     @Override
-    public Pair<Integer,Integer> toDimacsCNFString(StringBuilder cnfString, int maxVariable) {
+    public Pair<Integer, Integer> toDimacsCNFString(StringBuilder cnfString, int maxVariable) {
         int nextHelperVariable = maxVariable + 1;
         int constraintCounter = 0;
         int[] dnfClause = new int[terms.length];
@@ -88,7 +91,7 @@ public class SolutionCheckerDNFConstraint extends SolutionCheckerConstraint {
                 for (int j = 0; j < term.length; j++) {
                     int lit = term[j];
                     termClause[j + 1] = -lit;
-                    cnfString.append(new SolutionCheckerDisjunctiveConstraint(new int[] { -termHelper, lit }).toDimacsString());
+                    cnfString.append(new SolutionCheckerDisjunctiveConstraint(new int[]{-termHelper, lit}).toDimacsString());
                     constraintCounter++;
 
                 }

@@ -66,8 +66,8 @@ public class SolutionCheckerAMOConstraint extends SolutionCheckerConstraint {
             // pairwise encoding is better
             for (int i = 0; i < literals.length; i++) {
                 for (int j = i + 1; j < literals.length; j++) {
-                    cnfString.append(new SolutionCheckerDisjunctiveConstraint(new int[] { -literals[i],
-                            -literals[j] }).toDimacsString());
+                    cnfString.append(new SolutionCheckerDisjunctiveConstraint(new int[]{-literals[i],
+                            -literals[j]}).toDimacsString());
                     constraintCounter++;
                 }
             }
@@ -79,11 +79,11 @@ public class SolutionCheckerAMOConstraint extends SolutionCheckerConstraint {
             int lit = literals[i];
             int nextLit = literals[i + 1];
             int helper = nextHelperVariable++;
-            cnfString.append(new SolutionCheckerDisjunctiveConstraint(new int[] { -lit, helper }).toDimacsString());
-            cnfString.append(new SolutionCheckerDisjunctiveConstraint(new int[] { -helper, -nextLit }).toDimacsString());
+            cnfString.append(new SolutionCheckerDisjunctiveConstraint(new int[]{-lit, helper}).toDimacsString());
+            cnfString.append(new SolutionCheckerDisjunctiveConstraint(new int[]{-helper, -nextLit}).toDimacsString());
             constraintCounter += 2;
             if (prevHelper != 0) {
-                cnfString.append(new SolutionCheckerDisjunctiveConstraint(new int[] { -prevHelper, helper }).toDimacsString());
+                cnfString.append(new SolutionCheckerDisjunctiveConstraint(new int[]{-prevHelper, helper}).toDimacsString());
                 constraintCounter++;
             }
             prevHelper = helper;

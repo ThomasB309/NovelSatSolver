@@ -1,10 +1,7 @@
 package cas.thomas.VariableSelection;
 
 
-import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.Iterator;
-import java.util.List;
 import java.util.PriorityQueue;
 
 public class VSIDS implements VariableSelectionStrategy {
@@ -24,7 +21,12 @@ public class VSIDS implements VariableSelectionStrategy {
         }
 
         do {
-            int nextVariable = maxScoreVariables.poll();
+            Integer nextVariable = maxScoreVariables.poll();
+
+            if (nextVariable == null) {
+                return -1;
+            }
+
             if (variables[nextVariable] == 0) {
                 return nextVariable;
             }
