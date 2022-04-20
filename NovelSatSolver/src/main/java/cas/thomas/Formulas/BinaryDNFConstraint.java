@@ -87,7 +87,7 @@ public class BinaryDNFConstraint extends DNFConstraint {
                 hasConflict = true;
                 conflictLiteral = currentLiteral;
                 return;
-            } else if (variableAssignments[currentLiteralAbsoluteValue] == 0) {
+            } else if (isNeededForUnitPropagation(currentLiteral, variableAssignments, unitLiteralState)) {
                 unitLiterals.offer(currentLiteral);
                 unitLiteralState[currentLiteralAbsoluteValue] = currentLiteral < 0 ? -1 : 1;
                 if (reasonClauses[currentLiteralAbsoluteValue] == null) {
@@ -98,7 +98,7 @@ public class BinaryDNFConstraint extends DNFConstraint {
     }
 
     @Override
-    public int getNeededDecisionLevel(int[] decisionLevelOfVariables) {
+    public int getNeededDecisionLevel(int[] decisionLevelOfVariables, int[] variables) {
         int decisionLevel = Integer.MAX_VALUE;
 
         for (int i = 0; i < terms[0].length; i++) {
@@ -114,7 +114,7 @@ public class BinaryDNFConstraint extends DNFConstraint {
     }
 
     @Override
-    public boolean isStillWatched(int literal) {
+    public boolean isStillWatched(int literal, int[] variables) {
         return true;
     }
 
@@ -122,4 +122,10 @@ public class BinaryDNFConstraint extends DNFConstraint {
     public void backtrack(int variable, int[] variableAssignments) {
         return;
     }
+
+    private boolean isNeededForUnitPropagation(final int literal, final int[] variables, final int[] unitLiteralState) {
+        final int literalAbsoluteValue = Math.abs(literal);
+        return variables[literalAbsoluteValue] * literal == 0 && unitLiteralState[literalAbsoluteValue] == 0;
+    }
+
 }

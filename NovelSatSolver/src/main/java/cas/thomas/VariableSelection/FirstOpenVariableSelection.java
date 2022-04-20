@@ -19,4 +19,14 @@ public class FirstOpenVariableSelection implements VariableSelectionStrategy {
     public void addUnassignedVariable(int variable) {
 
     }
+
+    @Override
+    public void recreatePriorityQueue(int[] variables, double[]variableOccurences) {
+
+    }
+
+    @Override
+    public void heapify(int variable) {
+
+    }
 }

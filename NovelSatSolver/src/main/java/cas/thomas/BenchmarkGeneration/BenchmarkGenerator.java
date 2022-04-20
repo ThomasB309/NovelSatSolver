@@ -38,8 +38,8 @@ public class BenchmarkGenerator {
 
                 try {
                     random(numberOfVariables, numberOfClauses, numberOfAMOConstraints, numberOfDNFConstraints, a).toDimacsFile(Paths.get(
-                            args[6],
-                            args[7] + a +
+                            args[5],
+                            args[6] + a +
                                     ".cnf"));
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -78,7 +78,7 @@ public class BenchmarkGenerator {
                                                  List<Integer> solution) {
         int constraintCounter = 0;
         while (constraintCounter < cls) {
-            int[] clause = generateRandomLiterals(vars, rnd, 5);
+            int[] clause = generateRandomLiterals(vars, rnd, 3);
 
             SolutionCheckerDisjunctiveConstraint clauseConstraint = new SolutionCheckerDisjunctiveConstraint(clause);
 
@@ -95,7 +95,7 @@ public class BenchmarkGenerator {
 
         int constraintCounter = 0;
         while (constraintCounter < amo) {
-            int[] clause = generateRandomLiterals(vars, rnd, 3);
+            int[] clause = generateRandomLiterals(vars, rnd, 5);
 
             SolutionCheckerAMOConstraint amoConstraint = new SolutionCheckerAMOConstraint(clause);
 
@@ -114,9 +114,6 @@ public class BenchmarkGenerator {
             int[][] clause = getRandomDNFTerms(vars, rnd, 3, 3);
 
             SolutionCheckerDNFConstraint dnfConstraint = new SolutionCheckerDNFConstraint(clause);
-
-            constraints.add(dnfConstraint);
-            constraintCounter++;
 
             if (dnfConstraint.isTrue(solution)) {
                 constraints.add(dnfConstraint);

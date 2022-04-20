@@ -14,6 +14,7 @@ public abstract class Constraint {
     protected boolean hasConflict;
     protected int conflictLiteral;
     private boolean obsolete;
+    private int lbdScore;
 
     public Constraint() {
         this.hasConflict = false;
@@ -44,7 +45,15 @@ public abstract class Constraint {
         return this.conflictLiteral;
     }
 
-    public int getLBDScore(int[] variableDecisionLevels) {
+    public void setLBDScore(int[] variableDecisionLevels) {
+        lbdScore = calculateLBDScore(variableDecisionLevels);
+    }
+
+    public int getLBDScore() {
+        return lbdScore;
+    }
+
+    public int calculateLBDScore(int[] variableDecisionLevels) {
         Set<Integer> distinctDecisionLevels = new HashSet<>();
 
         for (int i = 0; i < literals.length; i++) {
@@ -95,11 +104,11 @@ public abstract class Constraint {
 
     public abstract boolean isEmpty();
 
-    public abstract int getNeededDecisionLevel(int[] decisionLevelOfVariables);
+    public abstract int getNeededDecisionLevel(int[] decisionLevelOfVariables, int[] variables);
 
     public abstract void addVariableOccurenceCount(double[] variableOccurences);
 
-    public abstract boolean isStillWatched(int literal);
+    public abstract boolean isStillWatched(int literal, int[] variables);
 
     public void backtrack(int variable, int[] variableAssignments) {
         return;

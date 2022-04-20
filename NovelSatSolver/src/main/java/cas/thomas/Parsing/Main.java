@@ -129,7 +129,7 @@ public class Main {
             if (Files.isDirectory(inputPath)) {
 
                 cnfFiles =
-                        Files.list(inputPath).filter(path -> path.toString().endsWith(".cnf") || path.toString().endsWith(".txt")).collect(Collectors.toList());
+                        Files.list(inputPath).filter(path -> path.toString().endsWith(".cnf") || path.toString().endsWith(".txt") || path.toString().endsWith(".rcnf")).collect(Collectors.toList());
 
             } else if (Files.exists(inputPath)) {
 

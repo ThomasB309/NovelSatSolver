@@ -1,5 +1,6 @@
 package cas.thomas.RestartHandling;
 
+import cas.thomas.Exceptions.UnitLiteralConflictException;
 import cas.thomas.Formulas.Formula;
 import cas.thomas.VariableSelection.VariableSelectionStrategy;
 import cas.thomas.utils.IntegerStack;
@@ -52,7 +53,11 @@ public class ReluctantDoublingRestartStrategy extends RestartSchedulingStrategy 
         }
 
         formula.setCurrentDecisionLevel(0);
-        formula.removeReasonClauses();
+        try {
+            formula.setUnitLiteralsBeforePropagation();
+        } catch (UnitLiteralConflictException e) {
+            e.printStackTrace();
+        }
         conflictCounter = 0;
     }
 }

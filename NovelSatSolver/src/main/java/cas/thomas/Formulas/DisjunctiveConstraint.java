@@ -165,25 +165,32 @@ public class DisjunctiveConstraint extends Constraint {
 
         int[] reasonLiterals = literals;
         int[] conflictLiterals = conflictConstraint.getLiterals();
+        int conflictLiteral = -formula.getConflictLiteral();
         IntegerArrayQueue clauseLiterals = new IntegerArrayQueue(reasonLiterals.length);
         IntegerArrayQueue amoLiterals = new IntegerArrayQueue(conflictLiterals.length);
         IntegerArrayQueue complementaryLiterals = new IntegerArrayQueue(Math.max(reasonLiterals.length,
                 conflictLiterals.length));
         List<Constraint> learnedConstraints = new ArrayList<>();
 
-        findComplementaryLiteralsAndNeededClauseLiterals(stateOfResolvedVariables, variablesInvolvedInConflict, reasonLiterals, clauseLiterals, complementaryLiterals);
+        findComplementaryLiteralsAndNeededClauseLiterals(stateOfResolvedVariables, variablesInvolvedInConflict,
+                reasonLiterals, clauseLiterals, complementaryLiterals, conflictLiteral);
 
-        if (complementaryLiterals.size() == 1) {
+        if (complementaryLiterals.size() >= 1) {
             return resolveConflictWithOneComplementaryLiteral(formula, clauseLiterals, complementaryLiterals, learnedConstraints);
         }
 
-        findNeededAMOLiterals(stateOfResolvedVariables, conflictLiterals, amoLiterals);
+        findNeededAMOLiterals(stateOfResolvedVariables, conflictLiterals, amoLiterals, formula.getVariables());
 
 
         return resolveConflictWithMoreThanOneComplementaryLiteral(formula, clauseLiterals, amoLiterals, learnedConstraints);
     }
 
-    private void findComplementaryLiteralsAndNeededClauseLiterals(int[] stateOfResolvedVariables, int[] variablesInvolvedInConflict, int[] reasonLiterals, IntegerArrayQueue clauseLiterals, IntegerArrayQueue complementaryLiterals) {
+    private void findComplementaryLiteralsAndNeededClauseLiterals(int[] stateOfResolvedVariables,
+                                                                  int[] variablesInvolvedInConflict,
+                                                                  int[] reasonLiterals,
+                                                                  IntegerArrayQueue clauseLiterals,
+                                                                  IntegerArrayQueue complementaryLiterals,
+                                                                  int conflictLiteral) {
         for (int i = 0; i < reasonLiterals.length; i++) {
             int currentLiteral = reasonLiterals[i];
             int currentLiteralAbsoluteValue = Math.abs(currentLiteral);
@@ -192,7 +199,7 @@ public class DisjunctiveConstraint extends Constraint {
             if (stateOfResolvedVariables[currentLiteralAbsoluteValue] == -currentLiteral) {
                 complementaryLiterals.offer(currentLiteral);
                 stateOfResolvedVariables[currentLiteralAbsoluteValue] = 0;
-            } else if (stateOfResolvedVariables[currentLiteralAbsoluteValue] == currentLiteral) {
+            } else if (stateOfResolvedVariables[currentLiteralAbsoluteValue] == currentLiteral && currentLiteral == conflictLiteral) {
                 stateOfResolvedVariables[currentLiteralAbsoluteValue] = 0;
             } else {
                 clauseLiterals.offer(currentLiteral);
@@ -211,13 +218,16 @@ public class DisjunctiveConstraint extends Constraint {
         return learnedConstraints;
     }
 
-    private void findNeededAMOLiterals(int[] stateOfResolvedVariables, int[] conflictLiterals, IntegerArrayQueue amoLiterals) {
+    private void findNeededAMOLiterals(int[] stateOfResolvedVariables, int[] conflictLiterals,
+                                       IntegerArrayQueue amoLiterals, int[] variableAssignments) {
         for (int i = 0; i < conflictLiterals.length; i++) {
             int currentLiteral = conflictLiterals[i];
             int currentLiteralAbsoluteValue = Math.abs(currentLiteral);
 
             if (stateOfResolvedVariables[currentLiteralAbsoluteValue] != 0) {
-                amoLiterals.offer(-currentLiteral);
+                if (variableAssignments[currentLiteralAbsoluteValue] * currentLiteral > 0) {
+                    amoLiterals.offer(-currentLiteral);
+                }
             }
         }
     }
@@ -304,7 +314,7 @@ public class DisjunctiveConstraint extends Constraint {
     }
 
     @Override
-    public int getNeededDecisionLevel(int[] decisionLevelOfVariables) {
+    public int getNeededDecisionLevel(int[] decisionLevelOfVariables, int[] variables) {
         if (literals.length == 1) {
             return decisionLevelOfVariables[Math.abs(literals[0])];
         } else {
@@ -322,7 +332,7 @@ public class DisjunctiveConstraint extends Constraint {
     }
 
     @Override
-    public boolean isStillWatched(int literal) {
+    public boolean isStillWatched(int literal, int[] variables) {
         return false;
     }
 

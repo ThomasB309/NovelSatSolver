@@ -1,6 +1,7 @@
 package cas.thomas.Formulas;
 
 import cas.thomas.Exceptions.UnitLiteralConflictException;
+import cas.thomas.VariableSelection.VariableSelectionStrategy;
 import cas.thomas.utils.IntegerArrayQueue;
 
 import java.util.ArrayList;
@@ -305,7 +306,7 @@ public class Formula {
                 continue;
             }
 
-            if (!currentConstraint.isStillWatched(literal)) {
+            if (!currentConstraint.isStillWatched(literal, variables)) {
                 continue;
             }
 
@@ -442,22 +443,41 @@ public class Formula {
         reasonConstraints = new Constraint[variables.length];
     }
 
-    public boolean adjustVariableScores(int[] literals, long conflictIndex) {
+    public boolean adjustVariableScores(int[] literals, long conflictIndex, VariableSelectionStrategy variableSelectionStrategy) {
+        boolean infinite = false;
+        double g = 1 / (0.8 + (0.01 * (conflictIndex / 5000)));
+
+        if (g < 1.05) {
+            g = 1.05;
+        }
+
         for (int i = 0; i < literals.length; i++) {
             if (literals[i] == 1) {
-                variableOccurences[i] += Math.pow(1.01, conflictIndex);
 
-                if (Double.isInfinite(variableOccurences[i])) {
+                final double addedValue = Math.pow(g, conflictIndex);
+                final double variableScore = variableOccurences[i];
+
+                if (Double.isInfinite(variableScore + addedValue)) {
+
                     double max = Arrays.stream(variableOccurences).max().getAsDouble();
 
-                    variableOccurences = Arrays.stream(variableOccurences).map(a -> a / max).toArray();
+                    for (int a = 0; a < variableOccurences.length; a++) {
+                        variableOccurences[a] /= max;
+                    }
 
-                    return true;
+                    conflictIndex = 1;
+
+                    infinite = true;
+
+                    variableSelectionStrategy.recreatePriorityQueue(variables, variableOccurences);
                 }
+
+                variableOccurences[i] += Math.pow(g, conflictIndex);
+                variableSelectionStrategy.heapify(i);
             }
         }
 
-        return false;
+        return infinite;
     }
 
     public void addAssumptions(int[] assumptions) throws UnitLiteralConflictException {

@@ -102,7 +102,7 @@ public class ClauseParser {
                 negativelyWatchedDisjunctiveConstraints
                 , positivelyWatchedAMOConstraints, negativelyWatchedAMOConstraints, positivelyWatchedDNFConstraints,
                 negativelyWatchedDNFConstraints, unitLiteralsBeforePropagation),
-                new SolutionCheckerConjunctiveFormula(solutionCheckerConstraints, numberOfVariables));
+                new SolutionCheckerConjunctiveFormula(solutionCheckerConstraints, numberOfVariables - 1));
 
 
     }
