@@ -84,317 +84,60 @@ In order to create hard 3-SAT instances it was shown that there occurs a phase t
 
 \subsection{Phase transition of AMO constraints}
 
-\begin{figure}
-\centering
-  \begin{tikzpicture}[>=latex, scale=0.8]
-\centering
-\begin{axis}[
-  axis x line=center,
-  axis y line=center,
-  width={\linewidth},
-  xtick={0.01,0.02,...,0.09},
-  ytick={0.1,0.2,...,1},
-  xlabel={x},
-  ylabel={y},
-  xlabel style={below right},
-  ylabel style={above left},
-  xmin= 0,
-  xmax=0.095,
-  ymin=0,
-  ymax=1.05]
+In order to create hard instances of formulas that only consist of AMO constraints, we use a similar approach to the phase transition examination of CNF formulas. Using the incremental interface of our SAT solver, we solve a set of formulas that only consist of AMO constraints and then calculate which percentage of these formulas is satisfiable. The tool then progressively adds more AMO constraints to the formulas until the percentage of satisfiable constraints reaches zero. We measure the percentage by solving 1000 instances of these formulas.
 
-  \addplot+ [mark=*] table {
-0.0002 1.0
-0.0052 1.0
-0.0102 1.0
-0.0152 0.999
-0.0202 1.0
-0.0252 0.99
-0.0302 0.998
-0.0352 0.992
-0.0402 0.968
-0.0452 0.924
-0.0502 0.847
-0.0552 0.63
-0.0602 0.348
-0.0652 0.127
-0.0702 0.017
-0.0752 0.001
-0.0802 0.0
+\input{graphs/AMO_Phase_Transition.tex}
 
-};
-
-  \addplot+ [mark=*] table {
-0.0002 0.132
-0.0052 0.221
-0.0102 0.332
-0.0152 0.439
-0.0202 0.530
-0.0252 0.632
-0.0302 0.743
-0.0352 0.837
-0.0402 0.926
-0.0452 0.985
-0.0502 1.0
-0.0552 0.848
-0.0602 0.552
-0.0652 0.275
-0.0702 0.109
-0.0752 0.077
-0.0802 0.069
-
-};
-\end{axis}
-
-\end{tikzpicture}
-\caption{Phase transition of AMO constraints with 7 literals}
-\end{figure}
-
-\begin{figure}
-\centering
-  \begin{tikzpicture}[>=latex, scale=0.8]
-\centering
-\begin{axis}[
-  axis x line=center,
-  axis y line=center,
-  width={\linewidth},
-  xtick={0.02,0.04,...,0.16},
-  ytick={0.1,0.2,...,1},
-  xlabel={x},
-  ylabel={y},
-  xlabel style={below right},
-  ylabel style={above left},
-  xmin= 0,
-  xmax=0.165,
-  ymin=0,
-  ymax=1.05]
-
-  \addplot+ [mark=*] table {
-0.0002 1.0
-0.0102 1.0
-0.0202 1.0
-0.0302 1.0
-0.0402 1.0
-0.0502 1.0
-0.0602 1.0
-0.0702 0.997
-0.0802 0.992
-0.0902 0.972
-0.1002 0.897
-0.1102 0.711
-0.1202 0.35
-0.1302 0.07
-0.1402 0.003
-0.1502 0.0
-
-};
-
-  \addplot+ [mark=*] table {
-0.0002 0.091
-0.0102 0.183
-0.0202 0.295
-0.0302 0.383
-0.0402 0.500
-0.0502 0.591
-0.0602 0.707
-0.0702 0.795
-0.0802 0.905
-0.0902 0.976
-0.1002 1.0
-0.1102 0.883
-0.1202 0.521
-0.1302 0.163
-0.1402 0.067
-0.1502 0.055
-
-};
-\end{axis}
-
-\end{tikzpicture}
-\caption{Phase transition of AMO constraints with 5 literals}
-\end{figure}
-
-
-In order to estimate the phase transition of formulas with only AMO constraints, we experimented with several different setups. The first formula type contained only AMO constraints with five literals. The other formula type contained seven literals.
+The graph \ref{fig:AMOPhase} shows the relation between the AMO constraint to variable ratio and the percentage of satisfiable constraints as well as the solving speed of 1000 instances. In order to find the phase transition point for formulas that only contain AMO constraints, we created 1000 random formulas and used the solver to determine how many of them were satisfiable. During each iteration we then increased the amount of AMO constraints per formula by five, to see how this affects the percentage of satisfiable constraints. We conducted this experiment with AMO constraints of length two to seven. The results show that every type of AMO constraint, that we conducted the experiment with, has a phase transition. The length of the AMO constraint only has an effect on when the phase transition occurs. An increasing AMO constraint length causes the phase transition to occur earlier. A possible explanation for that an increasing amount of literals per AMO constraint, restricts the space of possible solutions more. This then causes the phase transition to occur earlier. We also measured the time that the solver needs in order to solve the 1000 instances in every iteration. We then normalized these values and added them to the graph. What is interesting is that the the hardest instances seem to be located at around the phase transition point, independent of the number of literals that the AMO constraints have.
 
 \subsection{Phase transition of DNF constraints}
 
-Similar to the phase transition calculation for the AMO constraints, we also conducted experiments for formulas that only contain DNF constraints. Here we used DNF constraints with 5 terms that each contain 3 literals, DNF constraints with 3 terms that each contain 5 literals, and DNF constraints with 3 terms that each contain 3 literals.
+Similar to the phase transition calculation for the AMO constraints, we also conducted experiments for formulas that only contain DNF constraints. Here we used a similar approach to the phase transition experiment for the AMO constraints.
 
-\begin{figure}
-\centering
-  \begin{tikzpicture}[>=latex, scale=0.8]
-\centering
-\begin{axis}[
-  axis x line=center,
-  axis y line=center,
-  width={\linewidth},
-  xtick={0.1,0.2,...,0.6},
-  ytick={0.1,0.2,...,1},
-  xlabel={x},
-  ylabel={y},
-  xlabel style={below right},
-  ylabel style={above left},
-  xmin= 0,
-  xmax=0.65,
-  ymin=0,
-  ymax=1.05]
+\subsection{DNF constraints with constant amount of terms}
 
-  \addplot+ [mark=*] table {
-0.01 1.0
-0.03 1.0
-0.05 1.0
-0.07 1.0
-0.09 1.0
-0.11 1.0
-0.13 1.0
-0.15 1.0
-0.17 1.0
-0.19 1.0
-0.21 1.0
-0.23 1.0
-0.25 1.0
-0.27 0.999
-0.29 0.994
-0.31 0.982
-0.33 0.942
-0.35 0.862
-0.37 0.69
-0.39 0.555
-0.41 0.361
-0.43 0.215
-0.45 0.13
-0.47 0.049
-0.49 0.017
-0.51 0.007
-0.53 0.001
-0.55 0.0
+\input{graphs/DNF_Phase_Transition_Constant_Terms.tex}
 
-};
 
-  \addplot+ [mark=*] table {
-0.01 0.024
-0.03 0.022
-0.05 0.018
-0.07 0.018
-0.09 0.018
-0.11 0.012
-0.13 0.011
-0.15 0.011
-0.17 0.013
-0.19 0.014
-0.21 0.015
-0.23 0.021
-0.25 0.020
-0.27 0.033
-0.29 0.040
-0.31 0.101
-0.33 0.188
-0.35 0.370
-0.37 0.667
-0.39 0.886
-0.41 0.957
-0.43 1.0
-0.45 0.912
-0.47 0.796
-0.49 0.648
-0.51 0.549
-0.53 0.473
-0.55 0.383
+The graph \ref{fig:DNFConstantTerm} shows the relation between the DNF constraint to variable ratio to the percentage of satisfiable constraints, as well as the normalized solving time of 1000 instances. The dotted lines show the normalized solving time, while the continuous lines show the percentage of satisfiable constraints. Here we used DNF constraints with three terms, 50 variables and increment the amount of DNF per iteration by one. We then conducted the experiment with DNF constraints with a term length of two to seven. For the phase transition we can see a similar behavior to what we have already seen with the AMO constraints. By adding more literals to the terms of the DNF constraints, the space of satisfiable constraints gets restricted, which is probable explanation for why the phase transition occurs later the more literals are added to the terms. What is interesting here is, that the hardest instances of these DNF constraints also seem to occur around their phase transition point.
 
-};
-\end{axis}
+\subsection{DNF constraints with a constant term length}
 
-\end{tikzpicture}
-\caption{Phase transition of DNF constraints with 3 terms of size 3}
-\end{figure}
+In this next experiment we left the number of terms per DNF constraint constant while steadily increasing the amount of literals per term, in order to see the effect that the term length has on the phase transition point.
 
-\begin{figure}
-\centering
-  \begin{tikzpicture}[>=latex, scale=0.8]
-\centering
-\begin{axis}[
-  axis x line=center,
-  axis y line=center,
-  width={\linewidth},
-  xtick={0.2,0.4,...,1.6},
-  ytick={0.1,0.2,...,1},
-  xlabel={x},
-  ylabel={y},
-  xlabel style={below right},
-  ylabel style={above left},
-  xmin= 0,
-  xmax=1.7,
-  ymin=0,
-  ymax=1.05]
+\input{graphs/DNF_Phase_Transition_Constant_Term_Length.tex}	
 
-  \addplot+ [mark=*] table {
-0.05 1.0
-0.1 1.0
-0.15 1.0
-0.2 1.0
-0.25 1.0
-0.3 1.0
-0.35 1.0
-0.4 1.0
-0.45 1.0
-0.5 1.0
-0.55 0.999
-0.6 0.988
-0.65 0.957
-0.7 0.892
-0.75 0.804
-0.8 0.688
-0.85 0.502
-0.9 0.348
-0.95 0.222
-1.0 0.123
-1.05 0.091
-1.1 0.049
-1.15 0.028
-1.2 0.016
-1.25 0.006
-1.3 0.004
-1.35 0.001
-1.4 0.002
-1.45 0.0
+The graph \ref{fig:DNFConstantTermLength} shows the relation between the DNF constraint to variable ratio and the percentage of the satisfiable constraints, as well as the normalized solving speed of 1000 instances. We use DNF constraints with a constant term length of five, 25 variables and a DNF increment of one per iteration. For the experiment we used DNF constraints with one to five terms. The dotted lines show the normalized solving time and the continuous lines show the percentage of satisfiable constraints. Here we see the opposite behavior of before. The more terms are added to the constraints, the later the phase transition occurs. A possible explanation for this, is that a higher amount of terms actually widens the space of possible solutions and therefore shift the phase transition point to a later point. The hardest instances also seem to be at around the phase transition point of these DNF constraints.
 
-};
+\section{Phase transition of AMO constraints with a constant number of clauses}
 
-  \addplot+ [mark=*] table {
-0.05 0.018
-0.1 0.013
-0.15 0.013
-0.2 0.016
-0.25 0.014
-0.3 0.019
-0.35 0.03
-0.4 0.024
-0.45 0.035
-0.5 0.043
-0.55 0.075
-0.6 0.164
-0.65 0.264
-0.7 0.485
-0.75 0.678
-0.8 0.854
-0.85 1.0
-0.9 0.995
-0.95 0.999
-1.0 0.977
-1.05 0.927
-1.1 0.795
-1.15 0.711
-1.2 0.673
-1.25 0.596
-1.3 0.565
-1.35 0.534
-1.4 0.489
-1.45 0.46
+An important aspect of our evaluation is the performance of our solver on formulas that combine the many different constraint types. So in order to create hard benchmarks for this case, we also had to investigate how the phase transition of the constraints is affected, when they are combined with other constraint types in a formula.
 
-};
-\end{axis}
+\input{graphs/AMO_Phase_Transition_Clauses.tex}	
 
-\end{tikzpicture}
-\caption{Phase transition of DNF constraints with 5 terms of size 3}
-\end{figure}
+The graph \ref{fig:AMOClause} shows the relation between the AMO constraint to variables ratio and the percentage of satisfiable constraitns, as well as the normalized solving time of 1000 instances. We used 100 variables and increased the amount of AMO constraints by one per iteration. We then conducted the experiment where the formulas contain 0 to 400 clauses with 3 literals. What can be seen is that a larger amount of clauses shifts the phase transition of the AMO constraints to an earlier point. This is consistent with the information that we already gathered from the earlier experiments. The clauses restrict the space of possible solutions, which in turn causes the phase transition to occur earlier. What is interesting to see, is that the AMO constraints don't have a large impact on the solving time. The hardest instances actually occur when we reach the phase transition point of the clauses.
+
+\section{Phase transition of DNF constraints with a constant number of clauses}
+
+Similar to the phase transition of AMO constraints with a constant number of clauses, we also wanted to investigate how the phase transition of the DNF constraints is affected by an increasing number of clauses.
+
+\input{graphs/DNF_Phase_Transition_Clauses.tex}	
+
+The graph \ref{fig:DNFClauses} shows the relation between the DNF constraint to variable ratio and the percentage of satisfiable constraints. From right to left the graphs show the phase transition with 0, 100, 200, 300 and 400 clauses respectively. Similar to the AMO constraints we can see that the phase transition of the DNF constraints shifts to an earlier point the more clauses are added. We can also see that at 400 clauses, the percentage of satisfiable constraints also starts at about 65\% because we are near the phase transition point for clauses already.
+
+\section{Phase transition of of AMO constraints with DNF constraints}
+
+After conducting experiments with the combination of other constraint types with a constant number of clauses, we also experimented with combining AMO and DNF constraints in order to see how the phase transition is affected
+
+\input{graphs/AMO_Phase_Transition_DNF.tex}
+
+The graph \ref{fig:AMODNF} shows the relation between the AMO constraint to variable ratio and the percentage of satisfiable constraints, as well as the normalized solving time for 1000 instances. We can see a similar behavior to the phase transition of AMO constraints with a constant amount of clauses. By adding more DNF constraints, the solution space gets more restricted, which causes the phase transition to occur earlier. Similar to the clauses we can also see, that the DNF constraints are responsible for a strong increase in the solving time.
+
+\section{Phase transition of AMO constraints with DNF constraints and clauses}
+
+As a final experiment we wanted to see how the all three constraint types interact with each other. In this experiment we again take a lookt at the phase transition of AMO constraints while adding a constant amount of DNF constraints and clauses, in order to see how this affects the phase transition.
+
+
+\input{graphs/AMO_Phase_Transition_Clauses_DNF.tex}
+
+The graph \ref{fig:AMOClauseDNF} shows the relation between the AMO constraint to variable ratio and the percentage of satisfiable constraints, as well as the normalized solving speed of 1000 instances.

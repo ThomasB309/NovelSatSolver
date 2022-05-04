@@ -1,0 +1,101 @@
+\begin{figure}[!htb]
+\centering
+  \begin{tikzpicture}[>=latex, scale=0.8]
+\centering
+\begin{axis}[
+  cycle list name=color list,
+  axis x line=center,
+  axis y line=center,
+  width={\linewidth},
+  xtick={0,0.1,...,0.55},
+  ytick={0.1,0.2,...,1},
+  xlabel={Normalized solving speed},
+  ylabel={Percentage of satisfiable constraints},
+  every axis x label/.style=
+            {at={(ticklabel cs: 0.5,0)}, anchor=north},
+  every axis y label/.style=
+            {at={(ticklabel cs: 0.5,0)}, anchor=south},
+  ylabel style={rotate=90},
+  label style={font=\large},
+  xmin= 0,
+  xmax=0.6,
+  ymin=0,
+  ymax=1.05]
+
+  \addplot+ [no marks] table {
+0.04 0.019696969696969695
+0.08 0.006439393939393939
+0.12 0.005681818181818182
+0.16 0.004924242424242424
+0.2 0.005681818181818182
+0.24 0.007196969696969697
+};
+
+  \addplot+ [no marks] table {
+0.04 0.014393939393939395
+0.08 0.017803030303030303
+0.12 0.025
+0.16 0.041666666666666664
+0.2 0.026136363636363635
+0.24 0.022727272727272728
+0.28 0.012878787878787878
+0.32 0.008333333333333333
+
+};
+
+\addplot+ [no marks] table {
+0.04 0.010227272727272727
+0.08 0.01553030303030303
+0.12 0.03901515151515152
+0.16 0.06704545454545455
+0.2 0.125
+0.24 0.13106060606060607
+0.28 0.11212121212121212
+0.32 0.08901515151515152
+0.36 0.05606060606060606
+0.4 0.048863636363636366
+
+};
+\addplot+ [no marks] table {
+0.04 0.003409090909090909
+0.08 0.006439393939393939
+0.12 0.012121212121212121
+0.16 0.03295454545454545
+0.2 0.09166666666666666
+0.24 0.16704545454545455
+0.28 0.21325757575757576
+0.32 0.1984848484848485
+0.36 0.1821969696969697
+0.4 0.16818181818181818
+0.44 0.14431818181818182
+
+};
+\addplot+ [no marks] table {
+0.04 0.003787878787878788
+0.08 0.006439393939393939
+0.12 0.011742424242424242
+0.16 0.029166666666666667
+0.2 0.10871212121212122
+0.24 0.3977272727272727
+0.28 0.7393939393939394
+0.32 1.0
+0.36 0.9704545454545455
+0.4 0.7920454545454545
+0.44 0.6606060606060606
+0.48 0.6212121212121212
+0.52 0.5632575757575757
+
+};
+
+\addlegendentry{1 Term}
+\addlegendentry{2 Terms}
+\addlegendentry{3 Terms}
+\addlegendentry{4 Terms}
+\addlegendentry{5 Terms}
+
+\end{axis}
+
+\end{tikzpicture}
+\caption{Solving speed of 1000 instances with DNF constraints of constant term length 5 and 25 variables}
+\label{fig:DNF}
+\end{figure}
