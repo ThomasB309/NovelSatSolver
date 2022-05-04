@@ -2,18 +2,16 @@ package cas.thomas.SolutionChecker;
 
 import cas.thomas.utils.Pair;
 
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.ListIterator;
 
 public class SolutionCheckerConjunctiveFormula extends SolutionCheckerFormula {
 
     public SolutionCheckerConjunctiveFormula(SolutionCheckerConstraint[] constraints, int variables) {
-        super(constraints,variables);
+        super(constraints, variables);
     }
 
     @Override
@@ -50,7 +48,7 @@ public class SolutionCheckerConjunctiveFormula extends SolutionCheckerFormula {
         StringBuilder dimacsString = new StringBuilder();
 
         for (int i = 0; i < constraints.length; i++) {
-            Pair<Integer,Integer> intPair = constraints[i].toDimacsCNFString(dimacsString, maxVariables);
+            Pair<Integer, Integer> intPair = constraints[i].toDimacsCNFString(dimacsString, maxVariables);
             maxVariables = intPair.getFirstPairPart();
             constraintCounter += intPair.getSecondPairPart();
         }

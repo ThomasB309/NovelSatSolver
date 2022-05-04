@@ -1,11 +1,9 @@
 package cas.thomas.SolverAlgorithms;
 
 import cas.thomas.ConflictHandling.ConflictHandlingStrategy;
-import cas.thomas.Formulas.Constraint;
 import cas.thomas.Formulas.Formula;
 import cas.thomas.RestartHandling.RestartSchedulingStrategy;
 import cas.thomas.VariableSelection.VariableSelectionStrategy;
-import cas.thomas.utils.Pair;
 
 public abstract class SolverAlgorithm {
 

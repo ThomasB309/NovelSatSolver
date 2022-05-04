@@ -1,14 +1,12 @@
 package cas.thomas.SolverAlgorithms;
 
 import cas.thomas.ConflictHandling.ConflictHandlingStrategy;
-import cas.thomas.Formulas.Constraint;
+import cas.thomas.Exceptions.UnitLiteralConflictException;
 import cas.thomas.Formulas.Formula;
 import cas.thomas.RestartHandling.RestartSchedulingStrategy;
 import cas.thomas.VariableSelection.VariableSelectionStrategy;
 import cas.thomas.utils.IntegerArrayQueue;
 import cas.thomas.utils.IntegerStack;
-
-import java.util.stream.Collectors;
 
 public class mDPLL extends SolverAlgorithm {
 
@@ -24,7 +22,12 @@ public class mDPLL extends SolverAlgorithm {
     @Override
     public String solve(Formula formula) {
 
-        boolean solution = mDPPLAlgorithm(formula, firstBranchingDecision);
+        boolean solution = false;
+        try {
+            solution = mDPPLAlgorithm(formula, firstBranchingDecision);
+        } catch (UnitLiteralConflictException e) {
+            return "UNSATISFIABLE";
+        }
 
         //System.out.println(formula.getVariablesForSolutionChecker().stream().filter(x -> x > 0).collect(Collectors
         // .toList()));
@@ -37,7 +40,7 @@ public class mDPLL extends SolverAlgorithm {
 
     }
 
-    protected boolean mDPPLAlgorithm(Formula formula, boolean firstBranchingDecision) {
+    protected boolean mDPPLAlgorithm(Formula formula, boolean firstBranchingDecision) throws UnitLiteralConflictException {
         int numberOfVariables = formula.getNumberOfVariables();
         boolean conflict = false;
         IntegerStack trail = new IntegerStack(numberOfVariables);
@@ -54,10 +57,9 @@ public class mDPLL extends SolverAlgorithm {
                     return false;
                 }
 
-                if (restartSchedulingStrategy.handleRestart(trail, formula)) {
+                if (restartSchedulingStrategy.handleRestart(trail, formula, variableSelectionStrategy)) {
                     variableDecisionLevel = formula.resetDecisionLevelOfVariables();
                 }
-
 
 
             } else {
@@ -76,7 +78,6 @@ public class mDPLL extends SolverAlgorithm {
                 formula.propagate(nextVariable, branching);
                 trail.push(nextVariable);
             }
-
 
 
         }

@@ -1,6 +1,7 @@
 package cas.thomas.RestartHandling;
 
 import cas.thomas.Formulas.Formula;
+import cas.thomas.VariableSelection.VariableSelectionStrategy;
 import cas.thomas.utils.IntegerStack;
 
 public class NoRestartsSchedulingStrategy extends RestartSchedulingStrategy {
@@ -10,7 +11,7 @@ public class NoRestartsSchedulingStrategy extends RestartSchedulingStrategy {
     }
 
     @Override
-    public boolean handleRestart(IntegerStack trail, Formula formula) {
+    public boolean handleRestart(IntegerStack trail, Formula formula, VariableSelectionStrategy variableSelectionStrategy) {
         return false;
     }
 

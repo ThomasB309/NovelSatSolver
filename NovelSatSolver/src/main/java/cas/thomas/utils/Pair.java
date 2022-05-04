@@ -1,6 +1,6 @@
 package cas.thomas.utils;
 
-public class Pair<X,Y> {
+public class Pair<X, Y> {
 
     private X firstPairPart;
     private Y secondPairPart;
@@ -20,6 +20,6 @@ public class Pair<X,Y> {
     }
 
     public String toString() {
-        return "(" +  firstPairPart.toString() + ", " + secondPairPart.toString() + ")";
+        return "(" + firstPairPart.toString() + ", " + secondPairPart.toString() + ")";
     }
 }

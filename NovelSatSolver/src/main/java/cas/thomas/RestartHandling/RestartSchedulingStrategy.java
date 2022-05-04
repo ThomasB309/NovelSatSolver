@@ -1,6 +1,7 @@
 package cas.thomas.RestartHandling;
 
 import cas.thomas.Formulas.Formula;
+import cas.thomas.VariableSelection.VariableSelectionStrategy;
 import cas.thomas.utils.IntegerStack;
 
 public abstract class RestartSchedulingStrategy {
@@ -13,5 +14,5 @@ public abstract class RestartSchedulingStrategy {
         this.conflictCounter = 0;
     }
 
-    public abstract boolean handleRestart(IntegerStack trail, Formula formula);
+    public abstract boolean handleRestart(IntegerStack trail, Formula formula, VariableSelectionStrategy variableSelectionStrategy);
 }

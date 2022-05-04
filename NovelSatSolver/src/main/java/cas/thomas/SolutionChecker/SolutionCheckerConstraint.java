@@ -1,8 +1,8 @@
 package cas.thomas.SolutionChecker;
 
-import java.util.Arrays;
-import java.util.List;
 import cas.thomas.utils.Pair;
+
+import java.util.List;
 
 public abstract class SolutionCheckerConstraint {
 

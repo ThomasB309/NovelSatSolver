@@ -47,18 +47,8 @@ public class AMOConstraint extends Constraint {
 
                     if (a != i) {
 
-                        if (variableAssignments[unitLiteralCandidateAbsoluteValue] * unitLiteralCandidate < 0 || unitLiteralState[unitLiteralCandidateAbsoluteValue] * unitLiteralCandidate < 0) {
-                            hasConflict = true;
-                            conflictLiteral = unitLiteralCandidate;
+                        if (addUnitLiteral(variableAssignments, unitLiteralState, unitLiterals, reasonClauses, unitLiteralCandidate, unitLiteralCandidateAbsoluteValue))
                             return true;
-                        } else if (isNeededForUnitPropagation(unitLiteralCandidate, variableAssignments,
-                                unitLiteralState)) {
-                            unitLiterals.offer(unitLiteralCandidate);
-                            unitLiteralState[unitLiteralCandidateAbsoluteValue] = unitLiteralCandidate < 0 ? -1 : 1;
-                            if (reasonClauses[unitLiteralCandidateAbsoluteValue] == null) {
-                                reasonClauses[unitLiteralCandidateAbsoluteValue] = this;
-                            }
-                        }
                     }
                 }
 
@@ -69,13 +59,25 @@ public class AMOConstraint extends Constraint {
         return false;
     }
 
+    private boolean addUnitLiteral(int[] variableAssignments, int[] unitLiteralState, IntegerArrayQueue unitLiterals, Constraint[] reasonClauses, int unitLiteralCandidate, int unitLiteralCandidateAbsoluteValue) {
+        if (variableAssignments[unitLiteralCandidateAbsoluteValue] * unitLiteralCandidate < 0 || unitLiteralState[unitLiteralCandidateAbsoluteValue] * unitLiteralCandidate < 0) {
+            hasConflict = true;
+            conflictLiteral = unitLiteralCandidate;
+            return true;
+        } else if (isNeededForUnitPropagation(unitLiteralCandidate, variableAssignments,
+                unitLiteralState)) {
+            unitLiterals.offer(unitLiteralCandidate);
+            unitLiteralState[unitLiteralCandidateAbsoluteValue] = unitLiteralCandidate < 0 ? -1 : 1;
+            if (reasonClauses[unitLiteralCandidateAbsoluteValue] == null) {
+                reasonClauses[unitLiteralCandidateAbsoluteValue] = this;
+            }
+        }
+        return false;
+    }
+
     private boolean isNeededForUnitPropagation(int literal, int[] variables, int[] unitLiteralState) {
         int literalAbsoluteValue = Math.abs(literal);
-        if (variables[literalAbsoluteValue] * literal == 0 && unitLiteralState[literalAbsoluteValue] == 0) {
-            return true;
-        }
-
-        return false;
+        return variables[literalAbsoluteValue] * literal == 0 && unitLiteralState[literalAbsoluteValue] == 0;
     }
 
 
@@ -86,7 +88,7 @@ public class AMOConstraint extends Constraint {
 
     @Override
     public List<Constraint> handleConflict(int numberOfVariables, IntegerStack trail,
-                                int[] variableDecisionLevel, int[] variablesInvolvedInConflict, Formula formula) {
+                                           int[] variableDecisionLevel, int[] variablesInvolvedInConflict, Formula formula) {
 
         int[] literals = this.literals;
 
@@ -98,6 +100,10 @@ public class AMOConstraint extends Constraint {
             variablesInvolvedInConflict[currentLiteralAbsoluteValue] = 1;
         }
 
+        return findReasonConstraintAndResolveConflict(trail, variablesInvolvedInConflict, formula, stateOfResolvedVariables);
+    }
+
+    private List<Constraint> findReasonConstraintAndResolveConflict(IntegerStack trail, int[] variablesInvolvedInConflict, Formula formula, int[] stateOfResolvedVariables) {
         trail.prepareIterationWithoutPop();
         while (trail.hasNextWithoutPop()) {
             int literal = trail.peekNextWithoutPop();
@@ -107,21 +113,21 @@ public class AMOConstraint extends Constraint {
                 continue;
             }
 
-            return reasonConstraint.resolveConflict(this, trail,stateOfResolvedVariables, formula, variablesInvolvedInConflict);
+            return reasonConstraint.resolveConflict(this, trail, stateOfResolvedVariables, formula, variablesInvolvedInConflict);
         }
 
         return Arrays.asList();
     }
 
     public List<Constraint> resolveConflict(Constraint conflictConstraint, IntegerStack trail,
-                                            int[] stateOfResolvedVariables ,
+                                            int[] stateOfResolvedVariables,
                                             Formula formula, int[] variablesInvolvedInConflict) {
         int[] reasonLiterals = literals;
         int[] conflictLiterals = conflictConstraint.getLiterals();
-        int[] variableAssignment = formula.getVariables();
+        int conflictLiteral = formula.getConflictLiteral();
         IntegerArrayQueue clauseLiterals = new IntegerArrayQueue(conflictLiterals.length);
         IntegerArrayQueue amoLiterals = new IntegerArrayQueue(reasonLiterals.length);
-        IntegerArrayQueue invertedLiterals = new IntegerArrayQueue(Math.max(reasonLiterals.length,
+        IntegerArrayQueue complementaryLiterals = new IntegerArrayQueue(Math.max(reasonLiterals.length,
                 conflictLiterals.length));
         List<Constraint> learnedConstraints = new ArrayList<>();
 
@@ -132,21 +138,44 @@ public class AMOConstraint extends Constraint {
             stateOfResolvedVariables[currentLiteralAbsoluteValue] = conflictLiterals[i];
         }
 
+        findNeededAMOLiteralsAndComplementaryLiterals(stateOfResolvedVariables, variablesInvolvedInConflict,
+                reasonLiterals, amoLiterals, complementaryLiterals, conflictLiteral, formula.getVariables());
+
+        findNeededClauseLiterals(stateOfResolvedVariables, conflictLiterals, clauseLiterals);
+
+
+        if (complementaryLiterals.size() >= 1) {
+            return resolveConflictWithAtLeastOneComplementaryLiteral(formula, clauseLiterals, complementaryLiterals, learnedConstraints);
+        }
+
+
+        return resolveConflictWithNoComplementaryLiteral(formula, clauseLiterals, amoLiterals, learnedConstraints);
+    }
+
+    private void findNeededAMOLiteralsAndComplementaryLiterals(int[] stateOfResolvedVariables,
+                                                               int[] variablesInvolvedInConflict,
+                                                               int[] reasonLiterals, IntegerArrayQueue amoLiterals,
+                                                               IntegerArrayQueue complementaryLiterals,
+                                                               int conflictLiteral, int[] variableAssignments) {
         for (int i = 0; i < reasonLiterals.length; i++) {
             int currentLiteral = reasonLiterals[i];
             int currentLiteralAbsoluteValue = Math.abs(currentLiteral);
             variablesInvolvedInConflict[currentLiteralAbsoluteValue] = 1;
 
             if (stateOfResolvedVariables[currentLiteralAbsoluteValue] == -currentLiteral) {
-                invertedLiterals.offer(-currentLiteral);
+                complementaryLiterals.offer(-currentLiteral);
                 stateOfResolvedVariables[currentLiteralAbsoluteValue] = 0;
-            } else if (stateOfResolvedVariables[currentLiteralAbsoluteValue] == currentLiteral) {
+            } else if (stateOfResolvedVariables[currentLiteralAbsoluteValue] == currentLiteral && currentLiteral == conflictLiteral) {
                 stateOfResolvedVariables[currentLiteralAbsoluteValue] = 0;
             } else {
-                amoLiterals.offer(-currentLiteral);
+                if (variableAssignments[currentLiteralAbsoluteValue] * currentLiteral > 0) {
+                    amoLiterals.offer(-currentLiteral);
+                }
             }
         }
+    }
 
+    private void findNeededClauseLiterals(int[] stateOfResolvedVariables, int[] conflictLiterals, IntegerArrayQueue clauseLiterals) {
         for (int i = 0; i < conflictLiterals.length; i++) {
             int currentLiteral = conflictLiterals[i];
             int currentLiteralAbsoluteValue = Math.abs(currentLiteral);
@@ -155,20 +184,20 @@ public class AMOConstraint extends Constraint {
                 clauseLiterals.offer(currentLiteral);
             }
         }
+    }
 
+    private List<Constraint> resolveConflictWithAtLeastOneComplementaryLiteral(Formula formula, IntegerArrayQueue clauseLiterals, IntegerArrayQueue complementaryLiterals, List<Constraint> learnedConstraints) {
+        int[] clauseLiteralsArray = Arrays.copyOf(clauseLiterals.getInternalArray(), clauseLiterals.size() + 1);
+        clauseLiteralsArray[clauseLiteralsArray.length - 1] = complementaryLiterals.poll();
+        clauseLiteralsArray =
+                Arrays.stream(clauseLiteralsArray).boxed().sorted(Comparator.comparingInt(a -> formula.getDecisionLevelOfVariables()[Math.abs(a)] * -1)).mapToInt(a -> a).toArray();
 
-        if (invertedLiterals.size() == 1) {
-            int[] clauseLiteralsArray = Arrays.copyOf(clauseLiterals.getInternalArray(), clauseLiterals.size() + 1);
-            clauseLiteralsArray[clauseLiteralsArray.length - 1] = invertedLiterals.poll();
-            clauseLiteralsArray =
-                    Arrays.stream(clauseLiteralsArray).boxed().sorted(Comparator.comparingInt(a -> formula.getDecisionLevelOfVariables()[Math.abs(a)] * -1)).mapToInt(a -> a).toArray();
+        learnedConstraints.add(formula.addDisjunctiveConstraint(clauseLiteralsArray));
 
-            learnedConstraints.add(formula.addDisjunctiveConstraint(clauseLiteralsArray));
+        return learnedConstraints;
+    }
 
-            return learnedConstraints;
-        }
-
-
+    private List<Constraint> resolveConflictWithNoComplementaryLiteral(Formula formula, IntegerArrayQueue clauseLiterals, IntegerArrayQueue amoLiterals, List<Constraint> learnedConstraints) {
         int[] clauseLiteralsArray = Arrays.copyOf(clauseLiterals.getInternalArray(), clauseLiterals.size() + 1);
         int[] amoLiteralsArray = amoLiterals.getInternalArray();
 
@@ -186,17 +215,30 @@ public class AMOConstraint extends Constraint {
 
     public List<Constraint> resolveConflict(AMOConstraint conflictConstraint, IntegerStack trail,
                                             int[] stateOfResolvedVariables,
-                                             Formula formula, int[] variablesInvolvedInConflict) {
+                                            Formula formula, int[] variablesInvolvedInConflict) {
         int[] conflictLiterals = conflictConstraint.getLiterals();
-        int[] variableAssignment = formula.getVariables();
-
-        int conflictLiteral = formula.getConflictLiteral();
         int[] literalSharingStatus = new int[formula.getNumberOfVariables()];
-        int sharedTrueVariable = 0;
-        int sameLiteralsCounter = 0;
-        int negatedLiteralsCounter = 0;
-
         List<Constraint> learnedConstraints = new ArrayList<>();
+        int complementaryLiteralsCounter = getComplementaryLiteralsCounter(stateOfResolvedVariables, variablesInvolvedInConflict, literalSharingStatus);
+
+        if (complementaryLiteralsCounter >= 3) {
+            return Arrays.asList();
+        }
+
+        if (complementaryLiteralsCounter == 2) {
+            return resolveAMOAMOConflictWithTwoComplementaryLiterals(formula, conflictLiterals, literalSharingStatus, learnedConstraints);
+        }
+
+        if (complementaryLiteralsCounter >= 1) {
+            return resolveAMOMOConflictWithOneComplementaryLiteral(formula, conflictLiterals, literalSharingStatus,
+                    learnedConstraints, formula.getVariables());
+        }
+
+        return learnedConstraints;
+    }
+
+    private int getComplementaryLiteralsCounter(int[] stateOfResolvedVariables, int[] variablesInvolvedInConflict, int[] literalSharingStatus) {
+        int negatedLiteralsCounter = 0;
 
         for (int i = 0; i < literals.length; i++) {
             int currentLiteral = literals[i];
@@ -204,69 +246,71 @@ public class AMOConstraint extends Constraint {
             variablesInvolvedInConflict[currentLiteralAbsoluteValue] = 1;
 
             if (stateOfResolvedVariables[currentLiteralAbsoluteValue] == currentLiteral) {
-                sameLiteralsCounter++;
-                if (variableAssignment[currentLiteralAbsoluteValue] * currentLiteral > 0) {
-                    sharedTrueVariable = currentLiteral;
-                }
                 literalSharingStatus[currentLiteralAbsoluteValue] = 1;
             } else if (stateOfResolvedVariables[currentLiteralAbsoluteValue] == -currentLiteral) {
                 negatedLiteralsCounter++;
                 literalSharingStatus[currentLiteralAbsoluteValue] = -1;
             }
         }
+        return negatedLiteralsCounter;
+    }
 
-        if (negatedLiteralsCounter >= 3) {
-            return Arrays.asList();
+    private List<Constraint> resolveAMOAMOConflictWithTwoComplementaryLiterals(Formula formula, int[] conflictLiterals, int[] literalSharingStatus, List<Constraint> learnedConstraints) {
+        for (int i = 0; i < conflictLiterals.length; i++) {
+            int currentLiteral = conflictLiterals[i];
+            int currentLiteralAbsoluteValue = Math.abs(currentLiteral);
+
+            if (literalSharingStatus[currentLiteralAbsoluteValue] != -1) {
+                learnedConstraints.add(formula.addDisjunctiveConstraint(new int[]{-currentLiteral}));
+            }
         }
 
-        if (negatedLiteralsCounter == 2) {
-            if (sameLiteralsCounter == 0 && negatedLiteralsCounter == 2) {
-                for (int i = 0; i < conflictLiterals.length; i++) {
-                    int currentLiteral = conflictLiterals[i];
-                    int currentLiteralAbsoluteValue = Math.abs(currentLiteral);
+        for (int i = 0; i < literals.length; i++) {
+            int currentLiteral = literals[i];
+            int currentLiteralAbsoluteValue = Math.abs(currentLiteral);
 
-                    if (literalSharingStatus[currentLiteralAbsoluteValue] != -1) {
-                        learnedConstraints.add(formula.addDisjunctiveConstraint(new int[]{-currentLiteral}));
-                    }
-                }
+            if (literalSharingStatus[currentLiteralAbsoluteValue] != -1) {
+                learnedConstraints.add(formula.addDisjunctiveConstraint(new int[]{-currentLiteral}));
+            }
+        }
 
-                for (int i = 0; i < literals.length; i++) {
-                    int currentLiteral = literals[i];
-                    int currentLiteralAbsoluteValue = Math.abs(currentLiteral);
+        return learnedConstraints;
+    }
 
-                    if (literalSharingStatus[currentLiteralAbsoluteValue] != -1) {
-                        learnedConstraints.add(formula.addDisjunctiveConstraint(new int[]{-currentLiteral}));
-                    }
-                }
+    private List<Constraint> resolveAMOMOConflictWithOneComplementaryLiteral(Formula formula, int[] conflictLiterals,
+                                                                             int[] literalSharingStatus,
+                                                                             List<Constraint> learnedConstraints,
+                                                                             int[] variableAssignments) {
+        for (int i = 0; i < conflictLiterals.length; i++) {
+            int currentLiteralConflict = conflictLiterals[i];
+            int currentLiteralConflictAbsoluteValue = Math.abs(currentLiteralConflict);
+
+            if (literalSharingStatus[currentLiteralConflictAbsoluteValue] == -1) {
+                continue;
+            } else if (literalSharingStatus[currentLiteralConflictAbsoluteValue] == 1) {
+                learnedConstraints.add(formula.addDisjunctiveConstraint(new int[]{-currentLiteralConflict}));
             }
 
-            return learnedConstraints;
-        }
+            if (variableAssignments[currentLiteralConflictAbsoluteValue] * currentLiteralConflict <= 0) {
+                continue;
+            }
 
-        if (negatedLiteralsCounter >= 1) {
-            for (int i = 0; i < conflictLiterals.length; i++) {
-                int currentLiteralConflict = conflictLiterals[i];
+            for (int j = 0; j < literals.length; j++) {
+                int currentLiteralReason = literals[j];
+                int currentLiteralReasonAbsoluteValue = Math.abs(currentLiteralReason);
 
-                if (literalSharingStatus[Math.abs(currentLiteralConflict)] == -1) {
+                if (literalSharingStatus[currentLiteralReasonAbsoluteValue] != 0) {
                     continue;
-                } else if (literalSharingStatus[Math.abs(currentLiteralConflict)] == 1) {
-                    learnedConstraints.add(formula.addDisjunctiveConstraint(new int[]{-currentLiteralConflict}));
                 }
 
-                for (int j = 0; j < literals.length; j++) {
-                    int currentLiteralReason = literals[j];
-
-                    if (literalSharingStatus[Math.abs(currentLiteralReason)] != 0) {
-                        continue;
-                    }
-
-                    learnedConstraints.add(formula.addDisjunctiveConstraint(new int[]{-currentLiteralConflict,
-                            -currentLiteralReason}));
-
+                if (variableAssignments[currentLiteralReasonAbsoluteValue] * currentLiteralReason <= 0) {
+                    continue;
                 }
+
+                learnedConstraints.add(formula.addDisjunctiveConstraint(new int[]{-currentLiteralConflict,
+                        -currentLiteralReason}));
+
             }
-
-            return learnedConstraints;
         }
 
         return learnedConstraints;
@@ -279,6 +323,14 @@ public class AMOConstraint extends Constraint {
         int conflictLiteral = formula.getConflictLiteral();
 
         ArrayList<int[]> resolutionTerms = new ArrayList<>();
+        getResolutionTermsFromReasonAMOConstraint(variablesInvolvedInConflict, reasonLiterals, conflictLiteral, resolutionTerms);
+
+        getResolutionTermsFromConflictingDNFConstraint(conflictTerms, conflictLiteral, resolutionTerms);
+
+        return Arrays.asList(formula.addDNFConstraints(resolutionTerms.toArray(int[][]::new)));
+    }
+
+    private void getResolutionTermsFromReasonAMOConstraint(int[] variablesInvolvedInConflict, int[] reasonLiterals, int conflictLiteral, ArrayList<int[]> resolutionTerms) {
         int[] termFromAmoLiterals = new int[reasonLiterals.length - 1];
         int counter = 0;
         for (int i = 0; i < reasonLiterals.length; i++) {
@@ -290,7 +342,9 @@ public class AMOConstraint extends Constraint {
         }
 
         resolutionTerms.add(termFromAmoLiterals);
+    }
 
+    private void getResolutionTermsFromConflictingDNFConstraint(int[][] conflictTerms, int conflictLiteral, ArrayList<int[]> resolutionTerms) {
         for (int i = 0; i < conflictTerms.length; i++) {
             boolean containsConflictLiteral = false;
             for (int j = 0; j < conflictTerms[i].length; j++) {
@@ -304,8 +358,6 @@ public class AMOConstraint extends Constraint {
                 resolutionTerms.add(conflictTerms[i]);
             }
         }
-
-        return Arrays.asList(formula.addDNFConstraints(resolutionTerms.toArray(int[][]::new)));
     }
 
     @Override
@@ -329,7 +381,7 @@ public class AMOConstraint extends Constraint {
     }
 
     @Override
-    public int getNeededDecisionLevel(int[] decisionLevelOfVariables) {
+    public int getNeededDecisionLevel(int[] decisionLevelOfVariables, int[] variables) {
         int decisionLevel = Integer.MAX_VALUE;
 
         for (int i = 0; i < literals.length; i++) {
@@ -347,7 +399,7 @@ public class AMOConstraint extends Constraint {
     }
 
     @Override
-    public boolean isStillWatched(int literal) {
+    public boolean isStillWatched(int literal, int[] variables) {
         return false;
     }
 

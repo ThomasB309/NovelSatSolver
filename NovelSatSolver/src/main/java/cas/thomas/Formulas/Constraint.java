@@ -4,11 +4,8 @@ import cas.thomas.SolutionChecker.SolutionCheckerConstraint;
 import cas.thomas.utils.IntegerArrayQueue;
 import cas.thomas.utils.IntegerStack;
 
-import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Set;
 
 public abstract class Constraint {
@@ -17,6 +14,7 @@ public abstract class Constraint {
     protected boolean hasConflict;
     protected int conflictLiteral;
     private boolean obsolete;
+    private int lbdScore;
 
     public Constraint() {
         this.hasConflict = false;
@@ -47,7 +45,15 @@ public abstract class Constraint {
         return this.conflictLiteral;
     }
 
-    public int getLBDScore(int[] variableDecisionLevels) {
+    public void setLBDScore(int[] variableDecisionLevels) {
+        lbdScore = calculateLBDScore(variableDecisionLevels);
+    }
+
+    public int getLBDScore() {
+        return lbdScore;
+    }
+
+    public int calculateLBDScore(int[] variableDecisionLevels) {
         Set<Integer> distinctDecisionLevels = new HashSet<>();
 
         for (int i = 0; i < literals.length; i++) {
@@ -66,7 +72,7 @@ public abstract class Constraint {
     }
 
     public abstract List<Constraint> handleConflict(int numberOfVariables, IntegerStack trail,
-                                int[] variableDecisionLevel, int[] variablesInvolvedInConflict,Formula formula);
+                                                    int[] variableDecisionLevel, int[] variablesInvolvedInConflict, Formula formula);
 
 
     public abstract List<Constraint> resolveConflict(Constraint conflictConstraint, IntegerStack trail,
@@ -98,15 +104,13 @@ public abstract class Constraint {
 
     public abstract boolean isEmpty();
 
-    public abstract int getNeededDecisionLevel(int[] decisionLevelOfVariables);
+    public abstract int getNeededDecisionLevel(int[] decisionLevelOfVariables, int[] variables);
 
     public abstract void addVariableOccurenceCount(double[] variableOccurences);
 
-    public abstract boolean isStillWatched(int literal);
+    public abstract boolean isStillWatched(int literal, int[] variables);
 
-    public void backtrack(int variable, int[] unitLiteralState, Set<Integer> unitLiteralsBeforePropagation,
-                          List<Constraint>[] positivelyWatched, List<Constraint>[] negativelyWatched,
-                          ListIterator<Constraint> listIterator) {
+    public void backtrack(int variable, int[] variableAssignments) {
         return;
     }
 

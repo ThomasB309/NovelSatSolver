@@ -4,8 +4,6 @@ import cas.thomas.Formulas.Formula;
 import cas.thomas.VariableSelection.VariableSelectionStrategy;
 import cas.thomas.utils.IntegerStack;
 
-import java.util.Iterator;
-
 public class DPLLConflictHandler implements ConflictHandlingStrategy {
 
 

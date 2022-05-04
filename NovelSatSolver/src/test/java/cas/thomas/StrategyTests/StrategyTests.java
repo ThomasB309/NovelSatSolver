@@ -1,10 +1,5 @@
 package cas.thomas.StrategyTests;
 
-import cas.thomas.VariableSelection.FirstOpenVariableSelection;
-import cas.thomas.VariableSelection.VSIDS;
-import org.junit.Assert;
-import org.junit.Test;
-
 public class StrategyTests {
 
     // These tests need to be rewritten
