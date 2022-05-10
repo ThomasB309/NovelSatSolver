@@ -1,6 +1,7 @@
 package cas.thomas.SolverAlgorithms;
 
 import cas.thomas.ConflictHandling.ConflictHandlingStrategy;
+import cas.thomas.Evaluation.Statistics;
 import cas.thomas.Exceptions.UnitLiteralConflictException;
 import cas.thomas.Formulas.Formula;
 import cas.thomas.RestartHandling.RestartSchedulingStrategy;
@@ -13,10 +14,10 @@ public class mDPLL extends SolverAlgorithm {
     public mDPLL(VariableSelectionStrategy variableSelectionStrategy,
                  ConflictHandlingStrategy conflictHandlingStrategy,
                  RestartSchedulingStrategy restartSchedulingStrategy, boolean phaseSaving,
-                 boolean firstBranchingDecision) {
+                 boolean firstBranchingDecision, long timeout) {
 
         super(variableSelectionStrategy, conflictHandlingStrategy, restartSchedulingStrategy, phaseSaving,
-                firstBranchingDecision);
+                firstBranchingDecision, timeout);
     }
 
     @Override
@@ -34,6 +35,8 @@ public class mDPLL extends SolverAlgorithm {
 
         if (solution == true) {
             return "SATISFIABLE";
+        } else if (unkown) {
+            return "UNKNOWN";
         } else {
             return "UNSATISFIABLE";
         }
@@ -47,17 +50,27 @@ public class mDPLL extends SolverAlgorithm {
         int[] variables = formula.getVariables();
         double[] variableOccurences = formula.getVariableOccurences();
         int[] variableDecisionLevel = formula.getDecisionLevelOfVariables();
+        long startTime = System.currentTimeMillis();
 
         while (formula.getAssignedCounter() < numberOfVariables - 1) {
+
+            if (timeout > 0 && System.currentTimeMillis() - startTime >= timeout) {
+                unkown = true;
+                return false;
+            }
 
             if (!unitPropagation(trail, formula, variableDecisionLevel)) {
                 conflict = true;
                 if (!conflictHandlingStrategy.handleConflict(trail, formula, firstBranchingDecision,
                         variableDecisionLevel, variableSelectionStrategy)) {
+                    conflicts++;
                     return false;
+                } else {
+                    conflicts++;
                 }
 
                 if (restartSchedulingStrategy.handleRestart(trail, formula, variableSelectionStrategy)) {
+                    restarts++;
                     variableDecisionLevel = formula.resetDecisionLevelOfVariables();
                 }
 
@@ -73,6 +86,7 @@ public class mDPLL extends SolverAlgorithm {
                     continue;
                 }
 
+                branchings++;
                 variableDecisionLevel[nextVariable] = formula.getCurrentDecisionLevel();
                 boolean branching = phaseSaving(formula, nextVariable);
                 formula.propagate(nextVariable, branching);
@@ -96,7 +110,7 @@ public class mDPLL extends SolverAlgorithm {
             int conflictLiteralAbsoluteValue = Math.abs(conflictLiteral);
 
             variableDecisionLevels[conflictLiteralAbsoluteValue] = formula.getCurrentDecisionLevel();
-            formula.propagate(conflictLiteralAbsoluteValue * formula.getUnitLiteralState()[conflictLiteralAbsoluteValue]);
+            formula.pseudoPropagate(conflictLiteralAbsoluteValue * formula.getUnitLiteralState()[conflictLiteralAbsoluteValue]);
             trail.push(-conflictLiteralAbsoluteValue);
 
             return false;
@@ -110,7 +124,7 @@ public class mDPLL extends SolverAlgorithm {
                 int conflictLiteralAbsoluteValue = Math.abs(conflictLiteral);
 
                 variableDecisionLevels[conflictLiteralAbsoluteValue] = formula.getCurrentDecisionLevel();
-                formula.propagate(conflictLiteralAbsoluteValue * formula.getUnitLiteralState()[conflictLiteralAbsoluteValue]);
+                formula.pseudoPropagate(conflictLiteralAbsoluteValue * formula.getUnitLiteralState()[conflictLiteralAbsoluteValue]);
                 trail.push(-conflictLiteralAbsoluteValue);
 
 
@@ -121,7 +135,9 @@ public class mDPLL extends SolverAlgorithm {
                 continue;
             }
 
+            unitPropagations++;
             variableDecisionLevels[Math.abs(nextLiteral)] = formula.getCurrentDecisionLevel();
+            formula.setPhaseSavingLastAssignment(nextLiteral);
             formula.propagate(nextLiteral);
             trail.push(-Math.abs(nextLiteral));
             formula.getUnitLiteralState()[Math.abs(nextLiteral)] = 0;

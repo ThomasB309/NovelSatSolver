@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -22,14 +23,24 @@ public class DNFConstraint extends Constraint {
     private int[] falseTermCache;
     private Set<Integer> visitedLiterals;
     private HashMap<Integer, Integer> literalsMapping;
-    private Integer[][] positiveLiteralsIntersectionList;
-    private Set<Integer> literalSet;
+    private List<Integer>[] positiveLiteralsIntersectionList;
+    protected Set<Integer> literalSet;
     private int falseCounter;
-    private int firstWatchedTerm;
-    private int secondWatchedTerm;
+    private List<Integer> firstWatchedTermSet;
+    private List<Integer> secondWatchedTermSet;
+    private int firstWatchedNonFalseTerm;
+    private int secondWatchedNonFalseTerm;
+    private int[] watchedLiterals;
+    private int[] watchedTermsArray;
+    private int counter = 0;
+    private List<Integer>[] intersectionIndeces;
+    private int testCounter;
+    private int firstWatchedTermTurnedFalseFirst;
+    private int[] addedLiterals;
+    protected int[][] solutionCheckerCopy;
 
     public DNFConstraint(final int[][] terms, final List<Constraint>[] positivelyWatchedList,
-                         final List<Constraint>[] negativelyWatchedList) {
+                         final List<Constraint>[] negativelyWatchedList, int numberOfVariables) {
 
         assert (terms.length > 0);
 
@@ -39,6 +50,7 @@ public class DNFConstraint extends Constraint {
         this.unitLiteralsPropagatedDuringInitialization = new HashSet<>();
         this.literalSet = new HashSet<>();
         this.falseCounter = 0;
+        this.intersectionIndeces = new ArrayList[terms.length];
 
         Arrays.sort(terms, Comparator.comparing(term -> term.length));
 
@@ -65,14 +77,407 @@ public class DNFConstraint extends Constraint {
             }
         }
 
+        firstWatchedNonFalseTerm = -1;
+        secondWatchedNonFalseTerm = -1;
 
 
         this.calculateTermIntersectionsAndUnitLiterals(this.terms, literalsInDNF);
 
-        firstWatchedTerm = 0;
-        secondWatchedTerm = 1;
+        watchedLiterals = new int[literalSet.size()];
+        addedLiterals = new int[literalSet.size()];
+        watchedTermsArray = new int[terms.length];
 
-        this.assignWatchedLiteralsToWatchList(literalsInDNF, positivelyWatchedList, negativelyWatchedList);
+        /*if (terms.length == 5 && Arrays.equals(terms[0], new int[]{-62,-48,-39,58,84}) && Arrays.equals(terms[1],
+                new int[]{-76,-63,-62,-44,35})) {
+            System.out.println("hello");
+        }*/
+
+
+        findWatchedTermSets(new int[numberOfVariables], new IntegerStack());
+
+        assignWatchedLiterals(positivelyWatchedList, negativelyWatchedList);
+    }
+
+    public DNFConstraint(final int[][] terms, final List<Constraint>[] positivelyWatchedList,
+                         final List<Constraint>[] negativelyWatchedList, int numberOfVariables,
+                         int[][] solutionCheckerCopy) {
+        this(terms,positivelyWatchedList,negativelyWatchedList,numberOfVariables);
+        this.solutionCheckerCopy = solutionCheckerCopy;
+    }
+
+    public void removeAddedLiteral(int literal) {
+        int literalMapped = literalsMapping.get(-literal);
+        addedLiterals[literalMapped] = 0;
+    }
+
+    private void propagateWatchedTermSet(int[] variables, IntegerStack literalsToPropagate) {
+
+    }
+
+    private void secondWatchedNonIntersectingTermTurnedFalse(int[] variables, IntegerStack literalsToPropagate) {
+        boolean foundSecondWatchedNonIntersectingTerm = false;
+        for (int i = 0; i < terms.length; i++) {
+            if (!firstWatchedTermSet.contains(i) && !checkIfTermIsFalse(variables, i, falseTermCache)) {
+                secondWatchedNonFalseTerm = i;
+                foundSecondWatchedNonIntersectingTerm = true;
+                break;
+            }
+        }
+
+        if (!foundSecondWatchedNonIntersectingTerm) {
+
+        }
+    }
+
+    public boolean containsLiteral(int literal) {
+        return literalsMapping.containsKey(literal);
+    }
+
+    public void findWatchedTermSets(int[] variables, IntegerStack literalsToPropagate) {
+
+        for (int i = 0; i < terms.length; i++) {
+            if (!checkIfTermIsFalse(variables, i, falseTermCache)) {
+                firstWatchedTermSet = getIntersectionIndeces(i, variables);
+                firstWatchedNonFalseTerm = i;
+                break;
+            }
+        }
+
+        assert(firstWatchedTermSet != null);
+
+        for (int i = 0; i < terms.length; i++) {
+            if (!firstWatchedTermSet.contains(i) && !checkIfTermIsFalse(variables, i, falseTermCache)) {
+                secondWatchedTermSet = getIntersectionIndeces(i, variables);
+                secondWatchedNonFalseTerm = i;
+                return;
+            }
+        }
+
+        secondWatchedTermSet = null;
+        secondWatchedNonFalseTerm = -1;
+        firstWatchedTermTurnedFalseFirst = -1;
+
+
+
+
+
+        /*boolean firstWatchedTermSetContainsOneNonFalseTerm = false;
+        for (Integer termIndex : firstWatchedTermSet) {
+            if (!checkIfTermIsFalse(variables, termIndex, falseTermCache)) {
+                firstWatchedTermSetContainsOneNonFalseTerm = true;
+                break;
+            }
+        }
+
+        boolean foundFirstWatchedTerm = false;
+        if (!firstWatchedTermSetContainsOneNonFalseTerm) {
+            for (int i = 0; i < terms.length; i++) {
+                if (i != secondWatchedNonFalseTerm && !checkIfTermIsFalse(variables, i, falseTermCache)) {
+                    firstWatchedTermSet = new HashSet<>(getIntersectionIndeces(i, variables));
+                    foundFirstWatchedTerm = true;
+                    break;
+                }
+            }
+        }
+
+        if (!foundFirstWatchedTerm) {
+            // propagate secondWatchedTerm and return
+        }
+
+
+        /*boolean foundFirstWatchedTermSet = false;
+        boolean foundSecondWatchedTermSet = false;
+        int firstWatchedTermCache = firstWatchedTerm;
+        for (int i = 0; i < terms.length; i++) {
+            if (!checkIfTermIsFalse(variables, i, falseTermCache)) {
+                if (!foundFirstWatchedTermSet) {
+                    watchedTermSet = new HashSet<>(getIntersectionIndeces(i, variables));
+                    firstWatchedTerm = i;
+                    foundFirstWatchedTermSet = true;
+                } else if (!watchedTermSet.contains(i)) {
+                    watchedTermSet.add(i);
+                    secondWatchedNonIntersectingTerm = i;
+                    foundSecondWatchedTermSet = true;
+                    break;
+                }
+
+            }
+        }
+
+        if (secondWatchedNonIntersectingTerm == firstWatchedTerm) {
+            secondWatchedNonIntersectingTerm = firstWatchedTermCache;
+        }
+
+
+        if (!foundFirstWatchedTermSet) {
+            System.out.println(testCounter);
+            return;
+        }
+
+        if (!foundSecondWatchedTermSet) {
+            if (watchedTermSet.contains(secondWatchedNonIntersectingTerm)) {
+                for (int i = 0; i < terms.length; i++) {
+                    if (!watchedTermSet.contains(i)) {
+                        secondWatchedNonIntersectingTerm = i;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (foundFirstWatchedTermSet && foundSecondWatchedTermSet) {
+            //watchedTermSet = new HashSet<>(Arrays.asList(firstWatchedTerm,secondWatchedNonIntersectingTerm));
+            return;
+        }
+
+
+        int[] firstTerm = terms[firstWatchedTerm];
+
+        for (int i = 0; i < firstTerm.length; i++) {
+            int currentLiteral = firstTerm[i];
+            boolean propagateCurrentLiteral = true;
+            for (Integer index : watchedTermSet) {
+                int[] currentTerm = terms[index];
+
+                if (!checkIfTermIsFalse(variables, index, falseTermCache) && Arrays.binarySearch(currentTerm,
+                        currentLiteral) < 0) {
+                    propagateCurrentLiteral = false;
+                    break;
+                }
+            }
+
+            if (propagateCurrentLiteral && !unitLiteralsPropagatedDuringInitialization.contains(currentLiteral)) {
+                literalsToPropagate.push(currentLiteral);
+            }
+        }
+
+       if (secondWatchedNonIntersectingTerm != -1) {
+           watchedTermSet.add(secondWatchedNonIntersectingTerm);
+       }*/
+
+
+    }
+
+    private void propagateIfNoSecondaryWatchedTermSet(int[] variables, IntegerStack literalsToPropagate) {
+        propagateSharedLiteralsInTermSet(variables, literalsToPropagate, firstWatchedTermSet);
+    }
+
+    private boolean propagateWatchedTermSet(boolean firstTermSetToReplace, int[] variables,
+                                         IntegerStack literalsToPropagate, List<Constraint>[] positivelyWatched,
+                                         List<Constraint>[] negativelyWatched) {
+
+        List<Integer> termSetToPropagate;
+        List<Integer> termSetToReplace;
+        int termToPropagate;
+        int termtoReplace;
+
+
+        if (firstTermSetToReplace) {
+            termSetToPropagate = secondWatchedTermSet;
+            termSetToReplace = firstWatchedTermSet;
+            termToPropagate = secondWatchedNonFalseTerm;
+            termtoReplace = firstWatchedNonFalseTerm;
+        } else {
+            termSetToPropagate = firstWatchedTermSet;
+            termSetToReplace = secondWatchedTermSet;
+            termToPropagate = firstWatchedNonFalseTerm;
+            termtoReplace = secondWatchedNonFalseTerm;
+        }
+
+
+
+        if (checkIfTermIsFalse(variables, termToPropagate, falseTermCache)) {
+            propagateSharedLiteralsInTermSet(variables, literalsToPropagate, termSetToReplace);
+            return false;
+        }
+
+        for (int i = 0; i < terms.length; i++) {
+            if (!termSetToPropagate.contains(i) && !checkIfTermIsFalse(variables, i, falseTermCache)) {
+                if (firstTermSetToReplace) {
+                    firstWatchedTermSet = getIntersectionIndeces(i, variables);
+                    firstWatchedNonFalseTerm = i;
+                } else {
+                    secondWatchedTermSet = getIntersectionIndeces(i, variables);
+                    secondWatchedNonFalseTerm = i;
+                }
+
+
+                return true;
+            }
+        }
+
+        if (firstTermSetToReplace) {
+            firstWatchedTermTurnedFalseFirst = 1;
+        } else {
+            firstWatchedTermTurnedFalseFirst = -1;
+        }
+
+        propagateSharedLiteralsInTermSet(variables, literalsToPropagate, termSetToPropagate);
+
+        return false;
+
+    }
+
+    private void propagateSharedLiteralsInTermSet(int[] variables, IntegerStack literalsToPropagate, List<Integer> termSetToPropagate) {
+        int[] firstTerm = null;
+
+        for (Integer termIndex : termSetToPropagate) {
+            if (!checkIfTermIsFalse(variables, termIndex, falseTermCache)) {
+                firstTerm = terms[termIndex];
+                break;
+            }
+        }
+
+        if (firstTerm == null) {
+            if (testCounter != 0) {
+                System.out.println(testCounter);
+            }
+            return;
+        }
+
+
+        for (int i = 0; i < firstTerm.length; i++) {
+            int currentLiteral = firstTerm[i];
+            boolean propagateCurrentLiteral = true;
+            for (Integer index : termSetToPropagate) {
+                int[] currentTerm = terms[index];
+
+                if (!checkIfTermIsFalse(variables, index, falseTermCache) && Arrays.binarySearch(currentTerm,
+                        currentLiteral) < 0) {
+                    propagateCurrentLiteral = false;
+                    break;
+                }
+            }
+
+            if (propagateCurrentLiteral && !unitLiteralsPropagatedDuringInitialization.contains(currentLiteral)) {
+                literalsToPropagate.push(currentLiteral);
+            }
+        }
+    }
+
+    private void assignWatchedLiterals(List<Constraint>[] positivelyWatchedList,
+                                       List<Constraint>[] negativelyWatchedList) {
+
+
+
+        int[] newWatchedLiterals = new int[literalSet.size()];
+        for (Integer termIndex : firstWatchedTermSet) {
+            int[] term = terms[termIndex];
+
+            for (int i = 0; i < term.length; i++){
+                int currentLiteral = term[i];
+                int currentLiteralMapped = literalsMapping.get(currentLiteral);
+
+                if (watchedLiterals[currentLiteralMapped] == 0) {
+                    newWatchedLiterals[currentLiteralMapped] = 1;
+                    watchedLiterals[currentLiteralMapped] = 1;
+
+                    if (addedLiterals[currentLiteralMapped] != 1) {
+                        addedLiterals[currentLiteralMapped] = 1;
+                        if (currentLiteral < 0) {
+                            negativelyWatchedList[Math.abs(currentLiteral)].add(this);
+                        } else {
+                            positivelyWatchedList[Math.abs(currentLiteral)].add(this);
+                        }
+                    }
+                } else {
+                    newWatchedLiterals[currentLiteralMapped] = 1;
+                }
+
+            }
+        }
+
+        if (secondWatchedTermSet != null) {
+            for (Integer termIndex : secondWatchedTermSet) {
+                int[] term = terms[termIndex];
+                for (int i = 0; i < term.length; i++) {
+                    int currentLiteral = term[i];
+                    int currentLiteralAbsoluteValue = Math.abs(currentLiteral);
+                    int currentLiteralMapped = literalsMapping.get(currentLiteral);
+
+                    if (watchedLiterals[currentLiteralMapped] == 0) {
+                        newWatchedLiterals[currentLiteralMapped] = 1;
+                        watchedLiterals[currentLiteralMapped] = 1;
+
+                        if (addedLiterals[currentLiteralMapped] != 1) {
+                            addedLiterals[currentLiteralMapped] = 1;
+                            if (currentLiteral < 0) {
+                                negativelyWatchedList[currentLiteralAbsoluteValue].add(this);
+                            } else {
+                                positivelyWatchedList[currentLiteralAbsoluteValue].add(this);
+                            }
+                        }
+                    } else {
+                        newWatchedLiterals[currentLiteralMapped] = 1;
+                    }
+                }
+            }
+        }
+        watchedLiterals = newWatchedLiterals;
+    }
+
+    private int getIntersectionIndeces(int[] term) {
+        ArrayList<Integer> intersectionIndeces = new ArrayList<>();
+        int[] termAlreadyInIntersection = new int[terms.length];
+
+        for (int i = 0; i < term.length; i++) {
+            int currentLiteral = term[i];
+
+            if (unitLiteralsPropagatedDuringInitialization.contains(currentLiteral)) {
+                continue;
+            }
+
+
+            for (Integer termIndexIntersection : positiveLiteralsIntersectionList[literalsMapping.get(currentLiteral)]) {
+
+                if (termAlreadyInIntersection[termIndexIntersection] == 0) {
+                    termAlreadyInIntersection[termIndexIntersection] = 1;
+                    intersectionIndeces.add(termIndexIntersection);
+                }
+            }
+        }
+
+        return intersectionIndeces.size();
+    }
+
+    private List<Integer> getIntersectionIndeces(int termIndex, int[] variables) {
+
+        if (intersectionIndeces[termIndex] != null) {
+            return intersectionIndeces[termIndex];
+        }
+
+        ArrayList<Integer> intersectionIndeces = new ArrayList<>();
+        int[] termAlreadyInIntersection = new int[terms.length];
+        int[] term = terms[termIndex];
+
+        for (int i = 0; i < term.length; i++) {
+            int currentLiteral = term[i];
+
+            if (unitLiteralsPropagatedDuringInitialization.contains(currentLiteral)) {
+                continue;
+            }
+
+
+            for (Integer termIndexIntersection : positiveLiteralsIntersectionList[literalsMapping.get(currentLiteral)]) {
+
+                if (termAlreadyInIntersection[termIndexIntersection] == 0) {
+                    termAlreadyInIntersection[termIndexIntersection] = 1;
+                    intersectionIndeces.add(termIndexIntersection);
+                }
+            }
+        }
+
+        /*for (Iterator<Integer> iterator = intersectionIndeces.iterator(); iterator.hasNext();) {
+            int index = iterator.next();
+            if (checkIfTermIsFalse(variables, index, falseTermCache)) {
+                iterator.remove();
+            }
+        }*/
+
+        this.intersectionIndeces[termIndex] = intersectionIndeces;
+
+        return intersectionIndeces;
+
     }
 
     private int termSubsumption(int[][] terms) {
@@ -115,7 +520,9 @@ public class DNFConstraint extends Constraint {
 
     private void calculateTermIntersectionsAndUnitLiterals(final int[][] terms, final Set<Integer> literalsInDNF) {
         int literalCounter = 0;
-        Map<Integer, HashSet<Integer>> literalIntersections = new HashMap<>();
+        Map<Integer, List<Integer>> literalIntersections = new HashMap<>();
+
+        Set<Integer> variableSet = new HashSet<>();
 
         for (int i = 0; i < terms.length; i++) {
             assert (terms[i].length > 0);
@@ -125,14 +532,22 @@ public class DNFConstraint extends Constraint {
 
             for (int j = 0; j < terms[i].length; j++) {
                 final int currentLiteral = terms[i][j];
-                this.literalSet.add(currentLiteral);
 
-                literalCounter++;
+                if (!this.literalSet.contains(currentLiteral)) {
+                    literalCounter++;
+                    this.literalSet.add(currentLiteral);
+                }
+
+                if (!variableSet.contains(Math.abs(currentLiteral))) {
+                    variableSet.add(Math.abs(currentLiteral));
+                    this.variableCounter++;
+                }
+
 
                 literalsInDNF.add(currentLiteral);
                 termSet.add(currentLiteral);
                 if (literalIntersections.containsKey(currentLiteral)) {
-                    final HashSet<Integer> intersectionList = literalIntersections.get(currentLiteral);
+                    final List<Integer> intersectionList = literalIntersections.get(currentLiteral);
                     intersectionList.add(i);
 
                     if (intersectionList.size() == terms.length) {
@@ -140,7 +555,7 @@ public class DNFConstraint extends Constraint {
                     }
 
                 } else {
-                    final HashSet<Integer> newList = new HashSet<>();
+                    final List<Integer> newList = new ArrayList<>();
                     newList.add(i);
                     literalIntersections.put(currentLiteral, newList);
                 }
@@ -148,13 +563,13 @@ public class DNFConstraint extends Constraint {
 
         }
 
-        positiveLiteralsIntersectionList = new Integer[literalCounter][];
+        positiveLiteralsIntersectionList = new ArrayList[literalCounter];
         literalsMapping = new HashMap<>();
 
         int counter = 0;
         for (Integer key : literalSet) {
             literalsMapping.put(key, counter);
-            positiveLiteralsIntersectionList[counter] = literalIntersections.get(key).toArray(Integer[] :: new);
+            positiveLiteralsIntersectionList[counter] = literalIntersections.get(key);
             counter++;
         }
     }
@@ -191,68 +606,95 @@ public class DNFConstraint extends Constraint {
 
         final IntegerStack literalsToPropagate = new IntegerStack();
 
-
         falseTermCache = new int[terms.length];
         falseCounter = 0;
 
-        Integer[] falseTerms = positiveLiteralsIntersectionList[literalsMapping.get(-propagatedLiteral)];
-        boolean changeFirstWatchedTerm = false;
-        boolean changeSecondWatchedTerm = false;
-        for (int i = 0; i  < falseTerms.length; i++) {
-            int termIndex = falseTerms[i];
+        if (secondWatchedTermSet == null) {
+            propagateIfNoSecondaryWatchedTermSet(variableAssignments, literalsToPropagate);
+
+            final boolean propagate = literalsToPropagate.size() > 0;
+
+            if (this.addUnitLiterals(variableAssignments, unitLiteralState, unitLiterals, reasonClauses, literalsToPropagate))
+                return true;
+
+            return propagate;
+
+        }
+
+        List<Integer> falseTerms = positiveLiteralsIntersectionList[literalsMapping.get(-propagatedLiteral)];
+
+        boolean propagateInFirstWatchedTerm = false;
+        boolean propagateInSecondWatchedTerm = false;
+        int propagateInFirstWatchedTermIfFirstAndSecondWatchedLiteralAreFalseCounter = 0;
+        int propagateInSecondWatchedTermIfFirstAndSecondWatchedLiteralAreFalseCounter = 0;
+        int counter = 0;
+        for (Integer termIndex : falseTerms) {
             falseTermCache[termIndex] = -1;
 
-            if (termIndex == firstWatchedTerm) {
-                changeFirstWatchedTerm = true;
-            } else if (termIndex == secondWatchedTerm) {
-                changeSecondWatchedTerm = true;
-            }
-        }
+            if (checkIfTermIsFalseExludingLiteral(terms[termIndex], variableAssignments, -propagatedLiteral)) {
 
-        if (!changeFirstWatchedTerm && checkIfTermIsFalse(variableAssignments, firstWatchedTerm, falseTermCache)) {
-            changeFirstWatchedTerm = true;
-        }
+                counter++;
+                continue;
 
-        if (!changeSecondWatchedTerm && checkIfTermIsFalse(variableAssignments, secondWatchedTerm, falseTermCache)) {
-            changeSecondWatchedTerm = true;
-        }
-
-        int firstNonFalseTermIndex = -1;
-        for (int i = 0; i < this.falseTermCache.length; i++) {
-
-            if (!checkIfTermIsFalse(variableAssignments, i, falseTermCache)) {
-                if (firstNonFalseTermIndex == -1) {
-                    firstNonFalseTermIndex = i;
-                }
-
-                if (changeFirstWatchedTerm && i != secondWatchedTerm) {
-                    firstWatchedTerm = i;
-                    changeFirstWatchedTerm = false;
-                } else if (changeSecondWatchedTerm && i != firstWatchedTerm) {
-                    secondWatchedTerm = i;
-                    changeSecondWatchedTerm = false;
-                }
             }
 
-            if (!changeFirstWatchedTerm && !changeSecondWatchedTerm && firstNonFalseTermIndex != -1) {
-                break;
+            if (termIndex == firstWatchedNonFalseTerm) {
+                propagateInFirstWatchedTerm = true;
             }
+
+            if (termIndex == secondWatchedNonFalseTerm) {
+                propagateInSecondWatchedTerm = true;
+            }
+
+            if (firstWatchedTermSet.contains(termIndex)) {
+                propagateInFirstWatchedTermIfFirstAndSecondWatchedLiteralAreFalseCounter++;
+            }
+
+            if (secondWatchedTermSet.contains(termIndex)) {
+                propagateInSecondWatchedTermIfFirstAndSecondWatchedLiteralAreFalseCounter++;
+            }
+
         }
 
-        if (firstNonFalseTermIndex == -1) {
+        if (counter == falseTerms.size()) {
             return false;
         }
 
-        if (changeFirstWatchedTerm ^ changeSecondWatchedTerm) {
-            this.propagateIfConstraintHasOnlyOneTerm(firstNonFalseTermIndex, variableAssignments, unitLiteralState,
-                    unitLiterals,reasonClauses);
-            return true;
+        if (!(propagateInFirstWatchedTerm || propagateInSecondWatchedTerm)) {
+            boolean firstWatchedTermTrue = !checkIfTermIsFalse(variableAssignments, firstWatchedNonFalseTerm,
+                    falseTermCache);
+            boolean secondWatchedTermTrue = !checkIfTermIsFalse(variableAssignments, secondWatchedNonFalseTerm,
+                    falseTermCache);
+
+            if (firstWatchedTermTrue && secondWatchedTermTrue) {
+                return false;
+            }
+
+            assert (firstWatchedTermTurnedFalseFirst != 0);
+
+            if (firstWatchedTermTurnedFalseFirst == -1) {
+                propagateWatchedTermSet(true, variableAssignments, literalsToPropagate,
+                        positivelyWatched,negativelyWatched);
+            } else {
+                propagateWatchedTermSet(false, variableAssignments, literalsToPropagate,
+                        positivelyWatched,negativelyWatched);
+            }
+
+            final boolean propagate = literalsToPropagate.size() > 0;
+
+            if (this.addUnitLiterals(variableAssignments, unitLiteralState, unitLiterals, reasonClauses, literalsToPropagate))
+                return true;
+
+            return propagate;
+
+
         }
 
-        final int[] shortestNonFalseTerm = this.terms[firstNonFalseTermIndex];
 
-        this.findLiteralsInIntersectionOfAllNonFalseTerms(literalsToPropagate, firstNonFalseTermIndex, falseCounter,
-                shortestNonFalseTerm, variableAssignments);
+        if (propagateWatchedTermSet(propagateInFirstWatchedTerm, variableAssignments, literalsToPropagate,
+                positivelyWatched, negativelyWatched)) {
+            assignWatchedLiterals(positivelyWatched, negativelyWatched);
+        }
 
         final boolean propagate = literalsToPropagate.size() > 0;
 
@@ -264,7 +706,7 @@ public class DNFConstraint extends Constraint {
 
     @Override
     public SolutionCheckerConstraint getSolutionCheckerConstraint() {
-        return new SolutionCheckerDNFConstraint(terms);
+        return new SolutionCheckerDNFConstraint(solutionCheckerCopy);
     }
 
     public int calculateLBDScore(final int[] variableDecisionLevels) {
@@ -314,7 +756,7 @@ public class DNFConstraint extends Constraint {
     public List<Constraint> resolveConflict(final Constraint conflictConstraint, final IntegerStack trail,
                                             final int[] stateOfResolvedVariables, final Formula formula,
                                             final int[] variablesInvolvedInConflict) {
-        final int[] conflictLiterals = conflictConstraint.getLiterals();
+        /*final int[] conflictLiterals = conflictConstraint.getLiterals();
         final int[][] reasonTerms = terms;
         final int conflictLiteral = formula.getConflictLiteral();
 
@@ -325,7 +767,41 @@ public class DNFConstraint extends Constraint {
         this.getResolutionTermsFromReasonDNFConstraint(variablesInvolvedInConflict, reasonTerms, conflictLiteral, resolutionTerms);
 
 
-        return Arrays.asList(formula.addDNFConstraints(resolutionTerms.toArray(int[][]::new)));
+        return Arrays.asList(formula.addDNFConstraints(resolutionTerms.toArray(int[][]::new)));*/
+
+
+        int conflictLiteral = formula.getConflictLiteral();
+        int[] conflictLiterals = conflictConstraint.getLiterals();
+        int[] variableAssignments = formula.getVariables();
+
+        Set<Integer> resolutionLiterals = new HashSet<>();
+
+        getConflictResolutionLiterals(-conflictLiteral, variableAssignments, resolutionLiterals);
+
+        for (int i = 0; i < conflictLiterals.length; i++) {
+            if (conflictLiterals[i] != conflictLiteral) {
+                resolutionLiterals.add(conflictLiterals[i]);
+            }
+        }
+
+        Integer[] literals = new Integer[resolutionLiterals.size()];
+
+        int pointer = 0;
+        for (Integer literal : resolutionLiterals) {
+            variablesInvolvedInConflict[Math.abs(literal)] = 1;
+            literals[pointer] = literal;
+            pointer++;
+        }
+
+        Arrays.sort(literals, Comparator.comparingInt(a -> formula.getDecisionLevelOfVariables()[Math.abs(a)] * -1));
+
+        int[] literalsPrimitive = new int[literals.length];
+
+        for (int i = 0 ; i < literals.length; i++) {
+            literalsPrimitive[i] = literals[i];
+        }
+
+        return Arrays.asList(formula.addDisjunctiveConstraint(literalsPrimitive));
 
     }
 
@@ -359,7 +835,7 @@ public class DNFConstraint extends Constraint {
     public List<Constraint> resolveConflict(final AMOConstraint conflictConstraint, final IntegerStack trail,
                                             final int[] stateOfResolvedvariables, final Formula formula,
                                             final int[] variablesInvolvedInConflict) {
-        final int[] conflictLiterals = conflictConstraint.getLiterals();
+        /*final int[] conflictLiterals = conflictConstraint.getLiterals();
         final int[][] reasonTerms = terms;
         final int conflictLiteral = formula.getConflictLiteral();
 
@@ -370,7 +846,40 @@ public class DNFConstraint extends Constraint {
 
         this.getResolutionTermsFromReasonDNFConstraint(variablesInvolvedInConflict, reasonTerms, conflictLiteral, resolutionTerms);
 
-        return Arrays.asList(formula.addDNFConstraints(resolutionTerms.toArray(int[][]::new)));
+        return Arrays.asList(formula.addDNFConstraints(resolutionTerms.toArray(int[][]::new)));*/
+
+        int conflictLiteral = formula.getConflictLiteral();
+        int[] conflictLiterals = conflictConstraint.getLiterals();
+        int[] variableAssignments = formula.getVariables();
+
+        Set<Integer> resolutionLiterals = new HashSet<>();
+
+        getConflictResolutionLiterals(-conflictLiteral, variableAssignments, resolutionLiterals);
+
+        for (int i = 0; i < conflictLiterals.length; i++) {
+            if (conflictLiterals[i] != conflictLiteral) {
+                resolutionLiterals.add(-conflictLiterals[i]);
+            }
+        }
+
+        Integer[] literals = new Integer[resolutionLiterals.size()];
+
+        int pointer = 0;
+        for (Integer literal : resolutionLiterals) {
+            variablesInvolvedInConflict[Math.abs(literal)] = 1;
+            literals[pointer] = literal;
+            pointer++;
+        }
+
+        Arrays.sort(literals, Comparator.comparingInt(a -> formula.getDecisionLevelOfVariables()[Math.abs(a)] * -1));
+
+        int[] literalsPrimitive = new int[literals.length];
+
+        for (int i = 0 ; i < literals.length; i++) {
+            literalsPrimitive[i] = literals[i];
+        }
+
+        return Arrays.asList(formula.addDisjunctiveConstraint(literalsPrimitive));
 
     }
 
@@ -391,20 +900,115 @@ public class DNFConstraint extends Constraint {
                                             final int[] stateOfResolvedVariables, final Formula formula,
                                             final int[] variablesInvolvedInConflict) {
 
-        final int[][] conflictTerms = conflictConstraint.terms;
+
+        int conflictLiteral = formula.getConflictLiteral();
+        int[] variableAssignments = formula.getVariables();
+
+        Set<Integer> resolutionLiterals = new HashSet<>();
+
+        conflictConstraint.getConflictResolutionLiterals(conflictLiteral,
+                variableAssignments, resolutionLiterals);
+
+        getConflictResolutionLiterals(-conflictLiteral, variableAssignments, resolutionLiterals);
+
+        Integer[] literals = new Integer[resolutionLiterals.size()];
+
+        int pointer = 0;
+        for (Integer literal : resolutionLiterals) {
+            variablesInvolvedInConflict[Math.abs(literal)] = 1;
+            literals[pointer] = literal;
+            pointer++;
+        }
+
+        Arrays.sort(literals, Comparator.comparingInt(a -> formula.getDecisionLevelOfVariables()[Math.abs(a)] * -1));
+
+        int[] literalsPrimitive = new int[literals.length];
+
+        for (int i = 0 ; i < literals.length; i++) {
+            literalsPrimitive[i] = literals[i];
+        }
+
+        return Arrays.asList(formula.addDisjunctiveConstraint(literalsPrimitive));
+
+        /*IntegerStack resolvedLiterals = new IntegerStack();
+        trail.prepareIterationWithoutPop();
+        while (trail.hasNextWithoutPop()) {
+            final int stackLiteral = trail.peekNextWithoutPop();
+            int currentLiteral = Math.abs(stackLiteral) * variableAssignments[Math.abs(stackLiteral)];
+            int currentLiteralAbsoluteValue = Math.abs(currentLiteral);
+
+
+            if (currentLiteralAbsoluteValue == Math.abs(conflictLiteral)) {
+                variablesInvolvedInConflict[currentLiteralAbsoluteValue] = 1;
+                continue;
+            }
+
+            boolean conflictConstraintContainsLiteral = conflictConstraint.containsLiteral(-currentLiteral);
+            boolean reasonConstraintContainsLiteral = containsLiteral(-currentLiteral);
+
+            if (conflictConstraintContainsLiteral || reasonConstraintContainsLiteral) {
+                variablesInvolvedInConflict[currentLiteralAbsoluteValue] = 1;
+                resolvedLiterals.push(-currentLiteral);
+            }
+
+        }
+
+        int[] literals2 = resolvedLiterals.getInternalArray();
+
+        Arrays.sort(literals2);
+        Arrays.sort(literals);
+
+        if (!Arrays.equals(literals, literals2)) {
+            System.out.println();
+        }
+
+        return Arrays.asList(formula.addDisjunctiveConstraint(literals2));*/
+
+        /*int conflictLiteral = formula.getConflictLiteral();
+        int[] variableAssignments = formula.getVariables();
+        IntegerStack resolvedLiterals = new IntegerStack();
+        trail.prepareIterationWithoutPop();
+        while (trail.hasNextWithoutPop()) {
+            final int stackLiteral = trail.peekNextWithoutPop();
+            int currentLiteral = Math.abs(stackLiteral) * variableAssignments[Math.abs(stackLiteral)];
+            int currentLiteralAbsoluteValue = Math.abs(currentLiteral);
+
+
+            if (currentLiteralAbsoluteValue == Math.abs(conflictLiteral)) {
+                variablesInvolvedInConflict[currentLiteralAbsoluteValue] = 1;
+                continue;
+            }
+
+            boolean conflictConstraintContainsLiteral = conflictConstraint.containsLiteral(-currentLiteral);
+            boolean reasonConstraintContainsLiteral = containsLiteral(-currentLiteral);
+
+            if (conflictConstraintContainsLiteral || reasonConstraintContainsLiteral) {
+                variablesInvolvedInConflict[currentLiteralAbsoluteValue] = 1;
+                resolvedLiterals.push(-currentLiteral);
+            }
+
+        }
+
+        int[] literals = resolvedLiterals.getInternalArray();
+
+        return Arrays.asList(formula.addDisjunctiveConstraint(literals));*/
+        /*final int[][] conflictTerms = conflictConstraint.terms;
         final int[][] reasonTerms = terms;
         final int conflictLiteral = formula.getConflictLiteral();
         final ArrayList<int[]> resolutionTerms = new ArrayList<>();
 
 
-        this.getResolutionTermsFromConflictingDNFConstraint(conflictTerms, conflictLiteral, resolutionTerms);
+        this.getResolutionTermsFromConflictingDNFConstraint(conflictTerms, conflictLiteral, resolutionTerms, variablesInvolvedInConflict);
 
         this.getResolutionTermsFromReasonDNFConstraint(variablesInvolvedInConflict, reasonTerms, conflictLiteral, resolutionTerms);
 
-        return Arrays.asList(formula.addDNFConstraints(resolutionTerms.toArray(int[][]::new)));
+        return Arrays.asList(formula.addDNFConstraints(resolutionTerms.toArray(int[][]::new)));*/
     }
 
-    private void getResolutionTermsFromConflictingDNFConstraint(final int[][] conflictTerms, final int conflictLiteral, final ArrayList<int[]> resolutionTerms) {
+    private void getResolutionTermsFromConflictingDNFConstraint(final int[][] conflictTerms,
+                                                                final int conflictLiteral,
+                                                                final ArrayList<int[]> resolutionTerms,
+                                                                int[] variablesInvolvedInConflict) {
         for (int i = 0; i < conflictTerms.length; i++) {
             boolean containsConflictLiteral = false;
             for (int j = 0; j < conflictTerms[i].length; j++) {
@@ -444,12 +1048,41 @@ public class DNFConstraint extends Constraint {
         return this.terms.length == 0 || this.terms[0].length == 0;
     }
 
+    public void getConflictResolutionLiterals(int conflictLiteral, int[] variableAssignments,
+                                              Set<Integer> resolutionLiterals) {
+
+        for (Integer literal : literalSet) {
+            if (variableAssignments[Math.abs(literal)] * literal < 0 && Math.abs(literal) != Math.abs(conflictLiteral)) {
+                resolutionLiterals.add(literal);
+            }
+        }
+    }
+
     @Override
-    public int getNeededDecisionLevel(final int[] decisionLevelOfVariables, int[] variables) {
+    public int getNeededDecisionLevel(final int[] decisionLevelOfVariables, int[] variables, Formula formula) {
+
+        /*int decisionLevel = Integer.MAX_VALUE;
+        int[] term = terms[firstWatchedNonFalseTerm];
+
+        for (int i = 0; i < term.length; i++) {
+            decisionLevel = Math.min(decisionLevel, decisionLevelOfVariables[Math.abs(term[i])]);
+        }
+
+        term = terms[secondWatchedNonFalseTerm];
+
+        for (int i = 0; i < term.length; i++) {
+            decisionLevel = Math.min(decisionLevel, decisionLevelOfVariables[Math.abs(term[i])]);
+        }
+
+
+        return decisionLevel;*/
 
         if (terms.length == 1) {
             return calculateNeededDecisionLevelForDNFConstraintWithSingleTerm(decisionLevelOfVariables);
         }
+
+        firstWatchedTermSet = null;
+        secondWatchedTermSet = null;
 
         Integer[] literals = literalSet.toArray(new Integer[0]);
 
@@ -466,49 +1099,105 @@ public class DNFConstraint extends Constraint {
             falseTermCache[i] = -1;
         }
 
-        List<Integer> unassignedTermsIndeces = new LinkedList<>();
+        Set<Integer> unassignedTermsIndeces = new HashSet<>();
         boolean containsFirstWatchedTerm = false;
         boolean containsSecondWatchedTerm = false;
         int smallestTermIndex = Integer.MAX_VALUE;
         int numberOfUnassignedTerms = 0;
+        int currentDecisionLevel = formula.getCurrentDecisionLevel();
+        boolean foundFirstWatchedTermSet = false;
+        boolean foundSecondWatchedTermSet = false;
+        int neededDecisionLevel = -1;
         for (int i = 0; i < literals.length; i++) {
-            variablesCopy[Math.abs(literals[i])] = 0;
-            Integer[] termIndexList = positiveLiteralsIntersectionList[literalsMapping.get(literals[i])];
-            for (Integer termIndex : termIndexList) {
-                if (trueTermCache[termIndex] != 1 && !checkIfTermIsFalseAfterUnassignment(variablesCopy,
-                        terms[termIndex])) {
 
-                    if (!containsFirstWatchedTerm) {
-                        firstWatchedTerm = termIndex;
-                        containsFirstWatchedTerm = true;
-                    } else if (!containsSecondWatchedTerm) {
-                        secondWatchedTerm = termIndex;
-                        containsSecondWatchedTerm = true;
+            if (decisionLevelOfVariables[Math.abs(literals[i])] == currentDecisionLevel) {
+                variablesCopy[Math.abs(literals[i])] = 0;
+
+                List<Integer> termIndexList = positiveLiteralsIntersectionList[literalsMapping.get(literals[i])];
+                for (Integer termIndex : termIndexList) {
+                    if (trueTermCache[termIndex] != 1 && !checkIfTermIsFalseAfterUnassignment(variablesCopy,
+                            terms[termIndex])) {
+
+                        trueTermCache[termIndex] = 1;
+                        falseTermCache[termIndex] = 1;
                     }
 
-
-                    unassignedTermsIndeces.add(termIndex);
-                    smallestTermIndex = Math.min(termIndex, smallestTermIndex);
-                    numberOfUnassignedTerms++;
-                    trueTermCache[termIndex] = 1;
-                    falseTermCache[termIndex] = 0;
-                    falseCounter--;
                 }
+
+            } else {
+                if (!foundFirstWatchedTermSet) {
+                    IntegerStack literalsToPropagate = new IntegerStack();
+
+                    if (firstWatchedTermSet == null) {
+                        findWatchedTermSets(variablesCopy, literalsToPropagate);
+                    }
+
+                    if (firstWatchedTermSet != null && secondWatchedTermSet != null) {
+                        break;
+                    }
+
+                    for (int a = 0; a < terms.length; a++) {
+                        if (!firstWatchedTermSet.contains(a) && !checkIfTermIsFalse(variablesCopy, a, falseTermCache)) {
+                            secondWatchedTermSet = getIntersectionIndeces(a, variables);
+                            secondWatchedNonFalseTerm = a;
+                            break;
+                        }
+                    }
+
+                    if (secondWatchedTermSet != null) {
+                        break;
+                    }
+
+                    propagateSharedLiteralsInTermSet(variablesCopy, literalsToPropagate, firstWatchedTermSet);
+
+
+                    if (literalsToPropagate.size() == 0) {
+                        neededDecisionLevel = currentDecisionLevel;
+                        foundFirstWatchedTermSet = true;
+                    }
+
+                } else {
+                    for (int a = 0; a < terms.length; a++) {
+                        if (!firstWatchedTermSet.contains(a) && !checkIfTermIsFalse(variablesCopy, a, falseTermCache)) {
+                            secondWatchedTermSet = getIntersectionIndeces(a, variables);
+                            secondWatchedNonFalseTerm = a;
+                            foundSecondWatchedTermSet = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (foundSecondWatchedTermSet) {
+                    break;
+                }
+
+                variablesCopy[Math.abs(literals[i])] = 0;
+                currentDecisionLevel = decisionLevelOfVariables[Math.abs(literals[i])];
+
+                List<Integer> termIndexList = positiveLiteralsIntersectionList[literalsMapping.get(literals[i])];
+                for (Integer termIndex : termIndexList) {
+                    if (trueTermCache[termIndex] != 1 && !checkIfTermIsFalseAfterUnassignment(variablesCopy,
+                            terms[termIndex])) {
+
+                        trueTermCache[termIndex] = 1;
+                        falseTermCache[termIndex] = 1;
+                    }
+
+                }
+
 
             }
 
-            if (unassignedTermsIndeces.size() > 1) {
-                if (checkIfUnassignedTermsIntersect(smallestTermIndex, terms[smallestTermIndex], trueTermCache,
-                        numberOfUnassignedTerms)) {
-
-                    assert (unassignedTermsIndeces.contains(firstWatchedTerm) && unassignedTermsIndeces.contains(secondWatchedTerm));
-
-                    return decisionLevelOfVariables[Math.abs(literals[i])];
-                }
-            }
         }
 
-        return 0;
+        if (secondWatchedTermSet == null) {
+            findWatchedTermSets(variablesCopy, new IntegerStack());
+        }
+
+        assignWatchedLiterals(formula.getPositivelyWatchedDNFConstraints(), formula.getNegativelyWatchedDNFConstraints());
+
+        return neededDecisionLevel != -1 ? neededDecisionLevel : currentDecisionLevel;
+
 
     }
 
@@ -522,16 +1211,20 @@ public class DNFConstraint extends Constraint {
         return decisionLevel;
     }
 
-    private boolean checkIfUnassignedTermsIntersect(int smallestUnassignedTermIndex, int[] smallestUnassignedTerm,
+   private boolean checkIfUnassignedTermsIntersect(int smallestUnassignedTermIndex, int[] smallestUnassignedTerm,
                                                     int[] trueTermCache, int numberOfUnassignedTerms) {
 
         int trueCounterIntersection = 0;
         int[] intersectionAlreadyCounted = new int[terms.length];
         for (int i = 0; i < smallestUnassignedTerm.length; i++) {
             final int currentLiteral = smallestUnassignedTerm[i];
-            Integer[] termIndexList = positiveLiteralsIntersectionList[literalsMapping.get(currentLiteral)];
-            for (int a = 0; a < termIndexList.length; a++) {
-                int termIndex = termIndexList[a];
+
+            if (unitLiteralsPropagatedDuringInitialization.contains(currentLiteral)) {
+                continue;
+            }
+
+            List<Integer> termIndexList = positiveLiteralsIntersectionList[literalsMapping.get(currentLiteral)];
+            for (Integer termIndex : termIndexList) {
                 if (intersectionAlreadyCounted[termIndex] != 1 && termIndex != smallestUnassignedTermIndex && trueTermCache[termIndex] == 1) {
                     trueCounterIntersection++;
                     intersectionAlreadyCounted[termIndex] = 1;
@@ -587,11 +1280,7 @@ public class DNFConstraint extends Constraint {
     public void addVariableOccurenceCount(final double[] variableOccurences) {
         for (int i = 0; i < this.terms.length; i++) {
             for (int j = 0; j < this.terms[i].length; j++) {
-                if (this.terms[i].length > 1) {
-                    variableOccurences[Math.abs(this.terms[i][j])] += 1;
-                } else {
-                    variableOccurences[Math.abs(this.terms[i][j])] += 1;
-                }
+                variableOccurences[Math.abs(this.terms[i][j])] += 1;
             }
         }
     }
@@ -599,12 +1288,16 @@ public class DNFConstraint extends Constraint {
     @Override
     public boolean isStillWatched(final int literal, int[] variables) {
 
-        return true;
+        if (watchedLiterals[literalsMapping.get(-literal)] == 1) {
+            return true;
+        }
+
+        return false;
     }
 
     public void backtrack(final int variable, final int[] variableAssingments) {
 
-        Integer[] falseTerms = positiveLiteralsIntersectionList[literalsMapping.get(-variable)];
+        /*Integer[] falseTerms = positiveLiteralsIntersectionList[literalsMapping.get(-variable)];
         this.visitedLiterals.remove(-variable);
 
         for (int i = 0; i < falseTerms.length; i++) {
@@ -618,7 +1311,7 @@ public class DNFConstraint extends Constraint {
                 this.falseTermCache[termIndex] = 0;
                 falseCounter--;
             }
-        }
+        }*/
     }
 
     private boolean checkIfTermIsFalseExludingLiteral(final int[] term, final int[] variables, final int excludedLiteral) {
@@ -659,6 +1352,10 @@ public class DNFConstraint extends Constraint {
             final int currentLiteralAbsoluteValue = Math.abs(currentLiteral);
 
             if (variableAssignments[currentLiteralAbsoluteValue] * currentLiteral < 0 || unitLiteralState[currentLiteralAbsoluteValue] * currentLiteral < 0) {
+                if (reasonClauses[currentLiteralAbsoluteValue] == null) {
+                    System.out.println();
+                }
+
                 this.hasConflict = true;
                 this.conflictLiteral = currentLiteral;
                 return;
@@ -674,7 +1371,7 @@ public class DNFConstraint extends Constraint {
 
     }
 
-    private void findLiteralsInIntersectionOfAllNonFalseTerms(final IntegerStack literalsToPropagate,
+    /*private void findLiteralsInIntersectionOfAllNonFalseTerms(final IntegerStack literalsToPropagate,
                                                               final int firstNonFalseTermIndex,
                                                               final int nonFalseCounter,
                                                               final int[] shortestNonFalseTerm, int[] variables) {
@@ -710,7 +1407,7 @@ public class DNFConstraint extends Constraint {
 
             literalsToPropagate.push(currentLiteral);
         }
-    }
+    }*/
 
     public boolean contains(Integer[] array, int number) {
         for (int i = 0; i < array.length; i++) {
@@ -728,6 +1425,10 @@ public class DNFConstraint extends Constraint {
             final int currentLiteralAbsoluteValue = Math.abs(currentLiteral);
 
             if (variableAssignments[currentLiteralAbsoluteValue] * currentLiteral < 0 || unitLiteralState[currentLiteralAbsoluteValue] * currentLiteral < 0) {
+                if (reasonClauses[currentLiteralAbsoluteValue] == null) {
+                    System.out.println();
+                }
+
                 this.hasConflict = true;
                 this.conflictLiteral = currentLiteral;
                 return true;

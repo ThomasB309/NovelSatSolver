@@ -96,6 +96,12 @@ public class MaxHeap {
             }
 
             int rightChildPosition = rightChildNode(parentPosition);
+
+            if (rightChildPosition >= heapArray.length) {
+                return max;
+            }
+
+
             int rightChildVariable = heapArray[rightChildPosition];
 
             if ((nextPosition = compareParentWithChild(parentPosition, parentVariable,

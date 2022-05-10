@@ -2,8 +2,10 @@ package cas.thomas.SolverAlgorithms;
 
 import cas.thomas.ConflictHandling.CDCLConflictHandler;
 import cas.thomas.ConflictHandling.ConflictHandlingStrategy;
+import cas.thomas.ConflictHandling.DPLLConflictHandler;
 import cas.thomas.Exceptions.UnitLiteralConflictException;
 import cas.thomas.Formulas.Formula;
+import cas.thomas.RestartHandling.NoRestartsSchedulingStrategy;
 import cas.thomas.RestartHandling.ReluctantDoublingRestartStrategy;
 import cas.thomas.RestartHandling.RestartSchedulingStrategy;
 import cas.thomas.SolutionChecker.SolutionCheckerAMOConstraint;
@@ -27,10 +29,13 @@ public class IncrementalCdclSolver extends mDPLL implements IncrementalSatSolver
     private int maxVariable;
     private Formula formula;
     private SolutionCheckerFormula solutionCheckerFormula;
-    private long timeLimit = 0;
 
-    public IncrementalCdclSolver(VariableSelectionStrategy variableSelectionStrategy, ConflictHandlingStrategy conflictHandlingStrategy, RestartSchedulingStrategy restartSchedulingStrategy, boolean phaseSaving, boolean firstBranchingDecision) {
-        super(variableSelectionStrategy, conflictHandlingStrategy, restartSchedulingStrategy, phaseSaving, firstBranchingDecision);
+    public IncrementalCdclSolver(VariableSelectionStrategy variableSelectionStrategy,
+                                 ConflictHandlingStrategy conflictHandlingStrategy,
+                                 RestartSchedulingStrategy restartSchedulingStrategy, boolean phaseSaving,
+                                 boolean firstBranchingDecision) {
+        super(variableSelectionStrategy, conflictHandlingStrategy, restartSchedulingStrategy, phaseSaving,
+                firstBranchingDecision, 0);
         clauses = new ArrayList<>();
         amoConstraints = new ArrayList<>();
         dnfConstraints = new ArrayList<>();
@@ -38,7 +43,7 @@ public class IncrementalCdclSolver extends mDPLL implements IncrementalSatSolver
     }
 
     public IncrementalCdclSolver() {
-        super(new VSIDS(), new CDCLConflictHandler(), new ReluctantDoublingRestartStrategy(512), true, false);
+        super(new VSIDS(), new DPLLConflictHandler(), new NoRestartsSchedulingStrategy(512), true, true,0);
         clauses = new ArrayList<>();
         amoConstraints = new ArrayList<>();
         dnfConstraints = new ArrayList<>();
@@ -74,7 +79,7 @@ public class IncrementalCdclSolver extends mDPLL implements IncrementalSatSolver
 
     @Override
     public void setTimeLimit(long milliseconds) {
-        this.timeLimit = milliseconds;
+        this.timeout = milliseconds;
     }
 
     @Override
@@ -104,11 +109,11 @@ public class IncrementalCdclSolver extends mDPLL implements IncrementalSatSolver
 
     private void resetStrategies() {
         variableSelectionStrategy = new VSIDS();
-        restartSchedulingStrategy = new ReluctantDoublingRestartStrategy(512);
-        conflictHandlingStrategy = new CDCLConflictHandler();
+        restartSchedulingStrategy = new NoRestartsSchedulingStrategy(512);
+        conflictHandlingStrategy = new DPLLConflictHandler();
     }
 
-    public boolean isCorrect(List<Integer> solution, int[] assumptions, int numberOfVariables) {
+    public boolean isCorrect(int[]solution, int[] assumptions, int numberOfVariables) {
         List<SolutionCheckerConstraint> constraints = new ArrayList<>();
         for (int[] clause : clauses) {
             constraints.add(new SolutionCheckerDisjunctiveConstraint(clause));

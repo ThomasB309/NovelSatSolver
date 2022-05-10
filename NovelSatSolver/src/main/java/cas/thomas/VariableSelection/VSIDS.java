@@ -50,6 +50,8 @@ public class VSIDS implements VariableSelectionStrategy {
     }
 
     public void heapify(int variable) {
-        maxHeap.heapifyVariable(variable);
+        if (maxHeap != null) {
+            maxHeap.heapifyVariable(variable);
+        }
     }
 }

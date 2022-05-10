@@ -14,10 +14,14 @@ import java.util.Set;
 
 public class AMOConstraint extends Constraint {
 
+    private int[] binarySearchLiterals;
+
     public AMOConstraint(int[] literals, List<Constraint>[] positivelyWatchedList,
                          List<Constraint>[] negativelyWatchedList) {
         super();
         this.literals = literals;
+        this.binarySearchLiterals = Arrays.copyOf(literals, literals.length);
+        Arrays.sort(binarySearchLiterals);
 
         for (int i = 0; i < literals.length; i++) {
             int currentLiteral = literals[i];
@@ -318,7 +322,7 @@ public class AMOConstraint extends Constraint {
 
     @Override
     public List<Constraint> resolveConflict(DNFConstraint conflictConstraint, IntegerStack trail, int[] stateOfResolvedVariables, Formula formula, int[] variablesInvolvedInConflict) {
-        int[] reasonLiterals = this.literals;
+        /*int[] reasonLiterals = this.literals;
         int[][] conflictTerms = conflictConstraint.getTerms();
         int conflictLiteral = formula.getConflictLiteral();
 
@@ -327,7 +331,40 @@ public class AMOConstraint extends Constraint {
 
         getResolutionTermsFromConflictingDNFConstraint(conflictTerms, conflictLiteral, resolutionTerms);
 
-        return Arrays.asList(formula.addDNFConstraints(resolutionTerms.toArray(int[][]::new)));
+        return Arrays.asList(formula.addDNFConstraints(resolutionTerms.toArray(int[][]::new)));*/
+
+        int conflictLiteral = formula.getConflictLiteral();
+        int[] conflictLiterals = conflictConstraint.getLiterals();
+        int[] variableAssignments = formula.getVariables();
+
+        Set<Integer> resolutionLiterals = new HashSet<>();
+
+        conflictConstraint.getConflictResolutionLiterals(-conflictLiteral, variableAssignments, resolutionLiterals);
+
+        for (int i = 0; i < literals.length; i++) {
+            if (literals[i] != conflictLiteral) {
+                resolutionLiterals.add(-literals[i]);
+            }
+        }
+
+        Integer[] literals = new Integer[resolutionLiterals.size()];
+
+        int pointer = 0;
+        for (Integer literal : resolutionLiterals) {
+            variablesInvolvedInConflict[Math.abs(literal)] = 1;
+            literals[pointer] = literal;
+            pointer++;
+        }
+
+        Arrays.sort(literals, Comparator.comparingInt(a -> formula.getDecisionLevelOfVariables()[Math.abs(a)] * -1));
+
+        int[] literalsPrimitive = new int[literals.length];
+
+        for (int i = 0 ; i < literals.length; i++) {
+            literalsPrimitive[i] = literals[i];
+        }
+
+        return Arrays.asList(formula.addDisjunctiveConstraint(literalsPrimitive));
     }
 
     private void getResolutionTermsFromReasonAMOConstraint(int[] variablesInvolvedInConflict, int[] reasonLiterals, int conflictLiteral, ArrayList<int[]> resolutionTerms) {
@@ -381,7 +418,7 @@ public class AMOConstraint extends Constraint {
     }
 
     @Override
-    public int getNeededDecisionLevel(int[] decisionLevelOfVariables, int[] variables) {
+    public int getNeededDecisionLevel(int[] decisionLevelOfVariables, int[] variables, Formula formula) {
         int decisionLevel = Integer.MAX_VALUE;
 
         for (int i = 0; i < literals.length; i++) {
@@ -394,7 +431,7 @@ public class AMOConstraint extends Constraint {
     @Override
     public void addVariableOccurenceCount(double[] variableOccurences) {
         for (int i = 0; i < literals.length; i++) {
-            variableOccurences[Math.abs(literals[i])] += 1;
+            variableOccurences[Math.abs(literals[i])] += Math.pow(2, literals.length);
         }
     }
 
@@ -417,6 +454,11 @@ public class AMOConstraint extends Constraint {
     @Override
     public Set<Integer> getUnitLiteralsNeededBeforePropagation() {
         return new HashSet<>();
+    }
+
+    @Override
+    public boolean containsLiteral(int literal) {
+        return Arrays.binarySearch(binarySearchLiterals, literal) >= 0;
     }
 
 

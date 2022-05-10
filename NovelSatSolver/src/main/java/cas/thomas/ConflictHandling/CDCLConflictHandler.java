@@ -43,7 +43,8 @@ public class CDCLConflictHandler implements ConflictHandlingStrategy {
         backtrackTrailToHighestDecisionLevelOfConflictClause(formula, trail,
                 learnedConstraints, variableSelectionStrategy);
 
-        if (formula.adjustVariableScores(variablesInvolvedInConflict, vsidsConflictCounter, variableSelectionStrategy)) {
+        if (formula.adjustVariableScores(variablesInvolvedInConflict, vsidsConflictCounter,
+                variableSelectionStrategy)) {
             vsidsConflictCounter = 0;
         }
 
@@ -82,6 +83,7 @@ public class CDCLConflictHandler implements ConflictHandlingStrategy {
 
         for (Constraint constraint : learnedConstraints) {
 
+            //System.out.println(constraint.toString());
             if (constraint.isEmpty()) {
                 formula.resetConflictState();
                 return true;
@@ -94,23 +96,27 @@ public class CDCLConflictHandler implements ConflictHandlingStrategy {
     private void backtrackTrailToHighestDecisionLevelOfConflictClause(Formula formula, IntegerStack trail,
                                                                       List<Constraint> learnedConstraints,
                                                                       VariableSelectionStrategy variableSelectionStrategy) {
-
-        int neededDecisionlevel = findNeededDecisionLevelAndSetLBDScore(learnedConstraints, formula.getVariables());
-
-        int currentDecisionLevel = formula.getCurrentDecisionLevel();
-
-
-        currentDecisionLevel = backtrackTrail(formula, trail, variableSelectionStrategy, neededDecisionlevel, currentDecisionLevel);
-
-        formula.setCurrentDecisionLevel(currentDecisionLevel);
-
+        boolean addedUnitLiteral = false;
         for (Constraint learnedConstraint : learnedConstraints) {
             Set<Integer> unitLiterals = learnedConstraint.getUnitLiteralsNeededBeforePropagation();
             for (Integer unitLiteral : unitLiterals) {
                 formula.addUnitLiteralBeforePropagation(unitLiteral, learnedConstraint);
+                addedUnitLiteral = true;
             }
             learnedClauses.add(learnedConstraint);
         }
+
+        int neededDecisionlevel;
+
+        neededDecisionlevel = findNeededDecisionLevelAndSetLBDScore(learnedConstraints, formula.getVariables(), formula);
+
+        int currentDecisionLevel = formula.getCurrentDecisionLevel();
+
+
+        currentDecisionLevel = backtrackTrail(formula, trail, variableSelectionStrategy, neededDecisionlevel,
+                currentDecisionLevel);
+
+        formula.setCurrentDecisionLevel(currentDecisionLevel);
     }
 
     private void clauseDatabaseReduction(int[] variableDecisionLevel) {
@@ -123,12 +129,14 @@ public class CDCLConflictHandler implements ConflictHandlingStrategy {
         }
     }
 
-    private int findNeededDecisionLevelAndSetLBDScore(List<Constraint> learnedConstraints, int[] variables) {
+    private int findNeededDecisionLevelAndSetLBDScore(List<Constraint> learnedConstraints, int[] variables,
+                                                      Formula formula) {
         int neededDecisionLevel = Integer.MAX_VALUE;
 
         for (Constraint learnedConstraint : learnedConstraints) {
             neededDecisionLevel = Math.min(neededDecisionLevel,
-                    learnedConstraint.getNeededDecisionLevel(decisionLevelOfVariables, variables));
+                    learnedConstraint.getNeededDecisionLevel(decisionLevelOfVariables, variables, formula
+                    ));
             learnedConstraint.setLBDScore(decisionLevelOfVariables);
 
         }

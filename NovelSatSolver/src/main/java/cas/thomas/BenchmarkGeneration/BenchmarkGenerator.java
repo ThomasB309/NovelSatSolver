@@ -55,19 +55,17 @@ public class BenchmarkGenerator {
 
     public static SolutionCheckerFormula random(int vars, int cls, int amo, int dnf, long seed) {
         Random rnd = new Random(seed);
-        Integer[] plantedSolution = new Integer[vars + 1];
+        int[] plantedSolution = new int[vars + 1];
         plantedSolution[0] = 0;
         for (int i = 1; i <= vars; i++) {
-            plantedSolution[i] = rnd.nextBoolean() ? i : -i;
+            plantedSolution[i] = rnd.nextBoolean() ? 1 : -1;
         }
-
-        List<Integer> solution = Arrays.asList(plantedSolution);
 
         List<SolutionCheckerConstraint> constraints = new ArrayList<>();
 
-        generateClauseConstraints(vars, cls, constraints, rnd, solution);
-        generateAMOConstraints(vars, amo, constraints, rnd, solution);
-        generateDNFConstraints(vars, dnf, constraints, rnd, solution);
+        generateClauseConstraints(vars, cls, constraints, rnd, plantedSolution);
+        generateAMOConstraints(vars, amo, constraints, rnd, plantedSolution);
+        generateDNFConstraints(vars, dnf, constraints, rnd, plantedSolution);
 
         System.out.println("Finished another one!");
 
@@ -75,7 +73,7 @@ public class BenchmarkGenerator {
     }
 
     public static void generateClauseConstraints(int vars, int cls, List<SolutionCheckerConstraint> constraints, Random rnd,
-                                                 List<Integer> solution) {
+                                                 int[] solution) {
         int constraintCounter = 0;
         while (constraintCounter < cls) {
             int[] clause = generateRandomLiterals(vars, rnd, 3);
@@ -91,7 +89,7 @@ public class BenchmarkGenerator {
 
     public static void generateAMOConstraints(int vars, int amo, List<SolutionCheckerConstraint> constraints,
                                               Random rnd,
-                                              List<Integer> solution) {
+                                              int[] solution) {
 
         int constraintCounter = 0;
         while (constraintCounter < amo) {
@@ -107,7 +105,7 @@ public class BenchmarkGenerator {
     }
 
     public static void generateDNFConstraints(int vars, int dnf, List<SolutionCheckerConstraint> constraints,
-                                              Random rnd, List<Integer> solution) {
+                                              Random rnd, int[] solution) {
 
         int constraintCounter = 0;
         while (constraintCounter < dnf) {

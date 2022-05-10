@@ -21,16 +21,7 @@ public class SolutionCheckerDNFConstraint extends SolutionCheckerConstraint {
     }
 
     @Override
-    public boolean isTrue(List<Integer> literals) {
-        int[] stateOfLiterals = new int[literals.stream().map(a -> Math.abs(a)).max(Integer::compareTo).get() + 1];
-
-        for (ListIterator<Integer> listIterator = literals.listIterator(); listIterator.hasNext(); ) {
-            int currentLiteral = listIterator.next();
-            int currentLiteralAbsoluteValue = Math.abs(currentLiteral);
-
-            stateOfLiterals[currentLiteralAbsoluteValue] = currentLiteral;
-
-        }
+    public boolean isTrue(int[] literals) {
 
         boolean formualSatisfied = false;
 
@@ -38,18 +29,15 @@ public class SolutionCheckerDNFConstraint extends SolutionCheckerConstraint {
             int trueCounter = 0;
             for (int j = 0; j < terms[i].length; j++) {
                 int currentLiteral = terms[i][j];
-                if (Math.abs(currentLiteral) >= stateOfLiterals.length) {
-                    break;
-                }
+                int currentLiteralAbsoluteValue = Math.abs(currentLiteral);
 
-                if (isEqualLiteral(currentLiteral, stateOfLiterals[Math.abs(currentLiteral)])) {
-                    if (!compareLiterals(currentLiteral, stateOfLiterals[Math.abs(currentLiteral)])) {
-                        break;
-                    } else {
-                        trueCounter++;
-                    }
+                if (currentLiteral * literals[currentLiteralAbsoluteValue] <= 0) {
+                    break;
+                } else {
+                    trueCounter++;
                 }
             }
+
             if (trueCounter == terms[i].length) {
                 formualSatisfied = true;
                 break;

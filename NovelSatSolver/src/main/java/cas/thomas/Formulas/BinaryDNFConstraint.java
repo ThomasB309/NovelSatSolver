@@ -1,9 +1,14 @@
 package cas.thomas.Formulas;
 
+import cas.thomas.SolutionChecker.SolutionCheckerConstraint;
+import cas.thomas.SolutionChecker.SolutionCheckerDNFConstraint;
 import cas.thomas.utils.IntegerArrayQueue;
 
+import java.text.Normalizer;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class BinaryDNFConstraint extends DNFConstraint {
 
@@ -13,11 +18,36 @@ public class BinaryDNFConstraint extends DNFConstraint {
         int[] sharedLiterals = new int[variableAssignment.length];
         unitLiteralsPropagatedDuringInitialization = new HashSet<>();
         this.terms = terms;
+        literalSet = new HashSet<>();
+
+        Set<Integer> variableSet = new HashSet<>();
+
+        for (int i = 0; i < terms.length; i++) {
+            for (int j = 0; j < terms[i].length; j++) {
+                int currentLiteral = terms[i][j];
+                int currentLiteralAbsoluteValue = Math.abs(currentLiteral);
+                literalSet.add(terms[i][j]);
+
+                if (!variableSet.contains(currentLiteralAbsoluteValue)) {
+                    variableCounter++;
+                    variableSet.add(currentLiteralAbsoluteValue);
+                }
+            }
+        }
 
         findLiteralsSharedByBothTerms(terms, sharedLiterals);
 
         assignWatchedLiterals(positivelyWatchedList, negativelyWatchedList);
 
+
+    }
+
+    public BinaryDNFConstraint(int[][] terms, List<Constraint>[] positivelyWatchedList,
+                               List<Constraint>[] negativelyWatchedList, int[] variableAssignment,
+                               int[][] solutionCheckerCopy) {
+
+        this(terms, positivelyWatchedList, negativelyWatchedList, variableAssignment);
+        this.solutionCheckerCopy = solutionCheckerCopy;
 
     }
 
@@ -98,7 +128,7 @@ public class BinaryDNFConstraint extends DNFConstraint {
     }
 
     @Override
-    public int getNeededDecisionLevel(int[] decisionLevelOfVariables, int[] variables) {
+    public int getNeededDecisionLevel(int[] decisionLevelOfVariables, int[] variables, Formula formula) {
         int decisionLevel = Integer.MAX_VALUE;
 
         for (int i = 0; i < terms[0].length; i++) {
@@ -126,6 +156,11 @@ public class BinaryDNFConstraint extends DNFConstraint {
     private boolean isNeededForUnitPropagation(final int literal, final int[] variables, final int[] unitLiteralState) {
         final int literalAbsoluteValue = Math.abs(literal);
         return variables[literalAbsoluteValue] * literal == 0 && unitLiteralState[literalAbsoluteValue] == 0;
+    }
+
+    @Override
+    public boolean containsLiteral(int literal) {
+        return literalSet.contains(literal);
     }
 
 }

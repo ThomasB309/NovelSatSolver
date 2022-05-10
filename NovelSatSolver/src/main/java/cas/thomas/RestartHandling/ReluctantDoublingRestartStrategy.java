@@ -53,6 +53,8 @@ public class ReluctantDoublingRestartStrategy extends RestartSchedulingStrategy 
         }
 
         formula.setCurrentDecisionLevel(0);
+        formula.emptyUnitLiterals();
+        formula.resetConflictState();
         try {
             formula.setUnitLiteralsBeforePropagation();
         } catch (UnitLiteralConflictException e) {

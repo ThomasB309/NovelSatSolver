@@ -15,6 +15,7 @@ public abstract class Constraint {
     protected int conflictLiteral;
     private boolean obsolete;
     private int lbdScore;
+    protected int variableCounter;
 
     public Constraint() {
         this.hasConflict = false;
@@ -104,7 +105,7 @@ public abstract class Constraint {
 
     public abstract boolean isEmpty();
 
-    public abstract int getNeededDecisionLevel(int[] decisionLevelOfVariables, int[] variables);
+    public abstract int getNeededDecisionLevel(int[] decisionLevelOfVariables, int[] variables, Formula formula);
 
     public abstract void addVariableOccurenceCount(double[] variableOccurences);
 
@@ -117,4 +118,14 @@ public abstract class Constraint {
     public abstract String toString();
 
     public abstract Set<Integer> getUnitLiteralsNeededBeforePropagation();
+
+    public void removeAddedLiteral(int literal) {
+        return;
+    }
+
+    public abstract boolean containsLiteral(int literal);
+
+    public int getVariableCounter() {
+        return variableCounter;
+    }
 }

@@ -15,7 +15,7 @@ public class SolutionCheckerConjunctiveFormula extends SolutionCheckerFormula {
     }
 
     @Override
-    public boolean isTrue(List<Integer> variables) {
+    public boolean isTrue(int[] variables) {
         for (int i = 0; i < constraints.length; i++) {
             if (!constraints[i].isTrue(variables)) {
                 return false;

@@ -31,14 +31,20 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 public class Main {
 
     public static void main(String... args) {
 
-        long startTime = System.nanoTime();
+        long startTime = System.currentTimeMillis();
+        long timeWithoutParsing = 0;
 
         checkIfArgumentsHaveCorrectLength(args);
 
@@ -74,9 +80,6 @@ public class Main {
             formula = formulaPair.getFirstPairPart();
             solutionCheckerFormula = formulaPair.getSecondPairPart();
 
-            SolverAlgorithm dpllSolver = new mDPLL(getSelectionStrategy(properties),
-                    getConflictHandlingStrategy(properties), getRestartSchedulingStrategy(properties),
-                    getPhaseSavingStrategy(properties), getFirstBranchingDecision(properties));
 
 
             if (executionMethod.equals("-c") || executionMethod.equals("--convert")) {
@@ -84,7 +87,13 @@ public class Main {
                 executeFileConversion(inputFile, solutionCheckerFormula, args);
 
             } else if (executionMethod.equals("-s") || executionMethod.equals("--solve")) {
+                long timeout = Long.parseLong(args[2]);
+                SolverAlgorithm dpllSolver = new mDPLL(getSelectionStrategy(properties),
+                        getConflictHandlingStrategy(properties), getRestartSchedulingStrategy(properties),
+                        getPhaseSavingStrategy(properties), getFirstBranchingDecision(properties), timeout);
+                long start = System.currentTimeMillis();
                 executeSolvingProcess(counter, solutionCheckerFormula, formula, dpllSolver);
+                timeWithoutParsing += System.currentTimeMillis() - start;
             } else {
                 System.err.println("Incorrect execution method!");
                 System.exit(-1);
@@ -95,7 +104,8 @@ public class Main {
 
         long endTime = System.nanoTime();
 
-        System.out.println(TimeUnit.MILLISECONDS.convert(endTime - startTime, TimeUnit.NANOSECONDS));
+        System.out.println(System.currentTimeMillis() - startTime);
+        System.out.println(timeWithoutParsing);
 
 
     }
@@ -104,7 +114,7 @@ public class Main {
         if (args.length < 2) {
             System.out.println("Not enough input parameters!");
             System.exit(-1);
-        } else if (args.length > 3) {
+        } else if (args.length > 4) {
             System.out.println("Too many parameters!");
             System.exit(-1);
         }
@@ -253,10 +263,24 @@ public class Main {
         }
     }
 
-    private static void executeSolvingProcess(int counter, SolutionCheckerFormula solutionCheckerFormula, Formula formula, SolverAlgorithm dpllSolver) {
+    private static void executeSolvingProcess(int counter, SolutionCheckerFormula solutionCheckerFormula,
+                                              Formula formula, SolverAlgorithm dpllSolver) {
+        /*final ExecutorService executor = Executors.newSingleThreadExecutor();
+        String isSatisfiable = "UNKOWN";
+        final Future future = executor.submit(() -> {
+            return dpllSolver.solve(formula);
+        });
+
+        try {
+            isSatisfiable = (String) future.get(10, TimeUnit.SECONDS);
+        } catch (ExecutionException e) {
+        } catch (InterruptedException e) {
+        } catch (TimeoutException e) {
+            return;
+        }*/
         String isSatisfiable = dpllSolver.solve(formula);
         System.out.print(counter + ": ");
         System.out.println(isSatisfiable);
-        assert (solutionCheckerFormula.isTrue(formula.getVariablesForSolutionChecker()));
+        //assert (solutionCheckerFormula.isTrue(formula.getVariablesForSolutionChecker()));
     }
 }

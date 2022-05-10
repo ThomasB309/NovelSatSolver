@@ -14,7 +14,7 @@ public abstract class SolutionCheckerFormula {
         this.variables = variables;
     }
 
-    public abstract boolean isTrue(List<Integer> variables);
+    public abstract boolean isTrue(int[] variables);
 
     public abstract void toDimacsFile(Path filePath) throws IOException;
 

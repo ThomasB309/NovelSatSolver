@@ -36,6 +36,9 @@ public class Formula {
 
     private Set<Integer> unitLiteralsBeforePropagation;
     private Set<Integer> assumptions;
+    private long numberOfDNFPropagations;
+    private long numberOfUselessDNFPropagations;
+    private long numberOfClausePropagations;
 
     public Formula(int variableCount, Constraint[] reasonConstraints, double[] variableOccurences,
                    List<Constraint>[] positivelyWatchedDisjunctiveConstraints
@@ -65,6 +68,7 @@ public class Formula {
         this.conflictLiteral = 0;
         this.unitLiteralsBeforePropagation = new HashSet<>(unitLiteralsBeforePropagation);
         this.assumptions = new HashSet<>();
+        this.reasonConstraints = new Constraint[variables.length];
 
         setUnitLiteralsBeforePropagation();
 
@@ -236,11 +240,16 @@ public class Formula {
                 negativelyWatchedDNFConstraints, variables) :
                 new DNFConstraint(terms,
                         positivelyWatchedDNFConstraints,
-                        negativelyWatchedDNFConstraints);
+                        negativelyWatchedDNFConstraints, variables.length);
     }
 
     public void propagate(int literal) {
         propagate(Math.abs(literal), literal >= 0);
+    }
+
+    public void pseudoPropagate(int literal) {
+        assignedCounter++;
+        variables[Math.abs(literal)] = literal >= 0 ? 1 : -1;
     }
 
     public void propagate(int variable, boolean truthValue) {
@@ -269,6 +278,8 @@ public class Formula {
                 constraintIterator.remove();
                 continue;
             }
+
+            numberOfClausePropagations++;
 
             if (!currentConstraint.propagate(literal, variables, unitLiteralState, unitLiterals,
                     positivelyWatchedDisjunctiveConstraints
@@ -301,18 +312,28 @@ public class Formula {
         for (Iterator<Constraint> constraintIterator = watchedList.iterator(); constraintIterator.hasNext(); ) {
             Constraint currentConstraint = constraintIterator.next();
 
+            numberOfDNFPropagations++;
+
             if (currentConstraint.isObsolete()) {
                 constraintIterator.remove();
                 continue;
             }
 
             if (!currentConstraint.isStillWatched(literal, variables)) {
+                numberOfUselessDNFPropagations++;
+                currentConstraint.removeAddedLiteral(literal);
+                constraintIterator.remove();
                 continue;
             }
 
             currentConstraint.propagate(literal, variables, unitLiteralState, unitLiterals,
                     positivelyWatchedDNFConstraints
                     , negativelyWatchedDNFConstraints, reasonConstraints);
+
+            if (!currentConstraint.isStillWatched(literal,variables)) {
+                currentConstraint.removeAddedLiteral(literal);
+                constraintIterator.remove();
+            }
 
 
             int conflictLiteralClause = currentConstraint.resetConflictState();
@@ -336,8 +357,9 @@ public class Formula {
 
     public void propagateAfterSwappingVariableAssigment(int variable, boolean truthValue) {
         assignedCounter--;
+        assert(variables[variable] != 0);
         variables[variable] *= -1;
-        propagate(variable, truthValue);
+        propagate(variable, variables[variable] > 0);
     }
 
     public int getNumberOfVariables() {
@@ -347,7 +369,7 @@ public class Formula {
     public void unassignVariable(int literal) {
         int literalAbsoluteValue = Math.abs(literal);
 
-        if (variables[literalAbsoluteValue] < 0) {
+        /*if (variables[literalAbsoluteValue] < 0) {
             ListIterator<Constraint> watchedList = positivelyWatchedDNFConstraints[literalAbsoluteValue].listIterator();
             while (watchedList.hasNext()) {
                 watchedList.next().backtrack(literalAbsoluteValue * variables[literalAbsoluteValue], variables);
@@ -358,7 +380,7 @@ public class Formula {
             while (watchedList.hasNext()) {
                 watchedList.next().backtrack(literalAbsoluteValue * variables[literalAbsoluteValue], variables);
             }
-        }
+        }*/
 
         assignedCounter--;
         variables[literalAbsoluteValue] = 0;
@@ -386,16 +408,7 @@ public class Formula {
         reasonConstraintsBeforePropagation[Math.abs(literal)] = reasonConstraint;
     }
 
-    public List<Integer> getVariablesForSolutionChecker() {
-        List<Integer> variables = new ArrayList<>(this.variables.length);
-
-        for (int i = 0; i < this.variables.length; i++) {
-            if (this.variables[i] < 0) {
-                variables.add(-i);
-            } else if (this.variables[i] > 0) {
-                variables.add(i);
-            }
-        }
+    public int[] getVariablesForSolutionChecker() {
 
         return variables;
     }
@@ -452,9 +465,10 @@ public class Formula {
         }
 
         for (int i = 0; i < literals.length; i++) {
-            if (literals[i] == 1) {
+            if (literals[i] >= 1) {
+                int value = literals[i];
 
-                final double addedValue = Math.pow(g, conflictIndex);
+                final double addedValue = value * Math.pow(g, conflictIndex);
                 final double variableScore = variableOccurences[i];
 
                 if (Double.isInfinite(variableScore + addedValue)) {
@@ -472,7 +486,7 @@ public class Formula {
                     variableSelectionStrategy.recreatePriorityQueue(variables, variableOccurences);
                 }
 
-                variableOccurences[i] += Math.pow(g, conflictIndex);
+                variableOccurences[i] += value * Math.pow(g, conflictIndex);
                 variableSelectionStrategy.heapify(i);
             }
         }
@@ -530,5 +544,27 @@ public class Formula {
         return unitLiteralState;
     }
 
+    public List<Constraint>[] getPositivelyWatchedDNFConstraints() {
+        return positivelyWatchedDNFConstraints;
+    }
 
+    public List<Constraint>[] getNegativelyWatchedDNFConstraints() {
+        return negativelyWatchedDNFConstraints;
+    }
+
+    public void setReasonConstraint(int literal, Constraint constraint) {
+        reasonConstraints[Math.abs(literal)] = constraint;
+    }
+
+    public long getNumberOfDNFPropagations() {
+        return numberOfDNFPropagations;
+    }
+
+    public long getNumberOfUselessDNFPropagations() {
+        return numberOfUselessDNFPropagations;
+    }
+
+    public long getNumberOfClausePropagations() {
+        return numberOfClausePropagations;
+    }
 }

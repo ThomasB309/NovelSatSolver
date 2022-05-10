@@ -2,6 +2,9 @@ package cas.thomas.BenchmarkGeneration;
 
 import cas.thomas.Exceptions.UnitLiteralConflictException;
 
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.concurrent.TimeoutException;
 
 public class PhaseTransitionInputParser {
@@ -31,6 +34,9 @@ public class PhaseTransitionInputParser {
                 break;
             case "ADC":
                 parseAndExecuteAMOPhaseTransitionWithAConstantNumberOfDNFConstraintsAndClauses(args);
+                break;
+            case "G":
+                generateBenchmarks(args);
                 break;
             default:
                 System.err.println("Choose a valid phase transition!");
@@ -252,6 +258,47 @@ public class PhaseTransitionInputParser {
             System.err.println("One of the inputs is not a valid integer!");
             System.exit(-1);
         } catch (TimeoutException e) {
+        }
+
+    }
+
+    private static void generateBenchmarks(String[] args) {
+
+        if (args.length != 11) {
+            System.err.println("You need 10 inputs: 1. Number of variables, 2. Number of clauses, 3. The clause " +
+                    "length, 4. The number of AMO constraints, 5. The AMO length, 6. Number of DNF constraints, 7. " +
+                    "The number of terms, 8. The length of the terms, 9. The number of benchmarks," +
+                    " 10. The file path ");
+            System.exit(-1);
+        }
+
+        try {
+
+            int variables = Integer.valueOf(args[1]);
+            int clauseCount = Integer.valueOf(args[2]);
+            int clauseLength = Integer.valueOf(args[3]);
+            int amoCount = Integer.valueOf(args[4]);
+            int amoLength = Integer.valueOf(args[5]);
+            int dnfCount = Integer.valueOf(args[6]);
+            int termCount = Integer.valueOf(args[7]);
+            int termLength = Integer.valueOf(args[8]);
+            int numberOfBenchmarks = Integer.valueOf(args[9]);
+            Path filePath = Paths.get(args[10]);
+
+            if (variables <= 0 || termCount < 0 || termLength < 0 || clauseCount < 0 || amoLength < 0 || amoCount < 0 || dnfCount < 0|| clauseLength < 0 || numberOfBenchmarks <= 0 ||filePath == null) {
+                System.err.println("Integers equal or less than 0 are not allowed");
+                System.exit(-1);
+            }
+
+            PhaseTransition.createPhaseTransitionBenchmarks(variables, clauseCount, clauseLength, amoCount, amoLength,
+                    dnfCount, termCount, termLength, numberOfBenchmarks,filePath);
+
+        } catch (NumberFormatException e) {
+            System.err.println("One of the inputs is not a valid integer!");
+            System.exit(-1);
+        } catch (TimeoutException e) {
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
     }

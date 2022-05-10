@@ -248,7 +248,8 @@ public class ClauseParser {
 
         termCount++;
 
-        int[][] terms = parseTerms(variables, termCount);
+        int[][] solutionCheckerTerms =  new int[termCount][];
+        int[][] terms = parseTerms(variables, termCount,solutionCheckerTerms);
 
 
         assert (terms.length > 0);
@@ -257,10 +258,10 @@ public class ClauseParser {
         }
 
         return terms.length == 2 ? new BinaryDNFConstraint(terms, positivelyWatchedDNFConstraints,
-                negativelyWatchedDNFConstraints, new int[numberOfVariables]) :
+                negativelyWatchedDNFConstraints, new int[numberOfVariables], solutionCheckerTerms) :
                 new DNFConstraint(terms,
                         positivelyWatchedDNFConstraints,
-                        negativelyWatchedDNFConstraints);
+                        negativelyWatchedDNFConstraints, numberOfVariables, solutionCheckerTerms);
     }
 
     private void addUnitLiterals(IntegerArrayQueue listOfUnitLiterals, int[] unitLiteralState,
@@ -282,7 +283,7 @@ public class ClauseParser {
         }
     }
 
-    private int[][] parseTerms(int[] variables, int termCount) {
+    private int[][] parseTerms(int[] variables, int termCount, int[][] solutionCheckerTerms) {
         int[][] terms = new int[termCount][];
         int start = 0;
         int end = 0;
@@ -291,6 +292,7 @@ public class ClauseParser {
             int currentLiteral = variables[i];
             if (currentLiteral == 0) {
                 terms[counter] = Arrays.copyOfRange(variables, start, end);
+                solutionCheckerTerms[counter] = Arrays.copyOfRange(variables,start,end);
                 counter++;
                 start = ++end;
             } else {
@@ -300,6 +302,7 @@ public class ClauseParser {
         }
 
         terms[terms.length - 1] = Arrays.copyOfRange(variables, start, end);
+        solutionCheckerTerms[solutionCheckerTerms.length - 1] = Arrays.copyOfRange(variables, start,end);
         return terms;
     }
 

@@ -5,6 +5,7 @@ import cas.thomas.SolutionChecker.SolutionCheckerDisjunctiveConstraint;
 import cas.thomas.utils.IntegerArrayQueue;
 import cas.thomas.utils.IntegerStack;
 
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -14,6 +15,8 @@ import java.util.Set;
 
 public class DisjunctiveConstraint extends Constraint {
 
+    private Set<Integer> literalSet;
+
     public DisjunctiveConstraint(int[] literals, List<Constraint>[] positivelyWatchedList,
                                  List<Constraint>[] negativelyWatchedList) {
         super();
@@ -21,6 +24,12 @@ public class DisjunctiveConstraint extends Constraint {
         assert (literals.length >= 1);
 
         this.literals = literals;
+        this.literalSet = new HashSet<>();
+
+        for (int i = 0; i < literals.length; i++) {
+            literalSet.add(literals[i]);
+            variableCounter++;
+        }
 
         assignWatchedLiteralsToWatchList(positivelyWatchedList, negativelyWatchedList);
     }
@@ -53,6 +62,13 @@ public class DisjunctiveConstraint extends Constraint {
         super();
         assert (literals.length >= 1);
         this.literals = literals;
+
+        this.literalSet = new HashSet<>();
+
+        for (int i = 0; i < literals.length; i++) {
+            literalSet.add(literals[i]);
+            variableCounter++;
+        }
     }
 
     @Override
@@ -98,6 +114,7 @@ public class DisjunctiveConstraint extends Constraint {
         }
 
         trail.prepareIterationWithoutPop();
+        boolean firstReasonClause = true;
         while (trail.hasNextWithoutPop()) {
             int literal = trail.peekNextWithoutPop();
             Constraint reasonClause = formula.getReasonClauses(literal);
@@ -124,20 +141,28 @@ public class DisjunctiveConstraint extends Constraint {
             }
 
             if (!resolve) {
+                firstReasonClause = false;
                 continue;
             }
 
             if (reasonClause != null) {
                 if (reasonClause.getConstraintType() != ConstraintType.DISJUNCTIVE) {
-                    return reasonClause.resolveConflict(new DisjunctiveConstraint(literals), trail,
-                            stateOfResolvedVariables
-                            , formula, variablesInvolvedInConflict);
+                    if (firstReasonClause) {
+                        return reasonClause.resolveConflict(new DisjunctiveConstraint(literals), trail,
+                                stateOfResolvedVariables
+                                , formula, variablesInvolvedInConflict);
+                    } else {
+                        firstReasonClause = false;
+                        continue;
+                    }
 
                 }
             } else {
+                firstReasonClause = false;
                 continue;
             }
 
+            firstReasonClause = false;
 
             literals = resolveClauses(formula.getNumberOfVariables(), literals,
                     reasonClause, Math.abs(literal), variablesInvolvedInConflict);
@@ -249,7 +274,7 @@ public class DisjunctiveConstraint extends Constraint {
 
     @Override
     public List<Constraint> resolveConflict(DNFConstraint conflictConstraint, IntegerStack trail, int[] stateOfResolvedVariables, Formula formula, int[] variablesInvolvedInConflict) {
-        int[] reasonLiterals = this.literals;
+        /*int[] reasonLiterals = this.literals;
         int[][] conflictTerms = conflictConstraint.getTerms();
         int conflictLiteral = formula.getConflictLiteral();
 
@@ -260,7 +285,39 @@ public class DisjunctiveConstraint extends Constraint {
         getResolutionTermsFromConflictDNFConstraint(conflictTerms, conflictLiteral, resolutionTerms);
 
 
-        return Arrays.asList(formula.addDNFConstraints(resolutionTerms.toArray(int[][]::new)));
+        return Arrays.asList(formula.addDNFConstraints(resolutionTerms.toArray(int[][]::new)));*/
+
+        int conflictLiteral = formula.getConflictLiteral();
+        int[] variableAssignments = formula.getVariables();
+
+        Set<Integer> resolutionLiterals = new HashSet<>();
+
+        conflictConstraint.getConflictResolutionLiterals(conflictLiteral, variableAssignments, resolutionLiterals);
+
+        for (int i = 0; i < literals.length; i++) {
+            if (literals[i] != -conflictLiteral) {
+                resolutionLiterals.add(literals[i]);
+            }
+        }
+
+        Integer[] literals = new Integer[resolutionLiterals.size()];
+
+        int pointer = 0;
+        for (Integer literal : resolutionLiterals) {
+            variablesInvolvedInConflict[Math.abs(literal)] = 1;
+            literals[pointer] = literal;
+            pointer++;
+        }
+
+        Arrays.sort(literals, Comparator.comparingInt(a -> formula.getDecisionLevelOfVariables()[Math.abs(a)] * -1));
+
+        int[] literalsPrimitive = new int[literals.length];
+
+        for (int i = 0 ; i < literals.length; i++) {
+            literalsPrimitive[i] = literals[i];
+        }
+
+        return Arrays.asList(formula.addDisjunctiveConstraint(literalsPrimitive));
     }
 
     private void getResolutionTermsFomrReasonDisjunctiveConstraint(int[] variablesInvolvedInConflict, int[] reasonLiterals, int conflictLiteral, ArrayList<int[]> resolutionTerms) {
@@ -314,7 +371,7 @@ public class DisjunctiveConstraint extends Constraint {
     }
 
     @Override
-    public int getNeededDecisionLevel(int[] decisionLevelOfVariables, int[] variables) {
+    public int getNeededDecisionLevel(int[] decisionLevelOfVariables, int[] variables, Formula formula) {
         if (literals.length == 1) {
             return decisionLevelOfVariables[Math.abs(literals[0])];
         } else {
@@ -356,6 +413,11 @@ public class DisjunctiveConstraint extends Constraint {
         } else {
             return new HashSet<>();
         }
+    }
+
+    @Override
+    public boolean containsLiteral(int literal) {
+        return literalSet.contains(literal);
     }
 
     public int[] resolveClauses(int numberOfVariables, int[] conflictLiterals,
