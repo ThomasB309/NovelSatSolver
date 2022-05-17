@@ -76,6 +76,37 @@ AMO(a,b,\neg c) \rightarrow (\neg a \vee e) \wedge (c \vee f) \wedge (\neg b \ve
 
 Keep in mind that this example shows a sequential encoding for an AMO constraint with three literals. This is just to show how the encoding works. In our evaluation this encoding is only applied to AMO constraints with at least six literals.
 
+\section{Encoding of DNF constraints}
+
+In order to encode the formulas with DNF constraints into a CNF equivalent, the solver encodes them with the Tseitin encoding which was first introduced in the paper "On the complexity of derivation in propositional calculus" \cite{tseitin1983complexity} by G.S. Tseitin. It is used because it allows the solver to generate an equisatisfiable CNF that is linear in size of the original formula by introducing a new set of variables \cite{biere2009handbook}.
+
+\begin{leftbar}
+Steps to convert a DNF constraint into the CNF equivalent:
+\begin{enumerate}
+\item For each term $t_k$ introduce a new variable $x_k$
+\item For each literal $l_k$ in the term, the solver creates a clause $\neg x_k \vee l_k$
+\item Create a clause $x_k \vee \neg l_1 \vee ... \vee l_n$
+\item Create a clause $x_1 \vee ... \vee x_m$
+\end{enumerate}
+\end{leftbar}
+
+This procedure creats a CNF that is equisatisfiable to the encoded DNF. The following example shows how the conversion looks in practice:
+
+\begin{leftbar}
+\begin{displaymath}
+(a \wedge b \wedge c) \vee (d \wedge e) \rightarrow
+\end{displaymath}
+\begin{displaymath}
+(\neg f \vee a) \wedge (\neg f \vee b) \wedge (\neg f \vee c) \wedge (f \vee \neg a \vee \neg b \vee \neg c)\; \wedge
+\end{displaymath}
+\begin{displaymath}
+(\neg g \vee d) \wedge (\neg g \vee e) \wedge (g \vee \neg d \vee \neg e) \; \wedge
+\end{displaymath}
+\begin{displaymath}
+(f \vee g)
+\end{displaymath}
+\end{leftbar}
+
 \section{Randomized benchmarks}
 
 Because the are no known sets of benchmarks that contain both AMO and DNF constraints in the form that our SAT solver needs, we needed to create our own benchmarks. One of the fastest ways to create benchmarks is a random generator. This has the advantage that it is possible to create very large sets of benchmarks in a short amount of time. But the randomization also makes it hard to control the difficulty of the benchmark. In order to make an accurate assessment on how good our SAT solver performs, we need benchmarks that are hard to solve. The randomization only allows us to control the number of variables, how many variables each constraint contains and how many constraints of each type are in the created formula.
@@ -141,3 +172,414 @@ As a final experiment we wanted to see how the all three constraint types intera
 \input{graphs/AMO_Phase_Transition_Clauses_DNF.tex}
 
 The graph \ref{fig:AMOClauseDNF} shows the relation between the AMO constraint to variable ratio and the percentage of satisfiable constraints, as well as the normalized solving speed of 1000 instances.
+
+\section{Industrial Benchmarks}
+
+In order to assess how the SAT solver performs in real world scenarios, the CAS Software AG provided industrial benchmarks. These benchmarks contain every constraint type that our solver is capable of solving. We converted these benchmarks into an equisatisfiable CNF by using the encodings already described in this chapter. This allows a comparison to the SAT solver SAT4J. It also allows us to examine whether our own architecture can leverage the advantages of the DNF and AMO constraints or if the encoding is still the better alternative.
+
+\begin{table}[!htb]
+\centering
+\caption{Composition of the industrial benchmarks provided by the CAS Software AG (F = Formulas, V = Number of Variables, DNF = Average DNF count, TPD = Average term count per DNF, LPT = Average literal count per term, C = Clause count, LPC = Average literal count per term, AMO = Average AMO count, LPA = Average literals per AMO}
+\label{tab:industrialBenchmarks}
+\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|}
+\hline
+Name & F & V & DNF & TPD & LPT & C & LPC & AMO & LPA \\ 
+\hline
+- & 21 & 13795,14 & 546,52 & 3,98 & 9,67 & 18504,38 & 5,87 & 393,00 & 12,40 \\ 
+ \hline 
+- & 20 & 27815,40 & 2645,55 & 7,50 & 32,38 & 114661,60 & 11,63 & 917,30 & 16,25 \\ 
+ \hline 
+- & 26 & 6949,23 & 155,96 & 2,72 & 5,42 & 8626,42 & 4,02 & 134,19 & 16,00 \\ 
+ \hline 
+- & 21 & 19329,38 & 0,00 & 0,00 & 0,00 & 53697,86 & 3,71 & 0,00 & 0,00 \\ 
+ \hline 
+- & 20 & 49742,00 & 0,00 & 0,00 & 0,00 & 797924,50 & 4,18 & 0,00 & 0,00 \\ 
+ \hline 
+- & 26 & 9057,96 & 0,00 & 0,00 & 0,00 & 16935,81 & 3,15 & 0,00 & 0,00 \\ 
+ \hline 
+\end{tabular}
+\end{table}
+
+The table \ref{tab:industrialBenchmarks} shows the composition of each benchmark set of the industrial benchmarks. All three benchmark sets contain DNF constraints, AMO constraints and clauses. Each of these benchmark sets has an equisatisfiable benchmarks set encoded as a CNF. They only contain clauses.
+
+
+\begin{table}[htb]
+\centering
+\caption{M benchmarks (ST = Solving time, SI = Solved instances, TO = Timeouts, D(A) = Average number of branching decisions, P(A) = Average number of unit propagations, C(A) = Average number of conflicts}
+\label{tab:mBenchmarks}
+\begin{tabular}{|c|c|c|c|c|c|c|}
+\hline
+Solver & ST & SI & TO & D (A) & P (A) & C (A)\\
+\hline
+DPLL\_NR\_F & 8.936 & 20 & 0 & 25065.14 & 9331.00 & 485.81 \\
+\hline
+DPLL\_R\_F & 7.697 & 20 & 0 & 34204.14 & 14832.48 & 625.05 \\
+\hline
+CDCL\_R\_F & 28.540 & 20 & 0 & 639563.81 & 900366.48 & 8653.19 \\
+\hline
+CDCL\_R\_F\_CNF & 63.251 & 20 & 0 & 981145.67 & 4737113.52 & 2460.38 \\
+\hline
+SAT4J & 7.283 & 20 & 0 & 77058.05 & 677437.76 & 45.52 \\
+\hline
+\end{tabular}
+\end{table}
+
+The table \ref{tab:mBenchmarks} contains the statistics about the solving process of several configurations of our novel SAT solver, as well as the SAT solver SAT4J. First it is necessary to explain the meanings of the solver names. These meanings will be the same for every table in this chapter. The configurations that start with "DPLL" make use of the DPLL algorithm instead of the CDCL algorithm. They therefore don't resolve conflicts by learning clauses. The "CDCL" configurations learn clauses at every conflict. The configurations that contain "NR" don't use any restarts, while the configurations that contain an "R" make use of the Luby restarts. Then there is also the letter "F" which indicates that the first value that a branching variable gets assigned, is always false. If a configuration ends with "CNF" then that means that the solver solved the equisatisfiable CNF version of this benchmark.
+
+The solving times shows that the DPLL versions of our novel SAT solver with and without restarts are both close to the solving time of SAT4J. The CDCL configurations are both significantly slower. The CDCL-solver that solved the encoded version is the slowest solver in this particular benchmark. An interesting observation is the high amount of average decisions and unit propagations per formula when using the CDCL-algorithm. This can have several possible explanations. It could be a result of how the branching heuristic is implemented
+
+\begin{table}[!htb]
+\centering
+\caption{J benchmarks}
+\label{tab:jBenchmarks}
+\begin{tabular}{|c|c|c|c|c|c|c|}
+\hline
+Solver & ST & SI & TO & D (A) & P(A) & C(A)\\
+\hline
+DPLL\_NR\_F & 1593 & 21 & 0 & 10885,09 & 2283,00 & 0,00 \\
+\hline
+DPLL\_R\_F & 1165 & 21 & 0 & 10885,09 & 2283,00 & 0,00 \\
+\hline
+CDCL\_R\_F & 1238 & 21 & 0 & 10885,09 & 2283,00 & 0,00 \\
+\hline
+CDCL\_R\_F\_CNF & 1285 & 21 & 0 & 10393,64 & 10400,05 & 1,68 \\
+\hline
+SAT4J & 476 & 21 & 0 & 6512,50 & 15498,77 & 0,00 \\
+\hline
+\end{tabular}
+\end{table}
+
+The table \ref{tab:jBenchmarks} shows the results for J benchmarks. In contrast to the results of the M benchmark, all configurations of our solver show a similar solving time. All of them are a bit slower than SAT4J. Because the solving times are so low, it is difficult to draw conclusions on why SAT4J is faster in this particular benchmark. What we can see though is that only the configuration that solved the CNF encoding had a conflict. Every other configuration including SAT4J doesn't show any conflict. In this benchmark SAT4J shows that it can solve the whole CNF set without having to resolve any conflict. Our solver had to resolve a conflict and has a significantly higher amount of branching decisions. What can be concluded from that, is that the branching heuristic that SAT4J uses is superior to our branching heuristic in this benchmark.
+
+\begin{table}[!htb]
+\centering
+\caption{W benchmarks}
+\label{tab:wBenchmarks}
+\begin{tabular}{|c|c|c|c|c|c|c|}
+\hline
+Solver & ST & SI & TO & D (A) & P (A) & C (A)\\
+\hline
+DPLL\_NR\_F & 1281 & 26 & 0 & 5500,85 & 1199,15 & 2,07 \\
+\hline
+DPLL\_R\_F & 535 & 26 & 0 & 5500,85 & 1199,15 & 2,07 \\
+\hline
+CDCL\_R\_F & 606 & 26 & 0 & 5790,00 & 1825,41 & 3,93 \\
+\hline
+CDCL\_R\_F\_CNF & 724 & 26 & 0 & 5282,41 & 5905,04 & 3,04 \\
+\hline
+SAT4J & 408 & 26 & 0 & 3755,93 & 8098,96 & 0,81 \\
+\hline
+\end{tabular}
+\end{table}
+
+The table \ref{tab:wBenchmarks} shows the results of the W benchmark. Here we have the same problem as before. The solving times are very similar for each configuration and are also very fast, which makes it difficult to draw any conclusions.
+
+\section{DNF Benchmarks with 5 Terms and 5 Literals per Term}
+
+First we wanted to evaluate how our SAT solver performs on benchmarks that only consists of DNF constraints. We created several benchmarks with a varying amount of terms per DNF constraints, as well as a varying amount of literals per terms. This section contains the performance evaluation on benchmarks with small DNF constraints.
+
+\begin{table}[!htb]
+\centering
+\caption{DNF Benchmarks with 5 Terms and 5 Literals per Term}
+\label{tab:dnf55}
+\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|}
+\hline
+Name & F & V & DNF & TPD & LPT & C & LPC & AMO & LPA \\
+\hline
+$DNF_{5\_5}$ & 100 & 190,00 & 48,00 & 5,00 & 5,00 & 0,00 & NaN & 0,00 & NaN \\ 
+ \hline 
+$DNF_{5\_5}U$ & 100 & 190,00 & 48,00 & 5,00 & 5,00 & 0,00 & NaN & 0,00 & NaN \\ 
+ \hline 
+$(CNF)DNF_{5\_5}$ & 100 & 430,00 & 0,00 & NaN & NaN & 1488,00 & 2,74 & 0,00 & NaN \\ 
+ \hline 
+$(CNF)DNF_{5\_5}U$ & 100 & 430,00 & 0,00 & NaN & NaN & 1488,00 & 2,74 & 0,00 & NaN \\ 
+ \hline 
+\end{tabular}
+\end{table}
+
+The table \ref{tab:dnf55} shows the composition of the satisfiable $DNF_{5_5}$ and the unsatisfiable $DNF_{5_5}U$ benchmark set, as well as their equisatisfiable CNF counterparts $(CNF)DNF_{5_5}$ and $(CNF)DNF_{5_5}U$. Each of these benchmarks has uses 48 variables and consists of 190 DNF constraints. The DNF constraints all have five terms with five literals. The equisatisfiable counterparts then have 430 variables and 1488 clauses. On average these clauses have 2,74 literals. In contrast to clauses, where only the amount of literals per clause can be varied, the DNF constraints can differ in their amount of terms, and in the amount of literals per term. In order to understand when our solver can leverage the advantages of DNF constraints it is important to evaluate benchmarks where both the size of the terms and the amount of terms is varied. This section therefore contains the performance evaluation on DNF constraints where both of these parameters are small.
+
+
+
+\begin{table}[!htb]
+\centering
+\caption{$DNF_{5\_5}$ and $(CNF)DNF_{5\_5}$ performance evaluation}
+\label{tab:dnf55Sat}
+\begin{tabular}{|c|c|c|c|c|c|c|}
+\hline
+Solver & ST & SI & TO & D (A) & P (A) & C (A)\\
+\hline
+DPLL\_NR\_F & 319576 & 100 & 0 & 489964,09 & 6867812,17 & 489909,36 \\
+\hline
+DPLL\_R\_F & 3550173 & 85 & 15 & 5322479,66 & 73846546,17 & 5291317,11 \\
+\hline
+CDCL\_R\_F & 3166915 & 89 & 11 & 624672,81 & 4335145,19 & 454601,28 \\
+\hline
+CDCL\_R\_F\_CNF & 178373 & 100 & 0 & 27968,02 & 795612,87 & 9991,88 \\
+\hline
+SAT4J & 4114 & 100 & 0 & 2368,53 & 124879,16 & 1477,85 \\
+\hline
+\end{tabular}
+\end{table}
+
+The table \ref{tab:dnf55Sat} shows the performance statistics on the $DNF_{5\_5}$ and $(CNF)DNF_{5\_5}$ benchmark sets. Here we used a timeout of two minutes. SAT4J shows by far the best performance with a solving time of 4114. No configuration of our SAT solver comes close to this performance. Our solver performs best when solving the encoded CNF benchmark $(CNF)DNF_{5\_5}$. The DPLL configuration with restarts and the CDCL configuration that solves the DNF constraints natively weren't even able to solve every formula without timing out. So it seems that in situations where the formula mostly consists of small DNF constraints, it is better to encode the formula as a CNF instead of natively solving the DNF constraints. One possible explanation for this, is that the propagation of literals in DNF constraints is significantly more computationally expensive than the literal propagation in clauses. Small DNF constraints can be encoded as a CNF without creating too many clauses. With a small amount of clauses the clause propagation is then more efficient.
+
+Another aspect that needs to be considered in this performance evaluation, is the amount of branching decisions, conflicts and unit propagations. It is clear that every configuration of our solver has to make a large amount of branching decisions and unit propagations compared to SAT4J. This slows down the solving process significantly. The reason for this is probably the branching heuristic which seems to make better decisions in SAT4J which leads to a faster solving speed.
+
+
+\begin{table}[!htb]
+\centering
+\caption{$DNF_{5\_5}U$ and $(CNF)DNF_{5\_5}U$ performance evaluation}
+\label{tab:dnf55Unsat}
+\begin{tabular}{|c|c|c|c|c|c|c|}
+\hline
+Solver & ST & SI & TO & D (A) & P (A) & C (A)\\
+\hline
+DPLL\_NR\_F & 811835 & 100 & 0 & 1240900,24 & 17131268,46 & 1240901,23 \\
+\hline
+DPLL\_R\_F & 8487995 & 57 & 43 & 12566993,16 & 173437971,19 & 12495482,42 \\
+\hline
+CDCL\_R\_F & 11913634 & 1 & 99 & 2078639,21 & 14056253,97 & 1510957,46 \\
+\hline
+CDCL\_R\_F\_CNF & 1727960 & 100 & 0 & 154611,18 & 4119616,86 & 56535,95 \\
+\hline
+SAT4J & 9452 & 100 & 0 & 4923,66 & 271687,84 & 3277,70 \\
+\hline
+\end{tabular}
+\end{table}
+
+The table \ref{tab:dnf55Unsat} shows the performance statistics on the $DNF_{5\_5}U$ and $(CNF)DNF_{5\_5}U$ benchmark sets. While all solvers took generally longer to solve this benchmark, SAT4J is still the fastest solver by a significant margin. What is interesting, is that now the DPLL configuration without restarts is the best configuration of our solver.
+
+\section{DNF Benchmarks with 10 Terms and 10 Literals per Term}
+
+Now that we evaluated how the solvers perform on pure DNF benchmarks with small DNF constraints, we also want to examine the performance on pure DNF benchmarks with large DNF constraints.
+
+\begin{table}[!htb]
+\centering
+\caption{DNF Benchmarks with 10 Terms and 10 Literals per Term}
+\label{tab:dnf1010}
+\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|}
+\hline
+Name & F & V & DNF & TPD & LPT & C & LPC & AMO & LPA \\
+\hline
+$DNF_{10\_10}$ & 100 & 100,00 & 10,00 & 10,00 & 10,00 & 0,00 & NaN & 0,00 & NaN \\ 
+ \hline 
+$DNF_{10\_10}U$ & 100 & 100,00 & 10,00 & 10,00 & 10,00 & 0,00 & NaN & 0,00 & NaN \\ 
+ \hline 
+$(CNF)DNF_{10\_10}$ & 100 & 200,00 & 0,00 & NaN & NaN & 1110,00 & 2,88 & 0,00 & NaN \\ 
+ \hline 
+$(CNF)DNF_{10\_10}$ & 100 & 200,00 & 0,00 & NaN & NaN & 1110,00 & 2,88 & 0,00 & NaN \\ 
+ \hline 
+\end{tabular}
+\end{table}
+
+The table \ref{tab:dnf1010} shows the composition of the satisfiable $DNF_{10\_10}$ and the unsatisfiable $DNF_{10\_10}U$ benchmark set, as well as their equisatisfiable CNF counterparts $(CNF)DNF_{10\_10}$ and $(CNF)DNF_{10\_10}$. Each benchmark set has 100 variables and 10 DNF constraints. The DNF constraints all consists of 10 terms and each term has exactly 10 literals. So these DNF constraints are quite large. The CNF encoded benchmarks then contain 200 variables and 1110 clauses per formula. Each of these clauses has 2.88 literals on average. Even though the original benchmarks only contain 10 DNF constraints, the CNF counterparts still have 1110 clauses. The benchmarks with smaller DNF constraints had 190 DNF constraints per formula and reached 1488 clauses per formula as a CNF. This shows how a small change in the size of the DNF constraints can affect the encoding.
+
+\begin{table}[!htb]
+\centering
+\caption{$DNF_{10\_10}$ and $(CNF)DNF_{10\_10}U$ performance evaluation}
+\label{tab:dnf1010Sat}
+\begin{tabular}{|c|c|c|c|c|c|c|}
+\hline
+Solver & ST & SI & TO & D (A) & P(A) & C(A)\\
+\hline
+DPLL\_NR\_F & 16586 & 100 & 0 & 23919,58 & 130225,63 & 23882,98 \\
+\hline
+DPLL\_R\_F & 106547 & 100 & 0 & 156108,08 & 828429,93 & 155089,98 \\
+\hline
+CDCL\_R\_F & 1048193 & 98 & 2 & 220280,50 & 823305,75 & 177286,61 \\
+\hline
+CDCL\_R\_F\_CNF & 2102 & 100 & 0 & 1734,60 & 24206,08 & 557,61 \\
+\hline
+SAT4J & 257 & 100 & 0 & 275,68 & 5425,68 & 119,59 \\
+\hline
+\end{tabular}
+\end{table}
+
+The table \ref{tab:dnf1010Sat} shows the performance evaluation of the $DNF_{10\_10}$ and $(CNF)DNF_{10\_10}$ benchmark sets. We used a timeout of two minutes. Here SAT4J is the clear winner again. Our solver performs best, when it solves the CNF encoded benchmark. Again the DPLL configuration without restarts outperforms both the DPLL configuration without restarts and the CDCL configuration. So for DNF benchmarks where both the term count and the term size is high, it seems that encoding is faster than natively solving the DNF constraint.
+
+We can see similar effects as before. The amount of decisions that the solver has to make is still significantly higher in all configurations compared to SAT4J.
+
+\begin{table}[!htb]
+\centering
+\caption{$DNF_{10\_10}U$ and $(CNF)DNF_{10\_10}U$ performance evaluation}
+\label{tab:dnf1010Unsat}
+\begin{tabular}{|c|c|c|c|c|c|c|}
+\hline
+Solver & ST & SI & TO & D (A) & P(A) & C(A)\\
+\hline
+DPLL\_NR\_F & 39971 & 100 & 0 & 59412,48 & 315003,24 & 59413,47 \\
+\hline
+DPLL\_R\_F & 495166 & 100 & 0 & 744656,28 & 3928549,74 & 740507,25 \\
+\hline
+CDCL\_R\_F & 8143034 & 69 & 31 & 1680689,61 & 6315154,04 & 1351935,55 \\
+\hline
+CDCL\_R\_F\_CNF & 5037 & 100 & 0 & 3714,04 & 53080,98 & 1218,25 \\
+\hline
+SAT4J & 411 & 100 & 0 & 492,66 & 11509,96 & 259,29 \\
+\hline
+\end{tabular}
+\end{table}
+
+The table \ref{tab:dnf1010Unsat} shows the performance evaluation of the $DNF_{10\_10}U$ and the $(CNF)DNF_{10\_10}U$ benchmark sets. We used a timeout of two minutes. SAT4J is still the clear winner. Our solver still performs the best when solving the CNF formulas. The DPLL configuration without restarts still outperforms the other configurations that solve the DNF constraints natively.
+
+\section{DNF Benchmarks with 15 Terms and 3 Literals per Term}
+
+As a last evaluation of the pure DNF benchmarks we wanted to see how the solvers perform on formulas with DNF constraints that have a large amount of small terms.
+
+\begin{table}[!htb]
+\centering
+\caption{Composition of the DNF benchmarks with 15 Terms and 3 Literals per Term}
+\label{tab:dnf153}
+\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|}
+\hline
+Name & F & V & DNF & TPD & LPT & C & LPC & AMO & LPA \\
+\hline
+$DNF_{15\_3}$ & 99 & 30,00 & 144,00 & 15,00 & 3,00 & 0,00 & NaN & 0,00 & NaN \\ 
+ \hline 
+$DNF_{15\_3U}$ & 101 & 30,00 & 144,00 & 15,00 & 3,00 & 0,00 & NaN & 0,00 & NaN \\ 
+ \hline 
+$(CNF)DNF_{15\_3}$ & 99 & 2190,00 & 0,00 & NaN & NaN & 8784,00 & 2,70 & 0,00 & NaN \\ 
+ \hline 
+$(CNF)DNF_{15\_3}U$ & 101 & 2190,00 & 0,00 & NaN & NaN & 8784,00 & 2,70 & 0,00 & NaN \\ 
+ \hline 
+\end{tabular}
+\end{table}
+
+The table \ref{tab:dnf153} shows the composition of the DNF benchmarks $DNF_{15\_3}$ and $DNF_{15\_3U}$, as well as their equisatisfiable CNF counterparts $(CNF)DNF_{15\_3}$ and $(CNF)DNF_{15\_3}U$. Each formula in the in these benchmarks has 30 variables and 144 DNF constraints. The DNF constraints consist of 15 terms and each of these terms has 3 literals. The CNF counterparts have 2190 variables and 8784 clauses. Each of the clauses has 2.70 literals on average.
+
+\begin{table}[!htb]
+\centering
+\caption{$DNF_{15\_3}$ and $(CNF)DNF_{15\_3}$ performance evaluation}
+\label{tab:dnf153Sat}
+\begin{tabular}{|c|c|c|c|c|c|c|}
+\hline
+Solver & ST & SI & TO & D (A) & P(A) & C(A)\\
+\hline
+DPLL\_NR\_F & 146484 & 99 & 0 & 29679,34 & 82346,10 & 29669,67 \\
+\hline
+DPLL\_R\_F & 1286158 & 99 & 0 & 262496,65 & 723236,61 & 261131,41 \\
+\hline
+CDCL\_R\_F & 4793723 & 86 & 13 & 403145,08 & 837425,21 & 312920,99 \\
+\hline
+CDCL\_R\_F\_CNF & 10436852 & 22 & 77 & 513302,11 & 59180894,37 & 154171,61 \\
+\hline
+SAT4J & 338707 & 99 & 0 & 25590,96 & 7163346,03 & 23377,92 \\
+\hline
+\end{tabular}
+\end{table}
+
+The table \ref{tab:dnf153Sat} shows the performance evaluation on the $DNF_{15\_3}$ and $(CNF)DNF_{15\_3}$ benchmark sets. In contrast to the pure DNF benchmarks before, the our solver with the DPLL algorithm and no restarts is the clear winner. With 146.48 seconds it is more than 2 times faster than SAT4J which takes the second place in this evaluation. So it seems that it is faster to natively solve formulas that contain DNF constraints with a large amount of small terms. One possible explanation for this is the Two-Watched-Termsets algorithm. In the best case our solver only has to watch two very small terms, which makes the propagation pretty fast. Small terms also make the intersection calculation easier.
+
+\section{DNF-Clause Benchmarks}
+
+Most real world scenarios include several types of constraints, which is why we also wanted to examine how our SAT solver performs, when we create randomized benchmarks that consist of several constraint types. This section contains the performance evaluation on a randomized benchmark sets, where each formula contains DNF constraints and clauses.
+
+\begin{table}[!htb]
+\centering
+\caption{DNF-Clause Benchmark Set}
+\label{tab:dnfClauseBenchmark}
+\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|}
+\hline
+Name & F & V & DNF & TPD & LPT & C & LPC & AMO & LPA \\
+\hline
+$D_{15\_3}C_3$ & 100 & 35,00 & 140,00 & 15,00 & 3,00 & 120,00 & 5,00 & 0,00 & NaN \\ 
+ \hline 
+$D_{15\_3}C_3U$ & 100 & 35,00 & 140,00 & 15,00 & 3,00 & 120,00 & 5,00 & 0,00 & NaN \\ 
+ \hline 
+$(CNF)D_{15\_3}C_3$ & 100 & 2135,00 & 0,00 & NaN & NaN & 8660,00 & 2,74 & 0,00 & NaN \\ 
+ \hline 
+$(CNF)D_{15\_3}C_3U$ & 100 & 2135,00 & 0,00 & NaN & NaN & 8660,00 & 2,74 & 0,00 & NaN \\ 
+ \hline 
+\end{tabular}
+\end{table}
+
+The table \ref{tab:dnfClauseBenchmark} shows the composition of the randomized DNF-Clause benchmark set, that we used for the performance evaluation. We created the benchmark set $D_{15\_3}C_3$ which only contains satisfiable formulas and the benchmark set $D_{15\_3}C_3U$ which only contains unsatisfiable formulas. Each formula in both benchmark sets has 35 variables, 140 DNF constraints and 120 clauses. Every DNF constraint has 15 terms with 3 literals and every clauses has 3 literals. We then converted these benchmark sets into the equisatisfiable CNF benchmark sets $(CNF)D_{15\_3}C_3$ and $(CNF)D_{15\_3}C_3U$. Each of them has 2135 variables and 8660 clauses.
+
+
+\begin{table}[!htb]
+\centering
+\caption{$D_{15\_3}C_3$ and $(CNF)D_{15\_3}C_3$ Benchmarks}
+\label{tab:dnfClauseBenchmarkSAT}
+\begin{tabular}{|c|c|c|c|c|c|c|}
+\hline
+Solver & ST & SI & TO & D (A) & P(A) & C(A)\\
+\hline
+DPLL\_NR\_F & 336006 & 100 & 0 & 74291,77 & 256752,61 & 74281,50 \\
+\hline
+DPLL\_R\_F & 4428477 & 100 & 0 & 978128,87 & 3376399,14 & 973191,51 \\
+\hline
+CDCL\_R\_F & 8488340 & 47 & 53 & 710223,09 & 1753916,21 & 537636,69 \\
+\hline
+CDCL\_R\_F\_CNF & 11049716 & 17 & 83 & 564183,74 & 64371069,20 & 176470,50 \\
+\hline
+SAT4J & 553344 & 100 & 0 & 44937,48 & 12506476,94 & 41409,91 \\
+\hline
+\end{tabular}
+\end{table}
+
+The table \ref{tab:dnfClauseBenchmarkSAT} shows the results of the $D_{15\_3}C_3$ and the $(CNF)D_{15\_3}C_3$ benchmark sets. The solving process was performed with a timeout of 2 minutes per formula. Our SAT solver fastest solving time with about 336 seconds, while using the DPLL algorithm with no restarts and setting the first branching decision as false. SAT4J shows the second best performance with about 553,34 seconds. All other configurations are significantly slower and both CDCL configurations weren't able to solve all formulas before the timeout.
+
+What we can observer is that the restarts are detrimental to the performance when using the DPLL algorithm in this benchmark. This results in higher amount of solving time, branching decisions, unit propagations and conflicts.
+
+\begin{table}[!htb]
+\centering
+\caption{$D_{15\_3}C_3U$ and $(CNF)D_{15\_3}C_3U$ Benchmarks}
+\label{tab:dnfClauseBenchmarkUNSAT}
+\begin{tabular}{|c|c|c|c|c|c|c|}
+\hline
+Solver & ST & SI & TO & D (A) & P(A) & C(A)\\
+\hline
+DPLL\_NR\_F & 875328 & 100 & 0 & 194061,43 & 666259,64 & 194062,42 \\
+\hline
+DPLL\_R\_F & 11610079 & 87 & 13 & 2538823,39 & 8696906,19 & 2527089,01 \\
+\hline
+CDCL\_R\_F & 12000205 & 0 & 100 & 886754,90 & 2187289,88 & 671038,45 \\
+\hline
+CDCL\_R\_F\_CNF & 12001000 & 0 & 100 & 606862,28 & 69094695,63 & 189565,30 \\
+\hline
+SAT4J & 1290413 & 100 & 0 & 96144,98 & 26785125,18 & 89195,71 \\
+\hline
+\end{tabular}
+\end{table}
+
+The table \ref{tab:dnfClauseBenchmarkUNSAT} shows the results of the $D_{15\_3}C_3U$ and the $(CNF)D_{15\_3}C_3U$ benchmark sets. All in all the behavior is similar to the satisfiable benchmark sets. The DPLL configuration with no restarts is still the best performing solver, with SAT4J taking the second place. The unsatisfiable benchmarks seem to be significantly harder to solve, because the solving time is higher across the board. The CDCL configuration weren't able to solve any formula in under two minutes, and even the DPLL configuration with restarts was only able to solve 87.
+
+\section{Satlib Benchmarks}
+
+\begin{table}[htb]
+\centering
+\caption{Caption}
+\label{tab:example}
+\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|}
+\hline
+Name & F & V & DNF & TPD & LPT & C & LPC & AMO & LPA \\
+\hline
+- & 15 & 1864,93 & 80,00 & 16,37 & 8,48 & 3864,93 & 2,39 & 0,00 & NaN \\ 
+ \hline 
+- & 15 & 1864,93 & 0,00 & NaN & NaN & 5984,73 & 2,65 & 0,00 & NaN \\ 
+ \hline 
+\end{tabular}
+\end{table}
+
+
+\begin{table}[htb]
+\centering
+\caption{Caption}
+\label{tab:example}
+\begin{tabular}{|c|c|c|c|c|c|c|}
+\hline
+Solver & ST & SI & TO & D (A) & P(A) & C(A)\\
+\hline
+DPLL\_NR\_F & 1090655 & 6 & 9 & 7766272,81 & 295857192,06 & 7766173,63 \\
+\hline
+DPLL\_R\_F & 635683 & 10 & 5 & 2032399,00 & 117333937,50 & 1931861,63 \\
+\hline
+CDCL\_R\_F & 361933 & 12 & 3 & 474568,50 & 5875805,44 & 49521,75 \\
+\hline
+CDCL\_R\_F\_CNF & 360196 & 12 & 3 & 435976,13 & 9665945,81 & 40859,81 \\
+\hline
+SAT4J & 6009 & 12 & 0 & 11235,75 & 470244,44 & 5611,38 \\
+\hline
+\end{tabular}
+\end{table}
