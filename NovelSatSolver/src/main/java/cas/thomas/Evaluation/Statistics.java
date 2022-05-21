@@ -12,7 +12,7 @@ public class Statistics {
     private double conflictsAverage;
     private int timeoutCounter;
     private int solvedCounter;
-    private int addCounter = 1;
+    private int addCounter = 0;
     private String name;
 
     public void setMilliseconds(long milliseconds) {

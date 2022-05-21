@@ -35,6 +35,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -297,7 +298,7 @@ public class Evaluation {
                         "\\label{tab:example}\n" +
                         "\\begin{tabular}{|c|c|c|c|c|c|c|}\n" +
                         "\\hline\n" +
-                        "Solver & ST & SI & TO & D A) & P(A) & " +
+                        "Solver & ST & SI & TO & D(A) & P(A) & " +
                         "C(A)\\\\ " +
                         "\n" +
                         "\\hline\n";
@@ -305,7 +306,9 @@ public class Evaluation {
         for (int i = 0; i < stats.length; i++) {
             Statistics stat = stats[i];
 
-            table += String.format(stat.getName() + " & " + stat.getMilliseconds() + " & " + stat.getSolvedCounter() + " & " + stat.getTimeoutCounter() + " & %.2f" +
+            table += String.format(Locale.US,
+                    stat.getName() + " & " + (1.0 * stat.getMilliseconds()) / 1000 + " & " + stat.getSolvedCounter() +
+                            " & " + stat.getTimeoutCounter() + " & %.2f" +
                     " & %.2f" + " & %.2f " + "\\\\ \n", stat.getDecisionsAverage(),stat.getPropagationsAverage(),
                     stat.getConflictsAverage()) + "\\hline\n";
         }

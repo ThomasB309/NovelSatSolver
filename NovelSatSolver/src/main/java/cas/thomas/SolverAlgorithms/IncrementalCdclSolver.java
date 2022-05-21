@@ -57,7 +57,7 @@ public class IncrementalCdclSolver extends mDPLL implements IncrementalSatSolver
     }
 
     public IncrementalCdclSolver() {
-        super(new VSIDS(), new DPLLConflictHandler(), new NoRestartsSchedulingStrategy(512), true, true,0);
+        super(new VSIDS(), new CDCLConflictHandler(), new ReluctantDoublingRestartStrategy(512), true, false,0);
         clauses = new ArrayList<>();
         amoConstraints = new ArrayList<>();
         dnfConstraints = new ArrayList<>();
@@ -129,8 +129,8 @@ public class IncrementalCdclSolver extends mDPLL implements IncrementalSatSolver
 
     private void resetStrategies() {
         variableSelectionStrategy = new VSIDS();
-        restartSchedulingStrategy = new NoRestartsSchedulingStrategy(512);
-        conflictHandlingStrategy = new DPLLConflictHandler();
+        restartSchedulingStrategy = new ReluctantDoublingRestartStrategy(512);
+        conflictHandlingStrategy = new CDCLConflictHandler();
     }
 
     public boolean isCorrect(int[]solution, int[] assumptions, int numberOfVariables) {
