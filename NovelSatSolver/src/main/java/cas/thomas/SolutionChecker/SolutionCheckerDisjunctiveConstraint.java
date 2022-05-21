@@ -1,5 +1,6 @@
 package cas.thomas.SolutionChecker;
 
+import cas.thomas.Evaluation.ConstraintStatistics;
 import cas.thomas.utils.Pair;
 
 import java.util.Arrays;
@@ -42,6 +43,11 @@ public class SolutionCheckerDisjunctiveConstraint extends SolutionCheckerConstra
     public Pair<Integer, Integer> toDimacsCNFString(StringBuilder cnfString, int maxVariables) {
         cnfString.append(toDimacsString());
         return new Pair<>(maxVariables, 1);
+    }
+
+    @Override
+    public void addStatistics(ConstraintStatistics constraintStatistics) {
+        constraintStatistics.addClause(literals.length);
     }
 
 }

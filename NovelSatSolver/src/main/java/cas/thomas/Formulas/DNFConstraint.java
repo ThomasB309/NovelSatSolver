@@ -857,7 +857,9 @@ public class DNFConstraint extends Constraint {
         getConflictResolutionLiterals(-conflictLiteral, variableAssignments, resolutionLiterals);
 
         for (int i = 0; i < conflictLiterals.length; i++) {
-            if (conflictLiterals[i] != conflictLiteral) {
+            int currentLiteral = conflictLiterals[i];
+            int currentLiteralAbsoluteValue = Math.abs(currentLiteral);
+            if (currentLiteral != -conflictLiteral && variableAssignments[currentLiteralAbsoluteValue] * currentLiteral > 0) {
                 resolutionLiterals.add(-conflictLiterals[i]);
             }
         }

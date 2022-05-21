@@ -1,5 +1,6 @@
 package cas.thomas.BenchmarkGeneration;
 
+import cas.thomas.Exceptions.SolverTimeoutException;
 import cas.thomas.Exceptions.UnitLiteralConflictException;
 import cas.thomas.SolutionChecker.SolutionCheckerAMOConstraint;
 import cas.thomas.SolutionChecker.SolutionCheckerConjunctiveFormula;
@@ -43,7 +44,7 @@ public class PhaseTransition {
 
     }
 
-    public static SolutionCheckerFormula random(int vars, int cls, int amo, int dnf, long seed) throws TimeoutException, UnitLiteralConflictException {
+    public static SolutionCheckerFormula random(int vars, int cls, int amo, int dnf, long seed) throws TimeoutException, UnitLiteralConflictException, SolverTimeoutException {
         Random rnd = new Random(seed);
         Integer[] plantedSolution = new Integer[vars + 1];
         plantedSolution[0] = 0;
@@ -62,13 +63,13 @@ public class PhaseTransition {
 
     public static void createPhaseTransitionPlotForDNFConstraintsWithConstantTermCount(int vars, int terms,
                                                                                         int termLength,
-                                                                                        int stepSize) throws TimeoutException {
+                                                                                        int stepSize) throws TimeoutException, SolverTimeoutException {
         List<List<Pair<Double, Double>>> solvingTimeList = new LinkedList<>();
 
         Random rnd = new Random(1);
 
         int counter = 0;
-        for (int i = 3; i <= termLength; i++) {
+        for (int i = 2; i <= termLength; i++) {
             solvingTimeList.add(calculatePhaseTransitionDNF(vars, rnd, terms, i, stepSize, counter));
             counter++;
         }
@@ -93,7 +94,7 @@ public class PhaseTransition {
 
     public static List<Pair<Double, Double>> calculatePhaseTransitionDNF(int vars, Random rnd, int terms,
                                                                          int termLength, int stepSize,
-                                                                         int colorCounter) throws TimeoutException {
+                                                                         int colorCounter) throws TimeoutException, SolverTimeoutException {
         List<Pair<Double, Double>> points = new LinkedList<>();
         List<Pair<Double, Double>> solvingTimePoints = new LinkedList<>();
         double xTick = 0;
@@ -105,7 +106,7 @@ public class PhaseTransition {
             int allCounter = 0;
             int trueCounter = 0;
             long time = 0;
-            for (int i = 0; i < 10; i++) {
+            for (int i = 0; i < 1000; i++) {
                 IncrementalCdclSolver solver = new IncrementalCdclSolver();
                 for (int j = 0; j < dnfCounter; j++) {
                     solver.addDnf(getRandomDNFTerms(vars, rnd, terms, termLength));
@@ -130,8 +131,6 @@ public class PhaseTransition {
             yTickSolvingTime = Math.max(yTickSolvingTime, TimeUnit.MILLISECONDS.convert(time, TimeUnit.NANOSECONDS));
 
             addPoints(points, solvingTimePoints, xTick, yTick, xTickSolvingTime, time);
-
-            System.out.println(xTick + " " + yTick);
 
             dnfCounter += stepSize;
 
@@ -195,7 +194,7 @@ public class PhaseTransition {
     public static void createPhaseTransitionPlotForAMOConstraintsWithAConstantNumberOfClausesAndDNFConstraints(int vars,
                                                                                                           int amoLength, int amoStepSize
             , int iterations, int clauseLength, int clauseStepSize, int termCount, int termLength, int dnfStepSize)
-                                                                                                                        throws TimeoutException {
+            throws TimeoutException, SolverTimeoutException {
 
 
         List<List<Pair<Double, Double>>> solvingTimeList = new LinkedList<>();
@@ -234,7 +233,7 @@ public class PhaseTransition {
 
     public static void createPhaseTransitionBenchmarks(int vars, int clauseCount, int clauseLength, int amoCount,
                                                   int amoLength, int dnfCount, int termCount, int termLength,
-                                                  int numberOfBenchmarks, Path filePath) throws TimeoutException, IOException {
+                                                  int numberOfBenchmarks, Path filePath) throws TimeoutException, IOException, SolverTimeoutException {
 
         List<SolutionCheckerConjunctiveFormula> satisfiableFormulas = new ArrayList<>();
         List<SolutionCheckerConjunctiveFormula> unsatisfiableFormulas = new ArrayList<>();
@@ -306,7 +305,7 @@ public class PhaseTransition {
 
     private static List<Pair<Double,Double>> calculatePhaseTransitionAMODNFClS(int vars, int amoLength, int amoStepSize
             , int cls, int dnf, int clauseLength, int termCount, int termLength,
-             Random rnd, int colorCounter) throws TimeoutException {
+             Random rnd, int colorCounter) throws TimeoutException, SolverTimeoutException {
 
         List<Pair<Double, Double>> points = new LinkedList<>();
         List<Pair<Double, Double>> solvingTimePoints = new LinkedList<>();
@@ -343,8 +342,6 @@ public class PhaseTransition {
 
             addPoints(points, solvingTimePoints, xTick, yTick, xTickSolvingTime, time);
 
-            //System.out.println(xTick + " " + yTick);
-
             amoCounter += amoStepSize;
 
         }
@@ -358,7 +355,7 @@ public class PhaseTransition {
     }
 
     public static void createPlotsForAMOPhaseTransitionWithAConstantNumberOfDNFConstraints(int vars, int dnf,
-                                                                                            int terms, int termLength, int amoLength, int amoStepSize, int dnfStepSize) throws TimeoutException, UnitLiteralConflictException {
+                                                                                            int terms, int termLength, int amoLength, int amoStepSize, int dnfStepSize) throws TimeoutException, UnitLiteralConflictException, SolverTimeoutException {
         List<List<Pair<Double, Double>>> solvingTimeList = new LinkedList<>();
 
         Random rnd = new Random(1);
@@ -394,7 +391,7 @@ public class PhaseTransition {
                                                                             Random rnd,
                                                                             int amoLength, int stepSize,
                                                                             int colorCounter) throws TimeoutException,
-            UnitLiteralConflictException {
+            UnitLiteralConflictException, SolverTimeoutException {
 
         List<Pair<Double, Double>> points = new LinkedList<>();
         List<Pair<Double, Double>> solvingTimePoints = new LinkedList<>();
@@ -407,7 +404,7 @@ public class PhaseTransition {
             int allCounter = 0;
             int trueCounter = 0;
             long time = 0;
-            for (int i = 0; i < 100; i++) {
+            for (int i = 0; i < 1000; i++) {
                 IncrementalCdclSolver solver = instantiateSolver(vars, dnf, terms, termLength, rnd, amoLength, amoCounter);
 
                 long startTime = System.nanoTime();
@@ -428,8 +425,6 @@ public class PhaseTransition {
             yTickSolvingTime = Math.max(yTickSolvingTime, TimeUnit.MILLISECONDS.convert(time, TimeUnit.NANOSECONDS));
 
             addPoints(points, solvingTimePoints, xTick, yTick, xTickSolvingTime, time);
-
-            System.out.println(xTick + " " + yTick);
 
             amoCounter += stepSize;
 
@@ -496,7 +491,7 @@ public class PhaseTransition {
     }
 
     public static void createPhaseTransitionPlotForDNFConstraintsWithConstantTermLength(int vars, int terms,
-                                                                                         int termLength, int stepSize) throws TimeoutException {
+                                                                                         int termLength, int stepSize) throws TimeoutException, SolverTimeoutException {
         List<List<Pair<Double, Double>>> solvingTimeList = new LinkedList<>();
 
         Random rnd = new Random(1);
@@ -525,7 +520,7 @@ public class PhaseTransition {
     }
 
     public static void createPhaseTransitionPlotForAMOConstraints(int vars, int amoLength, int stepSize) throws TimeoutException,
-            UnitLiteralConflictException {
+            UnitLiteralConflictException, SolverTimeoutException {
 
         List<List<Pair<Double, Double>>> solvingTimeList = new LinkedList<>();
 
@@ -558,7 +553,7 @@ public class PhaseTransition {
 
     private static List<Pair<Double, Double>> calculatePhaseTransitionAMO(int vars,
                                                                           Random rnd, int amoLength, int stepSize,
-                                                                          int colorCounter) throws TimeoutException {
+                                                                          int colorCounter) throws TimeoutException, SolverTimeoutException {
         List<Pair<Double, Double>> points = new LinkedList<>();
         List<Pair<Double, Double>> solvingTimePoints = new LinkedList<>();
         double xTick = 0;
@@ -595,8 +590,6 @@ public class PhaseTransition {
 
             addPoints(points, solvingTimePoints, xTick, yTick, xTickSolvingTime, time);
 
-            //System.out.println(xTick + " " + yTick);
-
             amoCounter += stepSize;
         }
 
@@ -608,7 +601,7 @@ public class PhaseTransition {
     public static void createPhaseTransitionPlotForAMOConstraintsWithClauses(int vars, int cls, int clsLength,
                                                                              int amoLength,
                                                                              int stepSize, int stepSizeCls) throws TimeoutException,
-            UnitLiteralConflictException {
+            UnitLiteralConflictException, SolverTimeoutException {
 
         List<List<Pair<Double, Double>>> solvingTimeList = new LinkedList<>();
 
@@ -641,7 +634,7 @@ public class PhaseTransition {
     public static List<Pair<Double, Double>> calculatePhaseTransitionAMOClause(int vars, int cls, int clsLength,
                                                                                Random rnd, int amoLength,
                                                                                int stepSize, int colorCounter) throws TimeoutException,
-            UnitLiteralConflictException {
+            UnitLiteralConflictException, SolverTimeoutException {
         List<Pair<Double, Double>> points = new LinkedList<>();
         List<Pair<Double, Double>> solvingTimePoints = new LinkedList<>();
         double xTick = 0;
@@ -675,8 +668,6 @@ public class PhaseTransition {
 
             addPoints(points, solvingTimePoints, xTick, yTick, xTickSolvingTime, time);
 
-            //System.out.println(xTick + " " + yTick);
-
             amoCounter += stepSize;
 
         }
@@ -703,7 +694,7 @@ public class PhaseTransition {
     public static void createPhaseTransitionPlotForDNFConstraintsWithClauses(int vars, int cls, int clsLength,
                                                                              int terms, int termLength,
                                                                              int stepSize, int stepSizeCls) throws TimeoutException,
-            UnitLiteralConflictException {
+            UnitLiteralConflictException, SolverTimeoutException {
 
         List<List<Pair<Double, Double>>> solvingTimeList = new LinkedList<>();
 
@@ -738,7 +729,7 @@ public class PhaseTransition {
                                                                                Random rnd, int terms,
                                                                                int termLength, int stepSize,
                                                                                int colorCounter) throws TimeoutException,
-            UnitLiteralConflictException {
+            UnitLiteralConflictException, SolverTimeoutException {
         List<Pair<Double, Double>> points = new LinkedList<>();
         List<Pair<Double, Double>> solvingTimePoints = new LinkedList<>();
         double xTick = 0;
@@ -750,7 +741,7 @@ public class PhaseTransition {
             int allCounter = 0;
             int trueCounter = 0;
             long time = 0;
-            for (int i = 0; i < 100; i++) {
+            for (int i = 0; i < 1000; i++) {
                 IncrementalCdclSolver solver = instantiateSolver(vars, cls, clsLength, rnd, terms, termLength,
                         dnfCounter);
 
@@ -772,8 +763,6 @@ public class PhaseTransition {
             yTickSolvingTime = Math.max(yTickSolvingTime, TimeUnit.MILLISECONDS.convert(time, TimeUnit.NANOSECONDS));
 
             addPoints(points, solvingTimePoints, xTick, yTick, xTickSolvingTime, time);
-
-            System.out.println(xTick + " " + yTick);
 
             dnfCounter += stepSize;
         }

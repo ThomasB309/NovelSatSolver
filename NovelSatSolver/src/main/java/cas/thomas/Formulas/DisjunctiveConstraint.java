@@ -201,7 +201,8 @@ public class DisjunctiveConstraint extends Constraint {
                 reasonLiterals, clauseLiterals, complementaryLiterals, conflictLiteral);
 
         if (complementaryLiterals.size() >= 1) {
-            return resolveConflictWithOneComplementaryLiteral(formula, clauseLiterals, complementaryLiterals, learnedConstraints);
+            //return resolveConflictWithOneComplementaryLiteral(formula, clauseLiterals, complementaryLiterals,
+                    //learnedConstraints);
         }
 
         findNeededAMOLiterals(stateOfResolvedVariables, conflictLiterals, amoLiterals, formula.getVariables());
@@ -223,7 +224,7 @@ public class DisjunctiveConstraint extends Constraint {
 
             if (stateOfResolvedVariables[currentLiteralAbsoluteValue] == -currentLiteral) {
                 complementaryLiterals.offer(currentLiteral);
-                stateOfResolvedVariables[currentLiteralAbsoluteValue] = 0;
+                //stateOfResolvedVariables[currentLiteralAbsoluteValue] = 0;
             } else if (stateOfResolvedVariables[currentLiteralAbsoluteValue] == currentLiteral && currentLiteral == conflictLiteral) {
                 stateOfResolvedVariables[currentLiteralAbsoluteValue] = 0;
             } else {

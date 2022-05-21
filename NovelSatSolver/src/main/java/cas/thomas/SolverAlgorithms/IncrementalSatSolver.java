@@ -22,7 +22,7 @@ public interface IncrementalSatSolver {
      * @return
      * @throws SolverTimeoutException
      */
-    public boolean solve(int[] assumptions) throws SolverTimeoutException, UnitLiteralConflictException, TimeoutException;
+    public boolean solve(int[] assumptions) throws SolverTimeoutException;
 
     // if solve returns true, then get the truth values with this method
     public boolean getValue(int variable) throws IllegalStateException;

@@ -43,14 +43,38 @@ public class Evaluation {
 
     public static void main(String[] args) {
 
-        if (args.length != 3) {
+        if (args.length < 2) {
             System.err.println("You only need to specify an input path!");
             System.exit(-1);
         }
 
-        Path inputPath = Paths.get(new File(args[0]).toURI());
-        Path inputPathCNF = Paths.get(new File(args[1]).toURI());
-        int timeout = Integer.parseInt(args[2]);
+
+        Path inputPath = Paths.get(new File(args[1]).toURI());
+        Path inputPathCNF = null;
+        int timeout = 0;
+
+        if (args[0].equals("-s")) {
+            Path[] paths = new Path[args.length - 1];
+
+            int counter = 0;
+            for (int i = 1; i < args.length; i++) {
+                paths[counter] = Paths.get(new File(args[i]).toURI());
+                counter++;
+            }
+
+            printBenchmarkStats(paths);
+            return;
+        } else if (!args[0].equals("-e")) {
+            return;
+        }
+
+        if (args.length < 4) {
+            System.err.println("Not enough inputs!");
+            System.exit(-1);
+        }
+
+        inputPathCNF = Paths.get(new File(args[2]).toURI());
+        timeout = Integer.parseInt(args[3]);
 
         if (!Files.isDirectory(inputPath)) {
             System.err.println("The specified input path needs to be a directory!");
@@ -67,14 +91,14 @@ public class Evaluation {
         Statistics cdclRestarts = new Statistics();
         Statistics sat4j = new Statistics();
 
-        dpllNoRestartsFalse.setName("DPLL_NR_F");
-        dpllRestartsFalse.setName("DPLL_R_F");
-        dpllNoRestarts.setName("DPLL_NR_T");
-        dpllRestarts.setName("DPLL_R_T");
-        cdclNoRestartsFalse.setName("CDCL_NR_F");
-        cdclRestartsFalse.setName("CDCL_R_F");
-        cdclNoRestarts.setName("CDCL_NR_T");
-        cdclRestarts.setName("CDCL_R_T");
+        dpllNoRestartsFalse.setName("DPLL\\_NR\\_F");
+        dpllRestartsFalse.setName("DPLL\\_R\\_F");
+        dpllNoRestarts.setName("DPLL\\_NR\\_T");
+        dpllRestarts.setName("DPLL\\_R\\_T");
+        cdclNoRestartsFalse.setName("CDCL\\_NR\\_F");
+        cdclRestartsFalse.setName("CDCL\\_R\\_F");
+        cdclNoRestarts.setName("CDCL\\_NR\\_T");
+        cdclRestarts.setName("CDCL\\_R\\_T");
 
         Statistics dpllNoRestartsFalseCNF = new Statistics();
         Statistics dpllRestartsFalseCNF = new Statistics();
@@ -85,14 +109,14 @@ public class Evaluation {
         Statistics cdclNoRestartsCNF = new Statistics();
         Statistics cdclRestartsCNF = new Statistics();
 
-        dpllNoRestartsFalseCNF.setName("DPLL_NR_F_CNF");
-        dpllRestartsFalseCNF.setName("DPLL_R_F_CNF");
-        dpllNoRestartsCNF.setName("DPLL_NR_T_CNF");
-        dpllRestartsCNF.setName("DPLL_R_T_CNF");
-        cdclNoRestartsFalseCNF.setName("CDCL_NR_F_CNF");
-        cdclRestartsFalseCNF.setName("CDCL_R_F_CNF");
-        cdclNoRestartsCNF.setName("CDCL_NR_T_CNF");
-        cdclRestartsCNF.setName("CDCL_R_T_CNF");
+        dpllNoRestartsFalseCNF.setName("DPLL\\_NR\\_F\\_CNF");
+        dpllRestartsFalseCNF.setName("DPLL\\_R\\_F\\_CNF");
+        dpllNoRestartsCNF.setName("DPLL\\_NR\\_T\\_CNF");
+        dpllRestartsCNF.setName("DPLL\\_R\\_T\\_CNF");
+        cdclNoRestartsFalseCNF.setName("CDCL\\_NR\\_F\\_CNF");
+        cdclRestartsFalseCNF.setName("CDCL\\_R\\_F\\_CNF");
+        cdclNoRestartsCNF.setName("CDCL\\_NR\\_T\\_CNF");
+        cdclRestartsCNF.setName("CDCL\\_R\\_T\\_CNF");
 
 
 
@@ -105,12 +129,12 @@ public class Evaluation {
                     ".txt") || path.toString().endsWith(".rcnf")).collect(Collectors.toList())) {
 
 
-                //dpllNoRestartsFalse.add(solve(true, false, false, inputFile, timeout));
-                //dpllRestartsFalse.add(solve(true, true, false, inputFile,timeout));
-                dpllNoRestarts.add(solve(true, false, true, inputFile,timeout));
+                dpllNoRestartsFalse.add(solve(true, false, false, inputFile, timeout));
+                dpllRestartsFalse.add(solve(true, true, false, inputFile,timeout));
+                //dpllNoRestarts.add(solve(true, false, true, inputFile,timeout));
                 //dpllRestarts.add(solve(true, true, true, inputFile,timeout));
                 //cdclNoRestartsFalse.add(solve(false, false, false, inputFile, timeout));
-                //cdclRestartsFalse.add(solve(false, true, false, inputFile,timeout));
+                cdclRestartsFalse.add(solve(false, true, false, inputFile,timeout));
                 //cdclNoRestarts.add(solve(false, false, true, inputFile,timeout));
                 //cdclRestarts.add(solve(false, true, true, inputFile,timeout));
 
@@ -135,9 +159,9 @@ public class Evaluation {
                 dpllRestartsFalseCNF.add(solve(true, true, false, inputFile,timeout));
                 dpllNoRestartsCNF.add(solve(true, false, true, inputFile,timeout));
                 dpllRestartsCNF.add(solve(true, true, true, inputFile,timeout));*/
-                /*cdclNoRestartsFalseCNF.add(solve(false, false, false, inputFile, timeout));
+                //cdclNoRestartsFalseCNF.add(solve(false, false, false, inputFile, timeout));
                 cdclRestartsFalseCNF.add(solve(false, true, false, inputFile,timeout));
-                cdclNoRestartsCNF.add(solve(false, false, true, inputFile,timeout));
+                /*cdclNoRestartsCNF.add(solve(false, false, true, inputFile,timeout));
                 cdclRestartsCNF.add(solve(false, true, true, inputFile,timeout));*/
                 sat4j.add(solveSat4J(inputFile, timeout));
 
@@ -156,10 +180,9 @@ public class Evaluation {
             e.printStackTrace();
         }
 
-        printTable(dpllNoRestartsFalse,dpllNoRestarts,dpllRestartsFalse, dpllRestarts, cdclNoRestartsFalse,
-                cdclNoRestarts, cdclRestarts, cdclRestartsFalse, dpllNoRestartsFalseCNF,dpllNoRestartsCNF,
-                dpllRestartsFalseCNF, dpllRestartsCNF, cdclNoRestartsFalseCNF,
-                cdclNoRestartsCNF, cdclRestartsCNF, cdclRestartsFalseCNF, sat4j);
+        printTable(dpllNoRestartsFalse, dpllRestartsFalse, cdclRestartsFalse,
+                cdclRestartsFalseCNF,
+                sat4j);
     }
 
 
@@ -173,7 +196,7 @@ public class Evaluation {
     private static Statistics solveSat4J(Path inputFile, int timeout) throws ContradictionException, IOException,
             ParseFormatException, TimeoutException {
         ISolver solver = SolverFactory.newDefault();
-        solver.setTimeout(timeout);
+        solver.setTimeout((int) ((1.0 * timeout) / 1000));
         Reader reader = new DimacsReader(solver);
 
         Statistics stats = new Statistics();
@@ -190,10 +213,13 @@ public class Evaluation {
 
         } catch (FileNotFoundException e) {
             // TODO Auto-generated catch block
+            e.printStackTrace();
         } catch (ParseFormatException e) {
             // TODO Auto-generated catch block
+            e.printStackTrace();
         } catch (IOException e) {
             // TODO Auto-generated catch block
+            e.printStackTrace();
         } catch (ContradictionException e) {
             System.out.println("Unsatisfiable (trivial)!");
         } catch (TimeoutException e) {
@@ -263,7 +289,7 @@ public class Evaluation {
 
     }
 
-    private static void printTable(Statistics ... stats) {
+    public static void printTable(Statistics ... stats) {
         String table =
                 "\\begin{table}[htb]\n" +
                         "\\centering\n" +
@@ -271,8 +297,8 @@ public class Evaluation {
                         "\\label{tab:example}\n" +
                         "\\begin{tabular}{|c|c|c|c|c|c|c|}\n" +
                         "\\hline\n" +
-                        "Solver & Solving time & Solved Instances & Timeouts & Decisions (A) & Propagations (A) & " +
-                        "Conflicts (A)\\\\ " +
+                        "Solver & ST & SI & TO & D A) & P(A) & " +
+                        "C(A)\\\\ " +
                         "\n" +
                         "\\hline\n";
 
@@ -282,6 +308,79 @@ public class Evaluation {
             table += String.format(stat.getName() + " & " + stat.getMilliseconds() + " & " + stat.getSolvedCounter() + " & " + stat.getTimeoutCounter() + " & %.2f" +
                     " & %.2f" + " & %.2f " + "\\\\ \n", stat.getDecisionsAverage(),stat.getPropagationsAverage(),
                     stat.getConflictsAverage()) + "\\hline\n";
+        }
+
+        table += "\\end{tabular}\n" +
+                "\\end{table}";
+
+        System.out.println(table);
+    }
+
+    private static void printBenchmarkStats(Path[] paths) {
+
+        ConstraintStatistics[] stats = new ConstraintStatistics[paths.length];
+
+        for (int i = 0; i < paths.length; i++) {
+            stats[i] = new ConstraintStatistics();
+            ConstraintStatistics statistics = stats[i];
+            Path inputPath = paths[i];
+            try {
+                for (Path inputFile :
+                        Files.list(inputPath).filter(path -> path.toString().endsWith(".cnf") || path.toString().endsWith(
+                                ".txt") || path.toString().endsWith(".rcnf") || path.toString().endsWith(".sudoku")).collect(Collectors.toList())) {
+
+
+                    String[] input = null;
+                    input = Files.readAllLines(inputFile,
+                            StandardCharsets.UTF_8).toArray(new String[0]);
+
+                    new ClauseParser().getBenchmarkStats(input, statistics);
+
+                    statistics.increaseFileCounter();
+
+                }
+            } catch (IOException e) {
+                System.err.println("Something went wrong while reading the input files!");
+                System.exit(-1);
+            } catch (EmptyClauseException e) {
+                e.printStackTrace();
+            } catch (ClauseContainsZeroException e) {
+                e.printStackTrace();
+            } catch (UnitLiteralConflictException e) {
+                e.printStackTrace();
+            } catch (IncorrectFirstLineException e) {
+                e.printStackTrace();
+            } catch (ClauseNotTerminatedByZeroException e) {
+                e.printStackTrace();
+            }
+        }
+
+        printBenchmarkTable(stats);
+
+
+    }
+
+    public static void printBenchmarkTable(ConstraintStatistics ...stats) {
+        String table =
+                "\\begin{table}[htb]\n" +
+                        "\\centering\n" +
+                        "\\caption{Caption}\n" +
+                        "\\label{tab:example}\n" +
+                        "\\begin{tabular}{|c|c|c|c|c|c|c|c|c|}\n" +
+                        "\\hline\n" +
+                        "Benchmark & Formulas & Variables & DNF & TPD & LPT & Clauses & LPC & AMO & LPA \\\\ " +
+                        "\n" +
+                        "\\hline\n";
+
+        for (int i = 0; i < stats.length; i++) {
+            ConstraintStatistics statistics = stats[i];
+
+            table += String.format("- & %d & %.2f & %.2f & %.2f & %.2f & %.2f & %.2f & %.2f & %.2f \\\\ \n \\hline \n",
+                    statistics.getFileCounter(),
+                    statistics.getAverageNumberOfVariables(), statistics.getNumberOfDNFconstraints(),
+                    statistics.getAverageNumberOfTerms(), statistics.getAverageNumberOfLiteralsPerTerm(),
+                    statistics.getNumberOfClauses(), statistics.getAverageLiteralsPerClause(),
+                    statistics.getNumberOfAMOConstraints(), statistics.getAverageLiteralsPerAMOConstraints());
         }
 
         table += "\\end{tabular}\n" +

@@ -1,5 +1,6 @@
 package cas.thomas.Sudoku;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -11,6 +12,20 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import cas.thomas.ConflictHandling.CDCLConflictHandler;
+import cas.thomas.ConflictHandling.DPLLConflictHandler;
+import cas.thomas.Evaluation.ConstraintStatistics;
+import cas.thomas.Evaluation.Evaluation;
+import cas.thomas.Evaluation.Statistics;
+import cas.thomas.RestartHandling.NoRestartsSchedulingStrategy;
+import cas.thomas.RestartHandling.ReluctantDoublingRestartStrategy;
+import cas.thomas.SolutionChecker.SolutionCheckerAMOConstraint;
+import cas.thomas.SolutionChecker.SolutionCheckerConjunctiveFormula;
+import cas.thomas.SolutionChecker.SolutionCheckerConstraint;
+import cas.thomas.SolutionChecker.SolutionCheckerDisjunctiveConstraint;
+import cas.thomas.SolverAlgorithms.SolverAlgorithm;
+import cas.thomas.SolverAlgorithms.mDPLL;
+import cas.thomas.VariableSelection.VSIDS;
 import org.sat4j.core.VecInt;
 import org.sat4j.minisat.SolverFactory;
 import org.sat4j.specs.ContradictionException;
@@ -24,7 +39,7 @@ import cas.thomas.SolverAlgorithms.IncrementalSatSolver;
 
 public class SudokuExperiment {
 
-	public static class Statistics {
+	/*public static class Statistics {
 		public long milliseconds;
 		public long decisions;
 		public long propagations;
@@ -35,7 +50,7 @@ public class SudokuExperiment {
 			return "Statistics [milliseconds=" + milliseconds + ", decisions=" + decisions + ", propagations="
 					+ propagations + ", conflicts=" + conflicts + "]";
 		}
-	}
+	}*/
 
 	public static class SudokuProblem {
 		public int size;
@@ -69,41 +84,121 @@ public class SudokuExperiment {
 	}
 
 	public static void main(String[] args) throws IOException {
-		for (String file : listFilesUsingFileWalk("C:\\Users\\tomas.balyo\\Desktop\\sudokus", 1)) {
-			SudokuProblem problem = readSudokuProblem(file);
-			Statistics s4jstats = solveWithSat4j(problem);
-			Statistics dinostats = solveWithDinoSat(problem);
-			System.out.println(file + " " + s4jstats + " " + dinostats);
+		Statistics dpllNoRestartsFalse = new Statistics();
+		Statistics dpllRestartsFalse = new Statistics();
+		Statistics cdclRestartsFalse = new Statistics();
+		Statistics sat4j = new Statistics();
+
+		if (args.length != 2) {
+			System.err.println("You need to specify the input path and the timeout!");
+			System.exit(-1);
 		}
 
+
+		dpllNoRestartsFalse.setName("DPLL\\_NR\\_F");
+		dpllRestartsFalse.setName("DPLL\\_R\\_F");
+		cdclRestartsFalse.setName("CDCL\\_R\\_F");
+		sat4j.setName("SAT4J");
+
+		int timeout = Integer.parseInt(args[1]);
+
+		for (String file : listFilesUsingFileWalk(args[0], 1)) {
+			SudokuProblem problem = readSudokuProblem(file);
+			dpllNoRestartsFalse.add(solveWithDinoSat(problem, true, false, false, timeout));
+			dpllRestartsFalse.add(solveWithDinoSat(problem, true, true, false, timeout));
+			cdclRestartsFalse.add(solveWithDinoSat(problem, false, true, false, timeout));
+			sat4j.add(solveWithSat4j(problem, timeout));
+			System.out.println(file);
+		}
+
+		Evaluation.printTable(dpllNoRestartsFalse, dpllRestartsFalse, cdclRestartsFalse, sat4j);
+
+	}
+
+	private static void convertSudoToDIMACSFiles(String inputFile, String outputPath) throws IOException {
+		SudokuProblem problem = readSudokuProblem(inputFile);
+
+		CnfWithAMO formula = convertSudokuProblemToCnfWithAMO(problem);
+
+		int maxVariable = 0;
+
+		if (!Files.exists(Paths.get(outputPath, "rcnf"))) {
+			Files.createDirectory(Paths.get(outputPath,"rcnf"));
+		}
+
+		if (!Files.exists(Paths.get(outputPath, "cnf"))) {
+			Files.createDirectory(Paths.get(outputPath,"cnf"));
+		}
+
+		SolutionCheckerConstraint[] constraints =
+				new SolutionCheckerConstraint[formula.clauses.size() + formula.amos.size()];
+
+		int counter = 0;
+		for (int[] clause : formula.clauses) {
+			for (int i = 0; i < clause.length; i++) {
+				maxVariable = Math.max(maxVariable, Math.abs(clause[i]));
+			}
+
+			constraints[counter] = new SolutionCheckerDisjunctiveConstraint(clause);
+			counter++;
+		}
+
+		for (int[] amo : formula.amos) {
+			for (int i = 0; i < amo.length; i++) {
+				maxVariable = Math.max(maxVariable, Math.abs(amo[i]));
+			}
+
+			constraints[counter] = new SolutionCheckerAMOConstraint(amo);
+			counter++;
+		}
+
+		SolutionCheckerConjunctiveFormula cnf = new SolutionCheckerConjunctiveFormula(constraints, maxVariable);
+
+		cnf.toDimacsFile(Paths.get(outputPath, "rcnf", new File(inputFile).getName()));
+		cnf.toDimacsCNFFile(Paths.get(outputPath, "cnf", new File(inputFile).getName()));
+
+
+
+	}
+
+	private static IncrementalCdclSolver getSolver(boolean dpll, boolean restarts, boolean firstBranchingDecision,
+											 long timeout) {
+		return new IncrementalCdclSolver(new VSIDS(), dpll ? new DPLLConflictHandler() : new CDCLConflictHandler(), restarts ?
+				new ReluctantDoublingRestartStrategy(512) : new NoRestartsSchedulingStrategy(0), true,
+				firstBranchingDecision, timeout);
 	}
 	
-	public static Statistics solveWithDinoSat(SudokuProblem problem) {
+	public static Statistics solveWithDinoSat(SudokuProblem problem, boolean dpll, boolean restarts, boolean firstBranchingDecision,
+											  long timeout) {
 		Statistics stats = new Statistics();
 		CnfWithAMO formula = convertSudokuProblemToCnfWithAMO(problem);
-		IncrementalSatSolver solver = new IncrementalCdclSolver();
+		IncrementalCdclSolver solver = getSolver(dpll, restarts, firstBranchingDecision, timeout);
 		for (int[] clause : formula.clauses) {
 			solver.addClause(clause);
 		}
 		for (int[] amo : formula.amos) {
 			solver.addAtMostOne(amo);
 		}
-		solver.setTimeLimit(5000);
+		solver.setTimeLimit(timeout);
+		long startTime = System.currentTimeMillis();
 		try {
-			long startTime = System.currentTimeMillis();
 			solver.solve(new int[] {});
-			stats.milliseconds = System.currentTimeMillis() - startTime;
-		} catch (SolverTimeoutException | UnitLiteralConflictException | java.util.concurrent.TimeoutException e) {
-			System.out.println(e.getMessage());
+			stats.setSolvedCounter(1);
+		} catch (SolverTimeoutException e) {
+			stats.setTimeoutCounter(1);
 		}
+
+		stats.add(solver.getStatistics());
+		stats.setMilliseconds(System.currentTimeMillis() - startTime);
 		return stats;
 	}
 
-	public static Statistics solveWithSat4j(SudokuProblem problem) {
+	public static Statistics solveWithSat4j(SudokuProblem problem, int timeout) {
 		Statistics stats = new Statistics();
 		ISolver solver = SolverFactory.newDefault();
-		solver.setTimeout(5);
+		solver.setTimeout(timeout);
 		CnfWithAMO formula = convertSudokuProblemToCnfWithAMO(problem);
+		long startTime = 0;
 		try {
 			for (int[] clause : formula.clauses) {
 				solver.addClause(new VecInt(clause));
@@ -112,18 +207,21 @@ public class SudokuExperiment {
 				solver.addAtMost(new VecInt(amo), 1);
 			}
 
-			long startTime = System.currentTimeMillis();
+			startTime = System.currentTimeMillis();
 			solver.isSatisfiable();
-			Map<String, Number> statistics = solver.getStat();
-			stats.milliseconds = System.currentTimeMillis() - startTime;
-			stats.decisions = statistics.get("decisions").longValue();
-			stats.conflicts = statistics.get("conflicts").longValue();
-			stats.propagations = statistics.get("propagations").longValue();
 		} catch (ContradictionException e) {
 			e.printStackTrace();
 		} catch (TimeoutException e) {
-			System.out.println("TIMEOUT");
+			stats.setTimeoutCounter(1);
 		}
+
+		Map<String, Number> statistics = solver.getStat();
+		stats.setMilliseconds(System.currentTimeMillis() - startTime);
+		stats.setDecisions(statistics.get("decisions").longValue());
+		stats.setConflicts(statistics.get("conflicts").longValue());
+		stats.setPropagations(statistics.get("propagations").longValue());
+
+		stats.setSolvedCounter(1);
 
 		return stats;
 	}

@@ -1,5 +1,6 @@
 package cas.thomas.Parsing;
 
+import cas.thomas.Evaluation.ConstraintStatistics;
 import cas.thomas.Exceptions.ClauseContainsZeroException;
 import cas.thomas.Exceptions.ClauseNotTerminatedByZeroException;
 import cas.thomas.Exceptions.EmptyClauseException;
@@ -107,6 +108,17 @@ public class ClauseParser {
 
     }
 
+    public void getBenchmarkStats(String[] lines, ConstraintStatistics statistics) throws EmptyClauseException,
+            ClauseContainsZeroException, UnitLiteralConflictException, IncorrectFirstLineException, ClauseNotTerminatedByZeroException {
+
+        Pair<Formula, SolutionCheckerFormula> formulaPair = parseInput(lines);
+
+        SolutionCheckerFormula solutionCheckerFormula = formulaPair.getSecondPairPart();
+
+        solutionCheckerFormula.addStatistics(statistics);
+
+    }
+
     private int findFirstLine(String[] lines) throws IncorrectFirstLineException {
         for (int i = 0; i < lines.length; i++) {
             String currentLine = lines[i];
@@ -161,7 +173,7 @@ public class ClauseParser {
                 }
             }
 
-            int[] intVariables = checkAndParseInputVariables(input, hasIdentifier, isDNF);
+            int[] intVariables = checkAndParseInputVariables(input, hasIdentifier, isDNF, numberOfVariables);
 
             if (identifier.equals("AMO")) {
                 return new AMOConstraint(intVariables, positivelyWatchedAMOList, negativelyWatchedAMOList);
@@ -177,7 +189,8 @@ public class ClauseParser {
         }
     }
 
-    private int[] checkAndParseInputVariables(String[] lineParts, boolean hasIdentifier, boolean isDNF) throws
+    private int[] checkAndParseInputVariables(String[] lineParts, boolean hasIdentifier, boolean isDNF,
+                                              int numberOfVariables) throws
             ClauseNotTerminatedByZeroException, EmptyClauseException, ClauseContainsZeroException {
 
         if (!lineParts[lineParts.length - 1].equals("0")) {
@@ -199,6 +212,8 @@ public class ClauseParser {
                 if (variables[i] == 0) {
                     throw new ClauseContainsZeroException("One of the clauses contains a 0");
                 }
+
+                assert(numberOfVariables > Math.abs(variables[i]));
             }
         }
 
@@ -244,6 +259,8 @@ public class ClauseParser {
             if (variables[i] == 0) {
                 termCount++;
             }
+
+            assert (numberOfVariables > Math.abs(variables[i]));
         }
 
         termCount++;

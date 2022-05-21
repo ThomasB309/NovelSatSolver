@@ -1,5 +1,6 @@
 package cas.thomas.SolutionChecker;
 
+import cas.thomas.Evaluation.ConstraintStatistics;
 import cas.thomas.utils.Pair;
 
 import java.util.ArrayList;
@@ -87,5 +88,10 @@ public class SolutionCheckerAMOConstraint extends SolutionCheckerConstraint {
         }
 
         return new Pair<>(prevHelper, constraintCounter);
+    }
+
+    @Override
+    public void addStatistics(ConstraintStatistics constraintStatistics) {
+        constraintStatistics.addAMOConstraint(literals.length);
     }
 }

@@ -3,6 +3,8 @@ package cas.thomas.SolverAlgorithms;
 import cas.thomas.ConflictHandling.CDCLConflictHandler;
 import cas.thomas.ConflictHandling.ConflictHandlingStrategy;
 import cas.thomas.ConflictHandling.DPLLConflictHandler;
+import cas.thomas.Evaluation.Statistics;
+import cas.thomas.Exceptions.SolverTimeoutException;
 import cas.thomas.Exceptions.UnitLiteralConflictException;
 import cas.thomas.Formulas.Formula;
 import cas.thomas.RestartHandling.NoRestartsSchedulingStrategy;
@@ -36,6 +38,18 @@ public class IncrementalCdclSolver extends mDPLL implements IncrementalSatSolver
                                  boolean firstBranchingDecision) {
         super(variableSelectionStrategy, conflictHandlingStrategy, restartSchedulingStrategy, phaseSaving,
                 firstBranchingDecision, 0);
+        clauses = new ArrayList<>();
+        amoConstraints = new ArrayList<>();
+        dnfConstraints = new ArrayList<>();
+        maxVariable = Integer.MIN_VALUE;
+    }
+
+    public IncrementalCdclSolver(VariableSelectionStrategy variableSelectionStrategy,
+                                 ConflictHandlingStrategy conflictHandlingStrategy,
+                                 RestartSchedulingStrategy restartSchedulingStrategy, boolean phaseSaving,
+                                 boolean firstBranchingDecision, long timeout) {
+        super(variableSelectionStrategy, conflictHandlingStrategy, restartSchedulingStrategy, phaseSaving,
+                firstBranchingDecision, timeout);
         clauses = new ArrayList<>();
         amoConstraints = new ArrayList<>();
         dnfConstraints = new ArrayList<>();
@@ -83,20 +97,26 @@ public class IncrementalCdclSolver extends mDPLL implements IncrementalSatSolver
     }
 
     @Override
-    public boolean solve(int[] assumptions) throws TimeoutException {
+    public boolean solve(int[] assumptions) throws SolverTimeoutException {
 
-        resetStrategies();
         boolean satisfied = false;
         try {
             formula = new Formula(clauses, amoConstraints, dnfConstraints, maxVariable);
             formula.addAssumptions(assumptions);
             satisfied = mDPPLAlgorithm(formula, firstBranchingDecision);
+
+            if (unkown) {
+                throw new SolverTimeoutException();
+            }
+
         } catch (UnitLiteralConflictException e) {
             return false;
         }
 
         assert (satisfied == isCorrect(formula.getVariablesForSolutionChecker(), assumptions,
                 formula.getNumberOfVariables()));
+
+        resetStrategies();
         return satisfied;
 
 
@@ -132,6 +152,10 @@ public class IncrementalCdclSolver extends mDPLL implements IncrementalSatSolver
         }
 
         return new SolutionCheckerConjunctiveFormula(constraints.toArray(SolutionCheckerConstraint[]::new), numberOfVariables).isTrue(solution);
+    }
+
+    public boolean isUnkown() {
+        return unkown;
     }
 
 }

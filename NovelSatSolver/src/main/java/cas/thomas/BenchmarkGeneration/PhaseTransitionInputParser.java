@@ -1,5 +1,6 @@
 package cas.thomas.BenchmarkGeneration;
 
+import cas.thomas.Exceptions.SolverTimeoutException;
 import cas.thomas.Exceptions.UnitLiteralConflictException;
 
 import java.io.IOException;
@@ -16,35 +17,39 @@ public class PhaseTransitionInputParser {
             System.exit(-1);
         }
 
-        switch (args[0]) {
-            case "A":
-                parseAndExecuteAMOPhaseTransition(args);
-                break;
-            case "D":
-                parseAndExecuteDNFPhaseTransition(args);
-                break;
-            case "AC":
-                parseAndExecuteAMOPhaseTransitionWithAConstantNumberOfClauses(args);
-                break;
-            case "DC":
-                parseAndExecuteDNFPhaseTransitionWithAConstantNumberOfClauses(args);
-                break;
-            case "AD":
-                parseAndExecuteAMOPhaseTransitionWithAConstantNumberOfDNFConstraints(args);
-                break;
-            case "ADC":
-                parseAndExecuteAMOPhaseTransitionWithAConstantNumberOfDNFConstraintsAndClauses(args);
-                break;
-            case "G":
-                generateBenchmarks(args);
-                break;
-            default:
-                System.err.println("Choose a valid phase transition!");
-                System.exit(-1);
+        try {
+            switch (args[0]) {
+                case "A":
+                    parseAndExecuteAMOPhaseTransition(args);
+                    break;
+                case "D":
+                    parseAndExecuteDNFPhaseTransition(args);
+                    break;
+                case "AC":
+                    parseAndExecuteAMOPhaseTransitionWithAConstantNumberOfClauses(args);
+                    break;
+                case "DC":
+                    parseAndExecuteDNFPhaseTransitionWithAConstantNumberOfClauses(args);
+                    break;
+                case "AD":
+                    parseAndExecuteAMOPhaseTransitionWithAConstantNumberOfDNFConstraints(args);
+                    break;
+                case "ADC":
+                    parseAndExecuteAMOPhaseTransitionWithAConstantNumberOfDNFConstraintsAndClauses(args);
+                    break;
+                case "G":
+                    generateBenchmarks(args);
+                    break;
+                default:
+                    System.err.println("Choose a valid phase transition!");
+                    System.exit(-1);
+            }
+        } catch (SolverTimeoutException e) {
+            e.printStackTrace();
         }
     }
 
-    private static void parseAndExecuteAMOPhaseTransition(String[] args) {
+    private static void parseAndExecuteAMOPhaseTransition(String[] args) throws SolverTimeoutException {
         if (args.length != 4) {
             System.err.println("You need three inputs: 1. Number of variables, 2. Length of the AMO constraints, 3. " +
                     "The step size");
@@ -72,7 +77,7 @@ public class PhaseTransitionInputParser {
         }
     }
 
-    private static void parseAndExecuteDNFPhaseTransition(String[] args) {
+    private static void parseAndExecuteDNFPhaseTransition(String[] args) throws SolverTimeoutException {
 
         if (args.length != 6) {
             System.err.println("You need five inputs: 1. \"T\" for a constant term count or \"L\" for a constant " +
@@ -116,7 +121,7 @@ public class PhaseTransitionInputParser {
     }
 
 
-    private static void parseAndExecuteAMOPhaseTransitionWithAConstantNumberOfClauses(String[] args) {
+    private static void parseAndExecuteAMOPhaseTransitionWithAConstantNumberOfClauses(String[] args) throws SolverTimeoutException {
 
         if (args.length != 7) {
             System.err.println("You need 6 inputs: 1. Number of variables, 2. Length of the AMO constraints, 3. " +
@@ -151,7 +156,7 @@ public class PhaseTransitionInputParser {
 
     }
 
-    private static void parseAndExecuteDNFPhaseTransitionWithAConstantNumberOfClauses(String[] args) {
+    private static void parseAndExecuteDNFPhaseTransitionWithAConstantNumberOfClauses(String[] args) throws SolverTimeoutException {
 
 
         if (args.length != 8) {
@@ -188,7 +193,7 @@ public class PhaseTransitionInputParser {
 
     }
 
-    private static void parseAndExecuteAMOPhaseTransitionWithAConstantNumberOfDNFConstraints(String[] args) {
+    private static void parseAndExecuteAMOPhaseTransitionWithAConstantNumberOfDNFConstraints(String[] args) throws SolverTimeoutException {
 
         if (args.length != 8) {
             System.err.println("You need 7 inputs: 1. Number of variables, 2. Length of the AMO constraints, 3. The " +
@@ -225,7 +230,7 @@ public class PhaseTransitionInputParser {
 
     }
 
-    private static void parseAndExecuteAMOPhaseTransitionWithAConstantNumberOfDNFConstraintsAndClauses(String[] args) {
+    private static void parseAndExecuteAMOPhaseTransitionWithAConstantNumberOfDNFConstraintsAndClauses(String[] args) throws SolverTimeoutException {
 
         if (args.length != 10) {
             System.err.println("You need 7 inputs: 1. Number of variables, 2. Length of the AMO constraints, 3. The " +
@@ -262,7 +267,7 @@ public class PhaseTransitionInputParser {
 
     }
 
-    private static void generateBenchmarks(String[] args) {
+    private static void generateBenchmarks(String[] args) throws SolverTimeoutException {
 
         if (args.length != 11) {
             System.err.println("You need 10 inputs: 1. Number of variables, 2. Number of clauses, 3. The clause " +

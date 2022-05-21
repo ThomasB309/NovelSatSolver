@@ -1,5 +1,6 @@
 package cas.thomas.SolutionChecker;
 
+import cas.thomas.Evaluation.ConstraintStatistics;
 import cas.thomas.utils.Pair;
 
 import java.util.Arrays;
@@ -91,5 +92,15 @@ public class SolutionCheckerDNFConstraint extends SolutionCheckerConstraint {
         constraintCounter++;
 
         return new Pair<>(nextHelperVariable - 1, constraintCounter);
+    }
+
+    @Override
+    public void addStatistics(ConstraintStatistics constraintStatistics) {
+        int literalsCounter = 0;
+        for (int i = 0; i < terms.length; i++) {
+            literalsCounter += terms[i].length;
+        }
+
+        constraintStatistics.addDNFConstraint(terms.length, literalsCounter);
     }
 }

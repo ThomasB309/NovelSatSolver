@@ -101,7 +101,7 @@ public class AMOConstraint extends Constraint {
         for (int i = 0; i < literals.length; i++) {
             int currentLiteralAbsoluteValue = Math.abs(literals[i]);
             stateOfResolvedVariables[currentLiteralAbsoluteValue] = literals[i];
-            variablesInvolvedInConflict[currentLiteralAbsoluteValue] = 1;
+            //variablesInvolvedInConflict[currentLiteralAbsoluteValue] = 1;
         }
 
         return findReasonConstraintAndResolveConflict(trail, variablesInvolvedInConflict, formula, stateOfResolvedVariables);
@@ -140,6 +140,7 @@ public class AMOConstraint extends Constraint {
         for (int i = 0; i < conflictLiterals.length; i++) {
             int currentLiteralAbsoluteValue = Math.abs(conflictLiterals[i]);
             stateOfResolvedVariables[currentLiteralAbsoluteValue] = conflictLiterals[i];
+            //variablesInvolvedInConflict[currentLiteralAbsoluteValue] = 1;
         }
 
         findNeededAMOLiteralsAndComplementaryLiterals(stateOfResolvedVariables, variablesInvolvedInConflict,
@@ -149,7 +150,9 @@ public class AMOConstraint extends Constraint {
 
 
         if (complementaryLiterals.size() >= 1) {
-            return resolveConflictWithAtLeastOneComplementaryLiteral(formula, clauseLiterals, complementaryLiterals, learnedConstraints);
+            //System.out.println();
+            /*return resolveConflictWithAtLeastOneComplementaryLiteral(formula, clauseLiterals, complementaryLiterals,
+                    learnedConstraints);*/
         }
 
 
@@ -168,6 +171,10 @@ public class AMOConstraint extends Constraint {
 
             if (stateOfResolvedVariables[currentLiteralAbsoluteValue] == -currentLiteral) {
                 complementaryLiterals.offer(-currentLiteral);
+                if (variableAssignments[currentLiteralAbsoluteValue] * currentLiteral > 0) {
+                    amoLiterals.offer(-currentLiteral);
+                }
+
                 stateOfResolvedVariables[currentLiteralAbsoluteValue] = 0;
             } else if (stateOfResolvedVariables[currentLiteralAbsoluteValue] == currentLiteral && currentLiteral == conflictLiteral) {
                 stateOfResolvedVariables[currentLiteralAbsoluteValue] = 0;
@@ -342,7 +349,9 @@ public class AMOConstraint extends Constraint {
         conflictConstraint.getConflictResolutionLiterals(-conflictLiteral, variableAssignments, resolutionLiterals);
 
         for (int i = 0; i < literals.length; i++) {
-            if (literals[i] != conflictLiteral) {
+            int currentLiteral = literals[i];
+            int currentLiteralAbsoluteValue = Math.abs(currentLiteral);
+            if (currentLiteral != conflictLiteral && variableAssignments[currentLiteralAbsoluteValue] * currentLiteral > 0) {
                 resolutionLiterals.add(-literals[i]);
             }
         }
