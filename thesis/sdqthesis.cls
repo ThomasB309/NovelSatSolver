@@ -190,9 +190,9 @@
 \ifcurrentbaselanguage{English}{
 % include English and German abstracts
 \input{sections/abstract_en.tex}
-\begin{otherlanguage}{ngerman}
-\input{sections/abstract_de.tex}
-\end{otherlanguage}
+%\begin{otherlanguage}{ngerman}
+%\input{sections/abstract_de.tex}
+%\end{otherlanguage}
 }{
 % include only German abstract
 \include{sections/abstract_de}

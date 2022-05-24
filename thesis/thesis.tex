@@ -71,6 +71,8 @@
 %% Use biber instead of BibTeX, see README
 \usepackage[citestyle=numeric,style=numeric,backend=biber]{biblatex}
 
+\usepackage{newfloat}
+\usepackage{caption}
 
 \usepackage{framed}
 \usepackage[framemethod=tikz, rightmargin=5, leftmargin=5,backgroundcolor=white, frametitlerule=true,  roundcorner=5pt, middlelinewidth=2pt, skipabove=\baselineskip plus 2pt minus 1pt, skipbelow=\baselineskip plus 2pt minus 1pt, nobreak=true]{mdframed}
@@ -95,6 +97,10 @@
   {purple, mark = none, thick},
   {orange, mark = none, thick},
 }
+
+\DeclareFloatingEnvironment[fileext=frm,placement={!htb},name=Example]{example}
+
+\DeclareFloatingEnvironment[fileext=frm,placement={!htb},name=Definition]{definition}
 
 
 
@@ -166,7 +172,5 @@
 %% ----------------
 %% |   Appendix   |
 %% ----------------
-\appendix
-\input{sections/appendix.tex}
 
 \end{document}
