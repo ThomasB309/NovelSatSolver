@@ -69,6 +69,8 @@
 %% --------------------------------
 
 %% Use biber instead of BibTeX, see README
+\let\Bbbk\relax
+\usepackage{amssymb}
 \usepackage[citestyle=numeric,style=numeric,backend=biber]{biblatex}
 
 \usepackage{newfloat}
@@ -101,6 +103,8 @@
 \DeclareFloatingEnvironment[fileext=frm,placement={!htb},name=Example]{example}
 
 \DeclareFloatingEnvironment[fileext=frm,placement={!htb},name=Definition]{definition}
+
+\DeclareFloatingEnvironment[fileext=frm,placement={!htb},name=Lemma]{lemma}
 
 
 

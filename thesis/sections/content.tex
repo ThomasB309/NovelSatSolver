@@ -45,7 +45,7 @@ There exists not possible assignment that satisfies the given formula
 \label{ex:UnsatFormula}
 \end{example}
 
-The example \ref{ex:UnsatFormula} shows a formula that can't be satisfied no matter how the variables are assigned. This is due to the conflicting conjunction $x_1 \wedge \neg x_1$. This conjunction forces $x_1$ to both be false and true and is therefore not satisfiable.
+The example \ref{ex:UnsatFormula} shows a formula that can't be satisfied, no matter how the variables are assigned. This is due to the conflicting conjunction $x_1 \wedge \neg x_1$. This conjunction forces $x_1$ to both be false and true and is therefore not satisfiable.
 
 \section{The Conjunctive Normal Form (CNF)}
 
@@ -62,15 +62,15 @@ The following two formulas are equivalent:
 \label{ex:EqFormulas}
 \end{example}
 
-The example \ref{ex:EqFormulas} shows the two equivalent formulas $x_1 \implies x_2$ and $\neg x_1 \vee x_2$. Because these two formulas are equivalent, the SAT problem also has the same solution for both of these formulas. Even though both formulas are semantically equivalent, it doesn't necessarily mean that the solving process of the SAT problem has the same complexity.
+The example \ref{ex:EqFormulas} shows the two equivalent formulas $x_1 \implies x_2$ and $\neg x_1 \vee x_2$. Because these two formulas are equivalent, the Boolean satisfiability problem also has the same solution for both of these formulas. Even though both formulas are semantically equivalent, it doesn't necessarily mean that the solving process of the SAT problem has the same complexity.
 
 Historically most SAT solver algorithms were designed in order to solve formulas in their "conjunctive normal form" (CNF) \cite{biere2009handbook}. A CNF consists of a set of clauses that are conjunctively combined using the $\vee$ operator. A clause is a set of literals which are disjunctively combined. \cite{biere2009handbook}
 
-This form was chosen because it has the advantage of being very simple \cite{biere2009handbook}. All clauses need to be satisfied in order for the whole formula to be satisfied and a clause is satisfied, if at least one of its literals is satisfied. This simple form makes the implementation of algorithms easier and enables a common file format \cite{biere2009handbook}.
+This form was chosen, because it has the advantage of being very simple \cite{biere2009handbook}. All clauses need to be satisfied in order for the whole formula to be satisfied and a clause is satisfied, if at least one of its literals is satisfied. This simple form makes the implementation of algorithms easier and enables a common file format \cite{biere2009handbook}.
 
 \section{The DIMACS File Format}
 
-The SAT solver community uses a common file format which is called the "DIMACS file format", and was first introduced in the DIMACS Challenge of 1993 \cite{johnson1996cliques}. A common file format allows newly implemented SAT solvers to use standardized benchmarks in order to assess their performance \cite{biere2009handbook}.
+The SAT solver community uses a common file format, which is called the "DIMACS file format", and was first introduced in the DIMACS Challenge of 1993 \cite{johnson1996cliques}. A common file format allows newly implemented SAT solvers to use standardized benchmarks, in order to assess their performance \cite{biere2009handbook}.
 
 \begin{example}
 \begin{leftbar}
@@ -85,9 +85,10 @@ p cnf 3 3\\
 \label{ex:DIMACS}
 \end{example}
 
-The example \ref{ex:DIMACS} shows a possible input file in the DIMACS format. The input starts with the comment "SAT benchmark". This comment is denoted by the letter "c". Every line that starts with a "c" has to be ignored by the SAT solver. Before the CNF can be defined, there needs to be a preamble that is denoted by the phrase "p cnf", followed by the number of variables and clauses in the CNF. In this case the formula has three variables and three clauses. The preamble is followed by the formula. Each line contains exactly one clause. Each line is escaped by the character "0" because the standard escape characters differ between operating systems.
+The example \ref{ex:DIMACS} shows a possible input file in the DIMACS format. The input starts with the comment "SAT benchmark". This comment is denoted by the letter "c". Every line that starts with a "c" has to be ignored by the SAT solver. Before the CNF can be defined, there needs to be a preamble that is denoted by the phrase "p cnf", followed by the number of variables and clauses in the CNF. In this case the formula has three variables and three clauses. After the preamble the formula can be defined. Each line contains exactly one clause. Each line is escaped by the character "0" because the standard escape characters differ between operating systems.
 
 \section{The Davis–Putnam–Logemann–Loveland (DPLL) Algorithm}
+\label{sec:dpll}
 
 \begin{algorithm}
 \caption{DPLL(CNF formula) \cite{biere2009handbook}}\label{alg:DPLL}
@@ -125,7 +126,7 @@ Consider the formula $x_1 \wedge \neg x_2 \wedge x_3$. The search tree then look
 \label{ex:SearchTree}
 \end{figure}
 
-The tree in example \ref{ex:SearchTree} shows all possible variable assignments for the formula $x_1 \wedge \neg x_2 \wedge x_3$. During each iteration the DPLL algorithm chooses a variable of the formula and assigns a value to it. Which variable is chosen and what value gets assigned can differ depending on which branching heuristic is used. The time that the algorithm needs, in order to come to a conclusion, can vary greatly depending on which branching heuristic is used. After every variable has an assignment, the formula is either true or false. If the formula is false and the algorithm hasn't tried every possible assignment, then it backtracks and tries another combination. If the search space is already exhausted, then the formula is not satisfiable. In the example the algorithm would stop as soon as it finds the assignment $\{1,0,1\}$ because the formula is satisfied.
+The tree in example \ref{ex:SearchTree} shows all possible variable assignments for the formula $x_1 \wedge \neg x_2 \wedge x_3$. During each iteration the DPLL algorithm chooses a variable of the formula and assigns a value to it. Which variable is chosen and what value gets assigned, can differ depending on which branching heuristic is used. The time that the algorithm needs, in order to come to a conclusion, can vary greatly depending on which branching heuristic is used. If the formula is false after an assignment and the algorithm hasn't tried every possible assignment, then it backtracks and tries another combination. If the search space is already exhausted, then the formula is not satisfiable. In the example the algorithm would stop as soon as it finds the assignment $\{1,0,1\}$, because the formula is satisfied.
 
 \paragraph{Unit Resolution}
 One very important aspect of the DPLL algorithm is the unit resolution step. For this step it is important to understand what the term "unit literal" means. A unit literal has to always be true, in order for the formula to be satisfied. The unit literals play an important role in reducing the time, that the DPLL algorithm needs, in order to find a solution. There can essentially be two situations, where unit literals can occur. If the formula itself contains a unit literal before the algorithm even starts, then this literal always has to be true. Therefore the corresponding variable can already be assigned, which reduces the complexity of the search space. The other possibility is that a unit literal occurs as a result of the partial variable assignment of the DPLL algorithm.
@@ -141,11 +142,11 @@ Consider the clause $x_1 \vee \neg x_2 \vee x_3$ and the partial variable assign
 The example \ref{ex:Unitliteral} shows a situation where a clause contains a unit literal as a result of the partial assignment of the DPLL algorithm. Because $\neg x_2$ is a unit literal the DPLL algorithm can instantly set the variable $x_2$ to true which reduces the search space.
 
 \section{Resolvent}
-In order to understand how the DPLL algorithm evolved into the more advanced CDCL algorithm, it is important to know what the "resolvent" of two clauses is. The concept of the resolution was first introduced in the paper "A computing procedure for quantification theory" \cite{davis1960computing} by Davis and Putnam. The concrete rule that is used in todays modern SAT solvers was then introduced in the paper "A machine-oriented logic based on the resolution principle" \cite{robinson1965machine} by Robinson.
+In order to understand how the DPLL algorithm evolved into the more advanced CDCL algorithm, it is important to know what the "resolvent" of two clauses is. The concept of the resolution was first introduced in the paper "A computing procedure for quantification theory" \cite{davis1960computing} by Davis and Putnam. The concrete rule, that is used in todays modern SAT solvers was then introduced in the paper "A machine-oriented logic based on the resolution principle" \cite{robinson1965machine} by Robinson.
 
 \begin{definition}
 \begin{leftbar}
-Let A and B be two clauses of a boolean formula and $x$ a variable. The literal x is contained in A and the literal $\neg x$ is contained in B. Then the resolvent of the two clauses is defined in the following way:
+Let A and B be two clauses of a Boolean formula and $x$ a variable. The literal x is contained in A and the literal $\neg x$ is contained in B. Then the resolvent of the two clauses is defined in the following way:
 \begin{displaymath}
 (A - x) \cup (B - \neg x)
 \end{displaymath}
@@ -163,6 +164,7 @@ x_1 \vee x_2 \vee x_4 \vee x_5
 \end{leftbar}
 
 \section{The Conflict-Driven-Clause-Learning Algorithm}
+\label{sec:cdcl}
 
 \begin{algorithm}
 \caption{CDCL(F) \cite{biere2009handbook}}\label{alg:CDCL}
@@ -202,36 +204,32 @@ If the standard DPLL algorithm arrives at such a conflict, it just uses normal c
 
 We already know that the resolvent of two clauses is always implied by these clauses and therefore also implied by the whole formula. By adding the resolvent of two conflicting clauses to the formula, we can prevent the algorithm from setting a partial assignment that leads to the conflict. This process is called clause learning \cite{biere2009handbook}.
 
-\section{Unique Implication Point}
-
-The unique implication point can be defined as the assignment in a specific decision level of the CDCL-algorithm that is sufficient to imply the conflict that occurred between two clauses \cite{biere2009handbook}. Modern CDCL solvers try to learn clauses that are unique implication points and therefore asserting, because they become unit clauses when added to the formula \cite{biere2009handbook}.
-
 \section{Two-Watched-Literals Algorithm}
 \label{sec:twoWatchedLiterals}
 
 The "Two-Watched-Literals Algorithm" as described in "Chaff: Engineering an Efficient SAT Solver" \cite{moskewicz2001chaff} is an efficient algorithm for implementing the unit propagation of a clause based SAT Solver. To understand the efficiency of this algorithm, we can take a look at how the propagation of literals can be implemented in a naive way. Theoretically you could iterate over every clause in the database and check if the next variable assignment forces a unit propagation in a clause. This is inefficient, because not all clauses need to be visited for every variable assignment. If a literal in clause turns true, then the clause is satisfied and can't force a unit propagation anymore. It therefore doesn't need to be visited.
 
-The two-watched-literals algorithm tries to minimize the time by visiting only the necessary clauses. The premise of this algorithm is, that a clause can't start a unit propagation as long as it contains at least two non false literals. This is based on the fact that a clause is not satisfied if all of its literals are false. So a unit propagation starts if there is only one non false literal left.
+The two-watched-literals algorithm tries to minimize the time by visiting only the necessary clauses. The premise of this algorithm is, that a clause can't start a unit propagation as long as it contains at least two non false literals. This is based on the fact that a clause is not satisfied if all of its literals are false. So a unit propagation starts, if there is only one non false literal left.
 
-For the algorithm to work, the SAT solver needs to watch two non false literals in every clause. If a variable gets an assignment, then only clauses whose watched literal turned false need to be visited. In every visited clause the algorithm tries to swap out the false literal, with a non false replacement. If there is no other literal that can act as a replacement, then the second watched literal is the last non false literal that is left in the clause. It therefore must be propagated as a unit literal. This algorithm is efficient, because it only performs the bare minimum of clause visits, that are needed to ensure propagation completeness.
+For the algorithm to work, the SAT solver needs to watch two non false literals in every clause. If a variable gets an assignment, then only clauses, whose watched literal turned false, need to be visited. In every visited clause the algorithm tries to swap out the false literal, with a non false replacement. If there is no other literal that can act as a replacement, then the second watched literal must propagated as a unit literal. This algorithm is efficient, because it only performs the bare minimum of clause visits, that are needed to ensure propagation completeness.
 
 \section{Variable State Independent Decaying Sum (VSIDS)}
 \label{sec:VSIDS}
 
-The decision heuristic VSIDS for choosing the next variable to assign, was first introduced in the paper "Chaff: Engineering an Efficient SAT Solver" \cite{moskewicz2001chaff}. The heuristic is based on the appearance of variables in a new clause, that is learned because of a conflict. Its direct application is therefore only possible in a CDCL based algorithm. In order to apply the heuristic, the SAT solver needs to keep a score for each variable, which is initialized with the amount of occurrences of this variable. After every conflict, the score of every variable contained in the newly learned clause needs to be incremented by one. For every new variable assignment, the SAT solver needs to select the variable which currently has the highest VSIDS score and is unassigned. In order to prevent overflows the score of each variable needs to be repeatedly divided by a constant. This heuristic has proven to be outperforming other heuristics while still being very efficient to implement. The efficiency stems from the fact, that a score adjustment only happens after a conflict occurs, which in itself is a rare occurrence.
+The decision heuristic VSIDS for choosing the next variable to assign, was first introduced in the paper "Chaff: Engineering an Efficient SAT Solver" \cite{moskewicz2001chaff}. The heuristic is based on the appearance of variables in a new clause, that is learned because of a conflict. Its direct application is therefore only possible in a CDCL based algorithm. In order to apply the heuristic, the SAT solver needs to keep a score for each variable, which is initialized with the amount of occurrences of this variable. After every conflict, the score of every variable contained in the newly learned clause needs to be incremented by one. For every new variable assignment, the SAT solver needs to select the variable which currently has the highest VSIDS score and is unassigned. In order to prevent overflows the score of each variable needs to be repeatedly divided by a constant. This heuristic has proven to be outperforming other heuristics, while still being very efficient to implement. The efficiency stems from the fact, that a score adjustment only happens after a conflict occurs, which in itself is a rare occurrence.
 
 \subsection{Normalized Variable State Independent Decaying Sum (NVSIDS)}
 \label{sec:NVSIDS}
 
-In the paper "Adaptive Restart Strategies for Conflict Driven SAT Solvers" \cite{biere2008adaptive} the author Armin Biere describes a different implementation of the VSIDS heuristic which is called "normalized VSIDS". In this implementation the score of each variable is punished after every conflict by multiplying it with a factor between 0 and 1. Then the counter of each variable that is involved in the conflict gets incremented by 1. The author describes that this implementation leaves every variable with a VSIDS score between 0 and 1. The author mentions that this method is very costly because the score of every variable needs to be punished at every conflict. In contrast to that, the original VSIDS implementation halves the score of every variable after a certain amount of conflicts occurred, which is much less computationally expensive.
+In the paper "Adaptive Restart Strategies for Conflict Driven SAT Solvers" \cite{biere2008adaptive} the author Armin Biere describes a different implementation of the VSIDS heuristic which is called "normalized VSIDS". In this implementation the score of each variable is punished after every conflict by multiplying it with a factor between 0 and 1. Then the counter of each variable that is involved in the conflict gets incremented by 1. The author describes that this implementation leaves every variable with a VSIDS score between 0 and 1. The author mentions that this method is very costly, because the score of every variable needs to be punished at every conflict. In contrast to that, the original VSIDS implementation halves the score of every variable after a certain amount of conflicts occurred, which is much less computationally expensive.
 
 \subsection{Exponential Variable State Independent Decaying Sum (EVSIDS)}
 
-A different implementation of the VSIDS heuristic is the exponential VSIDS which was proposed in the paper "An extensible SAT Solver" \cite{een2003extensible}. In contrast to the NVSIDS implementation, EVSIDS only updates the score of every variable involved in the conflict. In order to update the score, EVSIDS uses a value \textbf{g} which must be larger than 1, and the index \textbf{i} of a conflict. The value $g^{i}$ then gets added to the score of every variable involved in the conflict. This is much less computationally expensive then NVSIDS, because not every variable needs to be updated at every conflict. The author Armin Biere has also shown that the equations of NVSIDS and EVSIDS are linearly related, which is why they produce the same variable orderings \cite{biere2008adaptive}. So EVSIDS produces the same results as NVSIDS while still being less computationally expensive.
+A different implementation of the VSIDS heuristic is the exponential VSIDS which was proposed in the paper "An extensible SAT Solver" \cite{een2003extensible}. In contrast to the NVSIDS implementation, EVSIDS only updates the score of every variable involved in the conflict. In order to update the score, EVSIDS uses a value \textbf{g} which must be larger than 1, and the index \textbf{i} of a conflict. The value $g^{i}$ then gets added to the score of every variable, that is involved in the conflict. This is much less computationally expensive then NVSIDS, because not every variable needs to be updated at every conflict. The author Armin Biere has also shown that the equations of NVSIDS and EVSIDS are linearly related, which is why they produce the same variable orderings \cite{biere2008adaptive}. So EVSIDS produces the same results as NVSIDS while still being less computationally expensive.
 
 \section{The Literals Blocks Distance (LBD)}
 
-The concept of the Literals Blocks Distance (LBD) was first introduced in the paper "Predicting learnt clauses quality" \cite{audemard2009predicting} by Audemard and Simon and is a metric to measure the quality of a newly learned clauses in CDCL based SAT solvers. The LBD score of a clause is defined as the number of distinct variable decision levels that are contained in the clause. The authors explain that every clause with an LBD score of two must also be a unique implication point, which makes them very good for learning in the CDCL algorithm. So the deletion process starts when 20000 conflicts are reached, which prompts the solver to delete half of the learned clauses. These clauses are sorted by their LBD score. The number of conflicts that trigger the deletion process, is then increased by 500 for every database reduction that the solver performed.
+The concept of the Literals Blocks Distance (LBD) was first introduced in the paper "Predicting learnt clauses quality" \cite{audemard2009predicting} by Audemard and Simon and is a metric to measure the quality of a newly learned clauses in CDCL based SAT solvers. The LBD score of a clause is defined as the number of distinct variable decision levels, that are contained in the clause. The authors explain, that every clause with an LBD score of two must also be a unique implication point, which makes them very good for learning in the CDCL algorithm. The authors use the LBD score in order to determine which clauses to delete. So the deletion process starts when 20000 conflicts are reached, which prompts the solver to delete half of the learned clauses. These clauses are sorted by their LBD score. The number of conflicts, that trigger the deletion process, is then increased by 500 for every database reduction that the solver performed.
 
 Consider the following example of a clause:
 
@@ -248,7 +246,7 @@ The clause in the example has exactly three distinct decision levels. The LBD sc
 
 \section{Restarts}
 
-Restarts are a technique to prevent SAT solvers from spending a large amount of time in search space areas that yield no solution \cite{biere2009handbook}. When the solver initiates a restart, it removes all variable assignments and starts from the beginning. If the SAT solver is deterministic in its strategy, then this would just slow the SAT solver down, because it would take the exact same path again. So in order for restarts to have an effect, the SAT solver either has to have a randomized component, or it needs to retain additional information from previous assignments. If the branching heuristic is randomized then the SAT solver would take a different path after a restart which might lead to a faster solution. The other possibility is especially relevant for the CDCL-algorithm. During conflicts in the CDCL-algorithm, the SAT solver learns a new clause in order to resolve these conflicts. If the solver retains these learned clauses after restarts, then these clauses will prevent the conflicts that occurred before and lead the solver to a different path. This way the solver can have only deterministic components while still being able to profit from restarts. \cite{biere2009handbook}
+Restarts are a technique to prevent SAT solvers from spending a large amount of time in search space areas that yield no solution \cite{biere2009handbook}. When the solver initiates a restart, it removes all variable assignments and starts from the beginning. If the SAT solver is deterministic in its strategy, then this would just slow the SAT solver down, because it would take the exact same path again. So in order for restarts to have an effect, the SAT solver either has to have a randomized component, or it needs to retain additional information from previous assignments. If the branching heuristic is randomized then the SAT solver would take a different path after a restart which might lead to a faster solution. The other possibility is especially relevant for the CDCL-algorithm. During conflicts in the CDCL-algorithm, the SAT solver learns a new clause, in order to resolve a conflict. If the solver retains these learned clauses after restarts, then these clauses will prevent the conflicts, that occurred before and lead the solver to a different path. This way the solver can have only deterministic components, while still being able to profit from restarts. \cite{biere2009handbook}
 
 \section{Luby Restarts}
 
@@ -266,7 +264,7 @@ $t_i =
 \caption{Luby sequence \cite{luby1993optimal}}
 \end{definition}
 
-It was first used in the TiniSat SAT solver that was introduced in the paper "The Effect of Restarts on the Efficiency of Clause Learning" \cite{huang2007effect} by Jinbo Huang, where the author showed that it has significant performance advantages compared to other restart policies.
+It was first used in the TiniSat SAT solver that was introduced in the paper "The Effect of Restarts on the Efficiency of Clause Learning" \cite{huang2007effect} by Jinbo Huang, where the author showed, that it has significant performance advantages compared to other restart policies.
 
 \chapter{Related Work}
 \label{ch:Related Work}
@@ -297,97 +295,139 @@ Another SAT solver that is capable of natively solving cardinality constraints a
 \chapter{Analysis}
 \label{ch:Analysis}
 
-This chapter focuses on the new kinds of constraints that the novel SAT solver is supposed to be able to solve in addition to the normal CNF input. In order for the SAT solver to process these new constraints, a thorough analysis on how these constraints interact with each other during a conflict and what the solver can learn from that, is needed.
+This chapter focuses on the new kinds of constraints, that the novel SAT solver is supposed to be able to solve in addition to the normal CNF input. In order for the SAT solver to process these new constraints, a thorough analysis on how these constraints interact with each other during a conflict and what the solver can learn from that, is needed.
 
 \section{Basic SAT Solver Structure}
 
-This thesis is concerned with building a novel SAT solver architecture that is capable of solving basic CNF formulas like other modern SAT solvers, while also being capable of handling other types of constraints. The first important step is therefore the decision on what techniques our architecture is going to use in order to solve basic CNF formulas.
+This thesis is concerned with building a novel SAT solver architecture, that is capable of solving basic CNF formulas like other modern SAT solvers, while also being capable of handling DNF and AMO constraints. The first important step is therefore the decision, what techniques our architecture is going to use, in order to solve basic CNF formulas.
 
-The DPLL algorithm, as already described in section \ref{sec:dpll}, is one of the most prominent algorithms for SAT solving. It is a depth-first search based algorithm and was developed in order to combat the high space requirements of the DP algorithm \cite{biere2009handbook}. Because the DPLL algorithm uses a search based approach, the time that is needed to solve a formula, can be really long, depending on how large the formula is. This is the case because the DPLL algorithm just tries every possible combination of variable assignments, until a satisfying assignment is found. There are techniques that allows for a faster search like unit propagation, phase saving, branching heuristics and also restarts \cite{biere2009handbook}, but many modern SAT solvers still don't use a pure DPLL-based approach.
+The DPLL algorithm, as already described in section \ref{sec:dpll}, is one of the most prominent algorithms for SAT solving. It is a depth-first search based algorithm and was developed in order to combat the high space requirements of the DP algorithm \cite{biere2009handbook}. Because the DPLL algorithm uses a search based approach, the time that is needed to solve a formula, can be really long, depending on how large the formula is. This is the case, because the DPLL algorithm just tries every possible combination of variable assignments, until a satisfying assignment is found. There are techniques that allow for a faster search like unit propagation, phase saving, branching heuristics and also restarts \cite{biere2009handbook}, but many modern SAT solvers still don't use a pure DPLL-based approach.
 
-Instead the current best SAT solvers like Kissat \cite{BiereFazekasFleuryHeisinger-SAT-Competition-2020-solvers} and CaDiCaL \cite{Biere-SAT-Competition-2017-solvers} instead make use of the CDCL algorithm. This allows for non-chronological backtracking and the learned clauses make sure that non satisfiable areas of the search space are never reached. This can reduce the solving time of boolean formulas drastically. 
+Instead the current best SAT solvers like Kissat \cite{BiereFazekasFleuryHeisinger-SAT-Competition-2020-solvers} and CaDiCaL \cite{Biere-SAT-Competition-2017-solvers} instead make use of the CDCL algorithm. As already explained in section \ref{sec:cdcl}, this allows for non-chronological backtracking and the learned clauses make sure that non satisfiable areas of the search space are never reached. This can reduce the solving time of Boolean formulas drastically. 
 
-For this thesis the integration of different constraint types into these modern algorithms is the most important aspect of this work. The usage of the DPLL algorithm with different constraint types would only allow us to explore optimization options in the area of unit propagations, branching heuristics and restarts, because there is no real conflict resolution. By using the CDCL algorithm it is possible to explore how the constraints interact directly with each other via conflicts, and how this can be leveraged by learning new constraints. Both approaches are interesting and because it is difficult to assess which of these algorithms offers the best performance when the formula contains different constraint types, we decided to implement both algorithms and evaluate their performance.
+For this thesis the integration of different constraint types into these modern algorithms is the most important aspect of this work. The usage of the DPLL algorithm with different constraint types would only allow us to explore optimization options in the area of unit propagations, branching heuristics and restarts, because there is no real conflict resolution. By using the CDCL algorithm it is possible to explore how the constraints interact directly with each other via conflicts, and how this can be leveraged by learning new constraints. Both approaches are interesting and because it is difficult to assess, which of these algorithms offers the best performance when the formula contains different constraint types, we decided to implement both algorithms and evaluate their performance.
 
 \subsection{Branching Heuristics}
 
-The branching heuristic is an important part of every SAT solver. A smart decision of which variable to assign next, can have a significant impact on the solving time of a formula. The author Joao Marques-Silva \cite{marques1999impact} has shown that the number of decisions a SAT solver has to make, can vary strongly depending on the branching heuristic. One of the results suggests that a randomized branching heuristic often yields good results. Because branching heuristics have such a significant impact on the solving speeds, we can't ignore this aspect and have to analyze which heuristic would be optimal for our solver. In 2001 the authors Moskewicz et al. \cite{moskewicz2001chaff} then introduced their new branching heuristic "VSIDS" which is used in their SAT solver "Chaff". The authors report that the VSIDS branching heuristics yielded better performance on hard benchmarks while not negatively impacting performance on any of the easier benchmarks \cite{moskewicz2001chaff} compared to other branching heuristics. With this significant improvement, the VSIDS heuristic became an important part of modern SAT solvers that make use of the CDCL-algorithm \cite{biere2015evaluating}. 
+The branching heuristic is an important part of every SAT solver. A smart decision of which variable to assign next, can have a significant impact on the solving time of a formula. In the paper "The Impact of Branching Heuristics in
+Propositional Satisfiability Algorithms" \cite{marques1999impact} Marques-Silva has shown that the number of decisions a SAT solver has to make, can vary strongly depending on the branching heuristic. One of the results suggests, that a randomized branching heuristic often yields good results. Because branching heuristics have such a significant impact on the solving speeds, we can't ignore this aspect and have to analyze which heuristic would be optimal for our solver. In 2001 the authors Moskewicz et al. \cite{moskewicz2001chaff} then introduced their new branching heuristic "VSIDS", which is used in their SAT solver "Chaff". The authors report that the VSIDS branching heuristics yielded better performance on hard benchmarks while not negatively impacting performance on any of the easier benchmarks \cite{moskewicz2001chaff} compared to other branching heuristics. With this significant improvement, the VSIDS heuristic became an important part of modern SAT solvers, that make use of the CDCL-algorithm \cite{biere2015evaluating}. 
 
-A new variant of this heuristic, which is now referred to as "exponential VSIDS" (EVSIDS) \cite{biere2015evaluating} was introduced in the paper "An extensible SAT Solver" \cite{een2003extensible}. EVSIDS is efficient because it only updates the score of each bumped variable. It can then be used in combination of a priority queue which keeps the variables in order of their current scores. The variables are then polled from the queue until an unassigned variable is found. During backtracking the unassigned variables need to then be inserted back in to the queue \cite{biere2015evaluating}
+A new variant of this heuristic, which is now referred to as "exponential VSIDS" (EVSIDS) \cite{biere2015evaluating} was introduced in the paper "An extensible SAT Solver" \cite{een2003extensible}. 
+
+EVSIDS is efficient, because it only updates the score of each bumped variable. It can then be used in combination with a priority queue, which keeps the variables in order of their current scores. The variables are then polled from the queue, until an unassigned variable is found. During backtracking the unassigned variables need to then be inserted back in to the queue. \cite{biere2015evaluating}
 
 Due to the large performance improvement that the VSIDS heuristic brings to the SAT solving process and the efficient implementation that is offered by EVSIDS, we decided to implement this variant of the heuristic.
 
 \subsection{Constraint Database Reduction}
 
-The clause database reduction is a concept that is needed in every SAT solver that makes use of the CDCL-algorithm. During the learning process, the database of constraints grows due to the new constraints that are learned at every conflict. At a certain point the benefit of information, that these constraints provide, is overshadowed by the memory usage and computational complexity while propagating in all these constraints. The SAT solver therefore needs a mechanism to reduce the database size \cite{biere2009handbook}.
+The clause database reduction is a concept, that is needed in every SAT solver, that makes use of the CDCL-algorithm. During the learning process, the database of constraints grows due to the new constraints, that are learned at every conflict. At a certain point the benefit of information, that these constraints provide, is overshadowed by the memory usage and computational complexity while propagating in all these constraints. The SAT solver therefore needs a mechanism to reduce the database size. \cite{biere2009handbook}
 
-Of course we want to retain the most important learned information, which is why it is important to retain the most useful learned constraints. In the paper "Predicting Learnt Clauses Quality in Modern SAT Solvers" \cite{audemard2009predicting} the authors Audemard and Simon describe their measurement of clause quality by using the LBD score. By using this clause deletion scheme their SAT solver managed to gain a significant performance advantage.
+Of course we want to retain the most important learned information, which is why it is important, to retain the most useful learned constraints. In the paper "Predicting Learnt Clauses Quality in Modern SAT Solvers" \cite{audemard2009predicting} the authors Audemard and Simon describe their measurement of clause quality by using the LBD score. By using this clause deletion scheme based on the LBD score, their SAT solver managed to gain a significant performance advantage.
 
-The problem with implementing this type of clause deletion scheme in our novel SAT solver are the different types of constraints that it uses. The LBD score was specifically defined to measure the quality of clauses, but our SAT solver uses AMO and DNF constraints in addition to clauses. So in order to make us of this scheme we first have to define the LBD score for general constraints
+The problem with implementing this type of clause deletion scheme in our novel SAT solver are the different types of constraints, that it uses. The LBD score was specifically defined to measure the quality of clauses, but our SAT solver uses AMO and DNF constraints in addition to clauses. So in order to make us of this scheme we first have to define the LBD score for general constraints
 
-\begin{figure}[!htb]
+\begin{definition}[!htb]
 \begin{leftbar}
-Given a partial assignment of variables the LBD score of a constraint is the number of distinct decision levels \textbf{n} that can be counted in the constraint.
+Given a partial assignment of variables, the LBD score of a constraint is the number of distinct decision levels \textbf{n} that can be counted in the constraint.
 \end{leftbar}
 \caption{Definition of the LBD score}
 \label{def:LBD}
-\end{figure}
+\end{definition}
 
-The definition \ref{def:LBD} is a direct translation of the clause LBD score to a general constraint. It is hard to predict if these general LBD scores also have a significant performance advantage over other database reduction schemes.
+The definition \ref{def:LBD} is a direct translation of the clause LBD score to a general constraint. It is hard to predict, if these general LBD scores also have a significant performance advantage over other database reduction schemes.
 
 \subsection{Restarts}
 
-Another important aspect of modern SAT solvers are the restarts. Restarts in SAT solving reset the current state of the solving process and then restart it. In order for those restarts to have an advantage, they either have to be randomized, so the solver won't just try the same combinations after the restarts, which would yield no advantage. Or the SAT solver needs to retain information like learned constraints, which guide the solving process into a new direction after a restart \cite{biere2009handbook}.
+Another important aspect of modern SAT solvers are the restarts. Restarts in SAT solving reset the current state of the solving process and then restart it. In order for those restarts to have an advantage, they either have to be randomized, so the solver won't just try the same combinations after the restarts, which would yield no advantage. Or the SAT solver needs to retain information like learned constraints, which guide the solving process into a new direction after a restart.
+\cite{biere2009handbook}
 
-In the paper "Evaluating CDCL Restart Schemes" \cite{biere2015evaluatingRestarts} the authors Biere and Fröhlich evaluate several static restart schemes with uniform and non-uniform restart intervals as well as more modern dynamic restart schemes. The results show that the dynamic restart schemes like the "Glucose restart scheme" \cite{biere2015evaluatingRestarts} outperform the other static schemes. One important aspect of this dynamic scheme is the use of the LBD score of recently learned clauses. The LBD score is a concept that was defined for clauses, which makes it harder to predict how this scheme will perform in our novel SAT solver architecture, which makes use of several different constraints. We therefore decided to use a static scheme that isn't reliant on specific characteristics of the learned constraints.
+In the paper "Evaluating CDCL Restart Schemes" \cite{biere2015evaluatingRestarts} the authors Biere and Fröhlich evaluate several static restart schemes with uniform and non-uniform restart intervals, as well as more modern dynamic restart schemes. The results show that the dynamic restart schemes like the "Glucose restart scheme" \cite{biere2015evaluatingRestarts} outperform the other static schemes. One important aspect of this dynamic scheme is the use of the LBD score of recently learned clauses. The LBD score is a concept, that was defined for clauses, which makes it harder to predict how this scheme will perform in our novel SAT solver architecture, which makes use of several different constraints. We therefore decided to use a static scheme that isn't reliant on specific characteristics of the learned constraints.
 
-The authors also compare a static restart scheme with uniform restart intervals with non-uniform schemes like the Luby-series and the inner/outer strategy. The inner/outer strategy performed worse than both, and while the Luby-series and the uniform restart scheme showed similar performance in the general, the Luby-series was better in a broader range of benchmarks \cite{biere2015evaluatingRestarts}.
+The authors also compare a static restart scheme with uniform restart intervals with non-uniform schemes like the Luby-series and the inner/outer strategy. The inner/outer strategy performed worse than both, and while the Luby-series and the uniform restart scheme showed similar performance in general, the Luby-series was better in a broader range of benchmarks. \cite{biere2015evaluatingRestarts}
 
 Because of our concerns with directly translating the LBD score for restarts, we decided to implement a version of the Luby-series for the restarts in our novel SAT solver architecture.
 
-\section{"At most one" (AMO) Constraint}
+\section{"At Most One" (AMO) Constraint}
 \label{sec:AMOConstraint}
 
-This section describes the approach on how the novel SAT solver can deal with AMO constraints and their conflicts. The AMO constraint is a Boolean formula that can only be true if either zero or one of the literals is true.  Formally this constraint can be defined in its CNF – form as:
+This section describes the approach on how the novel SAT solver can deal with AMO constraints and their conflicts. The AMO constraint is a Boolean formula that can only be true, if either zero or one of the literals is true.  Formally this constraint can be defined in its CNF – form as:
 
+\begin{definition}
 \begin{leftbar}
 \begin{displaymath}
 AMO(x_1, ..., x_n)= \{\neg x_i \vee \neg x_j \; | \; \forall i, j \; i < j\}
 \end{displaymath}
 \end{leftbar}
+\caption{Naïve CNF encoding of an AMO constraint}
+\label{def:AMOEncodingNaive}
+\end{definition}
 
-This naïve CNF encoding uses n * (n-1) / 2 clauses and can therefore grow very large. There are also other encodings like the sequential AMO encoding, which uses 3n – 4 clauses and n – 1 auxiliary variables. Another encoding with fewer auxiliary variables is the logarithmic bitwise encoding which requires only n log n clauses and n auxiliary variables \cite{chen2010new}. All of these encodings have in common that they try to represent the AMO constraint in form of clauses. This is necessary for most of the common SAT solvers because they can only solve formulas in CNF form. Our novel SAT solver architecture shouldn’t be restricted to clauses. Our architecture is supposed to natively support AMO constraints and therefore internally differentiate between different constraint types. Therefore we can use a simple encoding with the following form:
+The definition \ref{def:AMOEncodingNaive} shows the naïve CNF encoding of an AMO constraint. 
+
+It uses n * (n-1) / 2 clauses and can therefore grow very large. There are also other encodings like the sequential AMO encoding, which uses 3n – 4 clauses and n – 1 auxiliary variables. Another encoding with fewer auxiliary variables is the logarithmic bitwise encoding which requires only n log n clauses and n auxiliary variables. 
+\cite{chen2010new} 
+
+All of these encodings have in common that they try to represent the AMO constraint in form of clauses. This is necessary for most of the common SAT solvers, because they can only solve formulas in CNF form. Our novel SAT solver architecture shouldn’t be restricted to clauses. Our architecture is supposed to natively support AMO constraints and therefore internally differentiate between different constraint types. Therefore we can use a simple encoding with the following form:
 
 \begin{leftbar}
 \begin{displaymath}
 AMO \; x_1 ... x_n
 \end{displaymath}
 \end{leftbar}
-By using this type of encoding you only need one constraint input in order to represent the AMO constraint. If a conflict arises, our solver can then use different strategies depending on which types of constraints are involved in the conflict.
+By using this type of encoding you only need one constraint input in order to represent the AMO constraint. If a conflict arises, our solver can then use different strategies, depending on which types of constraints are involved in the conflict.
 
 \subsection{AMO Constraint Unit Propagation}
 
-Before the analysis of how a conflict between an AMO constraint and the other constraint types looks like, it is important to understand how the propagation of literals work in a natively supported AMO constraint. By using the simple one line encoding explained above, the solver can remember which literals belong to an AMO constraint. Consider the situation that a variable gets assigned a value during the CDCL-algorithm. If in consequence to this assignment a literal turns false in any AMO constraint, then the solver doesn’t have to visit them. This is possible because the AMO constraint stays true even when all of the literals turn false. Therefore the solver doesn't need to consider the literals that turn false in an AMO constraint. It is only important to consider the situation that a literal turns true in any AMO constraint. If a literal in an AMO constraint turns true then every other literal automatically has to turn false in order to satisfy the constraint.
+In order to do a conflict analysis, it is important to understand how the propagation of literals work in a natively supported AMO constraint. By using the simple one line encoding explained above, the solver can remember which literals belong to an AMO constraint. Consider the situation that a variable gets assigned a value during the CDCL-algorithm. If in consequence to this assignment a literal turns false in any AMO constraint, then the solver doesn’t have to visit them. This is possible, because the AMO constraint stays satisfied, even when all of the literals turn false. Therefore the solver doesn't need to consider the literals, that turn false in an AMO constraint. It is only important to consider the literals, that turn true in any AMO constraint. If a literal in an AMO constraint turns true, then every other literal in that AMO constraint automatically has to turn false, in order to satisfy the constraint.
 
 \subsection{AMO - AMO Conflicts}
 
-Now that it is clear how the propagation of literals works in AMO constraints, an analysis of the conflicts that can arise as a consequence of this propagation is needed.
+This section contains the analysis of the different conflict types, that can occur between two AMO constraints, and an analysis on how these conflicts can be resolved.
 
 
-The first conflict to consider, is the conflict between two AMO constraints. Consider two general AMO constraints $AMO_1$ and $AMO_2$. A non satisfying assignment in an AMO constraint occurs, when at least two literals in the constraint turn true. So in order for two AMO constraints to have a conflict, a literal assignment that occurs in $AMO_1$ needs to be responsible for at least two true literals in $AMO_2$. This situation can only happen if the the AMO constraints are complementary on at least one literal. This means that one AMO constraint contains a literal $x_k$ while the other AMO constraint has a literal $\neg x_k$. This is necessary because an AMO constraint can only force other literals to be false. So when one of the constraints forces a literal to be false, the other AMO constraint needs to have the complementary literal in order for it to turn true and cause a conflict.
+First it is important to understand, how a conflict can occur between two AMO constraints. Consider two general AMO constraints $AMO_1$ and $AMO_2$. A non satisfying assignment in an AMO constraint occurs, when at least two literals in the constraint turn true. So in order for two AMO constraints to have a conflict, a literal assignment that occurs in $AMO_1$, needs to be responsible for at least two true literals in $AMO_2$. This situation can only happen if the the AMO constraints are complementary on at least one literal. This means that one AMO constraint contains a literal $x_k$ while the other AMO constraint has a literal $\neg x_k$. This is necessary, because an AMO constraint can only force other literals to be false. So when one of the constraints forces a literal to be false, the other AMO constraint needs to have the complementary literal, in order for it to turn true and cause a conflict.
 
 \subsubsection{First AMO - AMO Conflict}
+
+In order to understand the first type of AMO-AMO conflict, consider the following two constraints $AMO_1$ and $AMO_2$:
+
+\begin{example}
+\begin{leftbar}
+\begin{displaymath}
+AMO_1(a,b,c,d)
+\end{displaymath}
+\begin{displaymath}
+AMO_2(e,g,\neg c,f)
+\end{displaymath}
+\begin{displaymath}
+d = 1, f = 1
+\end{displaymath}
+\end{leftbar}
+\caption{Example for the first type of AMO-AMO conflict}
+\label{ex:FirstAMOAMO}
+\end{example}
+
+The example \ref{ex:FirstAMOAMO} shows two AMO constraints that currently have a conflict. Because the literals $\{d,f\}$ are currently true, it forces a unit propagation in both constraints. Because of these unit propagations the literals $c$ and $\neg c$ both have to be true at the same time, which causes a conflict.
+
+This type of conflict occurs between AMO constraints, that are complementary on a single literal. It can be resolved by using the rule of the following lemma:
+
+\begin{lemma}
 \begin{leftbar}
 Consider two AMO constraints $AMO_1$ and $AMO_2$. Both constraints are complementary on the variable $x_a$. $AMO_1$ contains exactly one literal $x_a$ with $AMO_2$ containing the complementary literal $\neg x_a$. Let $\{y_1,...,y_k\}$ be the set of literals of $AMO_1$ without $x_a$ and $\{z_1,...,z_m\}$ be the set of literals of $AMO_2$ without $\neg x_a$. 
-If a conflict occurs between these constraints then it can be resolved by learning the following clauses:
+If a conflict occurs between these constraints, then it can be resolved by learning the following clauses:
 \begin{displaymath}
 \{\neg y_i \vee \neg z_j | y_i \in \{y_1,...,y_k\}, z_j \in \{z_1,...,z_m\}, \{y_i,z_j\} \not\in \{x_a, \neg x_a\}\}
 \end{displaymath}
-
 \end{leftbar}
-Because the variable $x_a$ will get an assignment and both AMO constraints are complementary on this variable, one of these AMO constraints will always have a literal that is true. This also means that all other literals of this AMO constraint will have to be false. So therefore either $\{y_1,...,y_k\}$ or $\{z_1,...,z_m\}$ have to all be false. This expression can then be transformed into the clauses from the rule above.
+\caption{Conflict resolution between two AMO constraints with one complementary literal}
+\label{le:oneComplementary}
+\end{lemma}
 
-As an example consider the following two constraints $AMO_1$ and $AMO_2$:
+The lemma \ref{le:oneComplementary} shows the conflict resolution rule for a conflict between two AMO constraints with one complementary literal. 
+
+To proof it, we first have to establish, that every variable will always have an assignment at the end of the solving process. This also means, that the variable $x_a$ will have an assignment. Because the AMO constraints are complementary on this variable, this means that at least one of them will have a true literal. This forces a unit propagation of all other literals in this AMO constraints. So therefore either $\{y_1,...,y_k\}$ or $\{z_1,...,z_m\}$ have to all be false, which can be written as $(\neg y_1 \wedge ... \wedge \neg y_k) \vee (\neg z_1 \wedge ... \wedge \neg z_m)$. If any literal other than $x_a$ or $\neg x_a$ turns true, then this constraint forces all other literals of one of the AMO constraints to be false. This AMO constraint then can't have two true literals anymore. This resolves the conflict. This expression can then be transformed into the clauses from the rule above. $\blacksquare$
+
+Now by applying the lemma \ref{le:oneComplementary} to the example \ref{ex:FirstAMOAMO}, the conflict can be resolved by learning the following constraints.
 \begin{displaymath}
 AMO_1(a,b,c,d)
 \end{displaymath}
@@ -411,20 +451,46 @@ This constraint can then be transformed to the following clauses:
 
 \subsubsection{Alternative Way to Apply the Rule}
 
-The general rule to resolve conflicts between AMO constraint that are complementary on a single literal results in a large amount of clauses. The rule is defined to completely remove every possible conflict between the two AMO constraints, but it is not always necessary to learn all of the clauses in order to avoid future conflicts.
+The general rule to resolve conflicts between AMO constraints, that are complementary on a single literal, results in a large amount of clauses. The rule is defined to completely remove every possible conflict between the two AMO constraints, but it is not always necessary to learn all of the clauses, in order to avoid future conflicts..
 
+\begin{lemma}
 \begin{leftbar}
-Consider two AMO constraints $AMO_1$ and $AMO_2$. Both constraints are complementary on the variable $x_a$. $AMO_1$ contains exactly one literal $x_a$ with $AMO_2$ containing the complementary literal $\neg x_a$. Let $y_i$ be the second literal that is true in $AMO_1$ and $z_j$ be the second literal that is true in $AMO_2$. Then this specific conflict can be avoided by learning the following clause:
+Consider two AMO constraints $AMO_1$ and $AMO_2$. Both constraints are complementary on the variable $x_a$. $AMO_1$ contains exactly one literal $x_a$ with $AMO_2$ containing the complementary literal $\neg x_a$. Let $y_i$ be a literal that is true in $AMO_1$ and not $x_a$. Let $z_j$ be a literal that is true in $AMO_2$ and not $\neg x_a$. Then this specific conflict can be avoided by learning the following clause:
 \begin{displaymath}
 \neg y_i \vee \neg z_j
 \end{displaymath}
 \end{leftbar}
+\caption{Alternative conflict resolution between two AMO constraints with one complementary literal}
+\label{le:altFirstAMOMO}
+\end{lemma}
 
-Because there is a conflict between the two AMO constraint, one of them has to have two true literals. Because either $x_a$ or $\neg x_a$ has to be true, one of them is part of these true literals. Because the other AMO constraint caused the conflict, it also needs to have one true literal that forced $x_a$ or $\neg x_a$ to be true. So in order to avoid this specific conflict the algorithm can just learn that at least one of these literals has to be false. While this rule has the advantage that the solver only has to learn a single clause, it doesn't resolve every possible conflict between these two constraints. There could be another conflict between them, where a different pair of literals is true.
+The lemma \ref{le:altFirstAMOMO} shows the alternative way to resolve a specific conflict between two AMO constraints, that are complementary on a single literal.
+
+Because there is a conflict between the two AMO constraints, one of the AMO constraints needs to have two true literals. Without loss of generality let this be $AMO_2$ with the literals $\neg x_a$ and $z_j$ being true. This means that $AMO_1$ has one true literal $y_i$, which resulted in $x_a$ being  false and therefore $\neg x_a$ being true. Now in order to resolve this specific conflict, either $z_j$ needs to be false, so that $AMO_2$ is satisfied, or $y_i$ needs to be false, so that $\neg x_a$ won't turn true. This can be expressed as $\neg y_i \vee \neg z_j$. $\blacksquare$
+
+This rule doesn't completely avoid every conflict between the two constraints, because there could be another pair of true literals $\{y_x,z_y\}$ which causes a conflict, but this rule is more efficient, because the solver only has to learn a single clause.
 
 \subsubsection{Second AMO - AMO Conflict}
 
-This section describes the conflict resolution rules for AMO constraints that are complementary on exactly two literals.
+This section describes the conflict resolution rules for AMO constraints that are complementary on exactly two literals. First take a look at the following example:
+\begin{example}[!htb]
+\begin{leftbar}
+\begin{displaymath}
+AMO_1(a,b,c,d)
+\end{displaymath}
+\begin{displaymath}
+AMO_2(e,f,\neg c,\neg d, \neg g)
+\end{displaymath}
+\begin{displaymath}
+b = 1
+\end{displaymath}
+\end{leftbar}
+\caption{Example of a conflict between AMO constraints with two complementary literals}
+\label{ex:secondAMOAMO}
+\end{example}
+The example \ref{ex:secondAMOAMO} shows a conflict between AMO constraints with two complementary literals. Because the literal $b$ is true, $AMO_1$ forces $\{a,c,d\}$ to be false. Now $AMO_2$ has the literals $\{\neg c,\neg d\}$, that are true and is therefore not satisfied. To resolve this conflict, the following lemma can be used:
+
+\begin{lemma}
 \begin{leftbar}
 Consider two AMO constraints $AMO_1$ and $AMO_2$. $AMO_1$ contains exactly two literals $x_a$ and $x_b$ with $AMO_2$ containing the complementary literals $\neg x_a$ and $\neg x_b$.
 If a conflict occurs between these constraints then it can be resolved by learning the following clauses:
@@ -432,84 +498,112 @@ If a conflict occurs between these constraints then it can be resolved by learni
 \{\neg x \; | \; x \in \{AMO_1,AMO_2\}, x \notin \{x_a,x_b\}\}
 \end{displaymath}
 \end{leftbar}
+\caption{Conflict resolution between AMO constraints with two complementary literals}
+\label{le:twoComplementary}
+\end{lemma}
 
+The lemma \ref{le:twoComplementary} shows the rule for the conflict resolution between AMO constraints with two complementary literals.
 
-It is first important to understand how a conflict can occur between these two constraints. Consider the situation that any literal other than $\{x_a, x_b, \neg x_a, \neg x_b\}$ turns true. Because of the unit propagation process of AMO constraints either $\{x_a, x_b\}$ or $\{\neg x_a, \neg x_b\}$ would turn false which would result in their complementary literals being true. Therefore one of the AMO constraints would contain at least two true literals which results in them not being satisfied. So what can be concluded from that is that all literals except for the set $\{x_a, x_b, \neg x_a, \neg x_b\}$ need to be false. This can be achieved by learning the unit clauses $\{\neg x \; | \; x \in \{AMO_1,AMO_2\}, x \notin \{x_a,x_b\}\}$.
+In order to proof this lemma, consider the situation that any literal other than \newline $\{x_a, x_b, \neg x_a, \neg x_b\}$ turns true. Because of the unit propagation process of AMO constraints, either $\{x_a, x_b\}$ or $\{\neg x_a, \neg x_b\}$ would turn false in this situation. This would result in their complementary literals being true. Therefore one of the AMO constraints would contain at least two true literals which results in them not being satisfied. So what can be concluded from that is that all literals except for the set $\{x_a, x_b, \neg x_a, \neg x_b\}$ need to be false. This can be achieved by learning the unit clauses $\{\neg x \; | \; x \in \{AMO_1,AMO_2\}, x \notin \{x_a,x_b\}\}$. $\blacksquare$
 
-For the following example consider the two constraints $AMO_1$ and $AMO_2$ and the literal $b$ that is assigned the value "true":
-\begin{displaymath}
-AMO_1(a,b,c,d)
-\end{displaymath}
-\begin{displaymath}
-AMO_2(e,f,\neg c,\neg d, \neg g)
-\end{displaymath}
-This causes $\{a,c,d\}$ to be false. Now $AMO_2$ has the literals $\{\neg c,\neg d\}$ that are true and is therefore not satisfied. To resolve this conflict, the algorithm can now learn the set of unit literals $\{\neg a, \neg b, \neg e, \neg f, g\}$.
+By using lemma \ref{le:twoComplementary} on the example \ref{ex:secondAMOAMO}, the conflict can be resolved by learning the unit literals $\{\neg a, \neg b, \neg d, \neg e, \neg f, g\}$.
+
 
 \subsubsection{Third AMO - AMO Conflict}
 
+This section describes the conflict resolution between AMO constraints with three or more complementary literals. First consider the following example:
+
+\begin{example}
 \begin{leftbar}
-Consider the AMO constraints $AMO_1$ and $AMO_2$. If the AMO constraints are complementary on at least three literals then the formula is not satisfiable.
-\end{leftbar}
-
-If there are at least three literals in $AMO_1$ that are also in their negated form in $AMO_2$ then there is no possible assignment that satisfies both constraints. As already proven, if there are two literals $x_a$ and $x_b$ in $AMO_1$ that are also in their negated form in $AMO_2$ then exactly one of those literals has to be true in order to satisfy both constraints. Now consider the situation where there is an extra literal $x_c$ in $AMO_1$ and $\neg x_c$ in $AMO_2$. Because either $x_a$ or $x_b$ are already true, $x_c$ needs to be false. This in turn causes $\neg x_c$ to be true. $AMO_2$ now has two true literals and can't be satisfied. Therefore the whole formula can be declared unsatisfiable.
-
-As an example consider the two constraints $AMO_1$ and $AMO_2$
 \begin{displaymath}
 AMO_1(a,b,c,d)
 \end{displaymath}
 \begin{displaymath}
 AMO_2(\neg a, \neg b, \neg c, e)
 \end{displaymath}
-There is no possible assignment that satisfies both constraints.
+\end{leftbar}
+\caption{Conflict between AMO constraints with three complementary literals}
+\label{ex:threeComplementary}
+\end{example}
+
+The example \ref{ex:threeComplementary} shows two AMO constraints, that are complementary on three literals. There is no possible assignment, that satisfies both constraints.
+
+\begin{lemma}
+\begin{leftbar}
+Consider the AMO constraints $AMO_1$ and $AMO_2$. If the AMO constraints are complementary on at least three literals, then the formula is not satisfiable.
+\end{leftbar}
+\caption{Conflicts between AMO constraints with three or more complementary literals}
+\label{le:threeComplementary}
+\end{lemma}
+
+The lemma \ref{le:threeComplementary} describes, that a formula, that contains AMO constraints, which are complementary on at least three literals, can not be satisfied.
+If there are at least three literals in $AMO_1$, that are also in their negated form in $AMO_2$, then there is no possible assignment that satisfies both constraints. As already proven by lemma \ref{le:twoComplementary}, if there are two literals $x_a$ and $x_b$ in $AMO_1$ that are also in their negated form in $AMO_2$, then all other literals in $AMO_1$ and $AMO_2$ have to be false. Now consider the situation where there is an extra literal $x_c$ in $AMO_1$ and $\neg x_c$ in $AMO_2$. Because either $x_a$ or $x_b$ are already true, $x_c$ needs to be false. This in turn causes $\neg x_c$ to be true. $AMO_2$ now has two true literals and can't be satisfied. Therefore the whole formula can be declared unsatisfiable. $\blacksquare$
 
 \subsection{AMO - Clause Conflict}
 
-\begin{leftbar}
-Consider a clause and an AMO constraint. Let $x$ be the literal that causes a conflict between the two constraints. Let $\{y_1,...,y_m\}$ be the rest of the literals in the clause and $\{z_1,...,z_k\}$ the rest of the literals in the AMO constraint.
-This conflict can then be resolved by learning the following constraint
-\begin{displaymath}
-\bigvee_{i=1}^{n}y_i \vee (\bigwedge_{a=1}^{k}\neg z_a)
-\end{displaymath}
+This section describes the conflict resolution between AMO constraints and clauses. First consider the following example:
 
-\end{leftbar}
-
-In order to understand the rule it is necessary to take a look at how a conflict between these two constraints can occur. A clause is considered not satisfied if and only if every literal in the clause turns false. In order for the two constraints to have a conflict, there must be literal $x$ which is contained in both the clause and the AMO constraint. This literal is necessary in order to satisfy the clause, but it would also result in the AMO constraint having two true literals. Now in order to resolve this conflict there are two possibilities. If one of the literals $\{y_1,...,y_n\}$, that are currently false, get reassigned to be true, then it doesn't matter what happens in the AMO constraint because the clause will be satisfied. If this doesn't happen, then every literal $\{z_1,...,z_k\}$ needs to be false, because otherwise the AMO constraints will have to turn $x$ false and the clause won't be satisfied. This can be formalized as the following constraint:
+\begin{example}
 \begin{leftbar}
-\begin{displaymath}
-\bigvee_{i=1}^{n}y_i \vee (\bigwedge_{a=1}^{k}\neg z_a)
-\end{displaymath}
-\end{leftbar}
-In order for the SAT solver architecture to use this new constraint, it needs to be expressed in form of clauses. In its conjunctive normal form the learned constraint looks like this:
-\begin{leftbar}
-\begin{displaymath}
-\bigwedge_{a=1}^{k}((\bigvee_{i=1}^{n}y_i)\vee \neg z_a)
-\end{displaymath}
-\end{leftbar}
-
-Now lets look at an example to show this type of conflict resolution. Consider the following clause and AMO constraint:
 \begin{displaymath}
 a \vee b \vee c
 \end{displaymath}
 \begin{displaymath}
 AMO(e,f,c)
 \end{displaymath}
-In this example the literals $\{a,b\}$ are already false, which forces a unit propagation of the literal $c$. Now one of the literals $\{e,f\}$ turn true, which causes a conflict, because now $c$ also has to be false. The algorithm can then learn the constraints:
+\begin{displaymath}
+a = 0, b = 0, e = 1
+\end{displaymath}
+\end{leftbar}
+\caption{Conflict between an AMO constraint and a clause}
+\label{ex:amoClauseConflict}
+\end{example}
+
+The example \ref{ex:amoClauseConflict} shows a conflict between an AMO constraint and a clause. In this example the literals $\{a,b\}$ are already false, which forces a unit propagation of the literal $c$. Because the literal $e$ is already true, this causes a conflict with the AMO constraint. To resolve this conflict the following lemma can be used:
+
+\begin{lemma}
+\begin{leftbar}
+Consider a clause and an AMO constraint. Let $x$ be the literal that causes a conflict between the two constraints. Let $\{y_1,...,y_m\}$ be the rest of the literals in the clause and $\{z_1,...,z_k\}$ the rest of the literals in the AMO constraint.
+This conflict can then be resolved by learning the following constraint
+\begin{displaymath}
+\bigwedge_{a=1}^{k}((\bigvee_{i=1}^{n}y_i)\vee \neg z_a)
+\end{displaymath}
+
+\end{leftbar}
+\caption{Conflict resolution between an AMO constraint and a clause}
+\label{le:amoClauseConflict}
+\end{lemma}
+
+The lemma \ref{le:amoClauseConflict} shows how a conflict between a clause and an AMO constraint can be resolved. In order for a conflict between a clause and an AMO constraint to occur, there must be a literal $x$ that is shared by both. A conflict happens, when $x$ needs to be true, because the set of literals $\{y_1,...,y_m\}$ is currently false and there exists a literal $z_i$ in the AMO constraint that is currently true, which forces $x$ to be false. One possibility to resolve this conflict, is that one of the literals in $\{y_1,...,y_m\}$ turns true, which means that $x$ doesn't have to be true anymore. The other possibility is that all the literals in $\{z_1,...,z_k\}$ turn false, so that it is possible for $x$ to turn true. This can be expressed as $\bigvee_{i=1}^{n}y_i \vee (\bigwedge_{a=1}^{k}\neg z_a)$. If this rule is then transformed into clauses, the solver learn $\bigwedge_{a=1}^{k}((\bigvee_{i=1}^{n}y_i)\vee \neg z_a)$. $\blacksquare$
+
+By applying the lemma \ref{le:amoClauseConflict} to the example \ref{ex:amoClauseConflict} the solver learns the following clauses:
+
+\begin{leftbar}
 \begin{displaymath}
 a \vee b \vee \neg e
 \end{displaymath}
 \begin{displaymath}
 a \vee b \vee \neg f
 \end{displaymath}
+\end{leftbar}
 
-By examining this example further, we can see that it might not always be necessary to learn every clause that this rule dictates. Consider the situation that the literal $e$ turned false, which caused the conflict. If the algorithm then only learns the clause $a \vee b \vee \neg e$, then either $a$ or $b$ have to be true, or $e$ has to be false. So this conflict can't be caused by the literal $e$ anymore. After this conflict resolution it is possible that $a$ turns true and there is no conflict anymore between these two constraints. This way the algorithm can avoid to learn unnecessary clauses. So a better rule for the solve would be defined the following way:
+\subsubsection{Alternative AMO-Clause Conflict Resolution}
+This section shows an alternative AMO-Clause Conflict resolution rule.
 
+\begin{lemma}
 \begin{leftbar}
 Consider a clause and an AMO constraint. Let $x$ be the literal that causes a conflict between the two constraints. Let $\{y_1,...,y_m\}$ be the rest of the literals in the clause and $z$ the literal in the AMO constraint that is currently true. This specific conflict can be resolved by learning the following clause:
 \begin{displaymath}
 y_1 \vee ... \vee y_m \vee \neg z
 \end{displaymath}
-
 \end{leftbar}
+\caption{Alternative conflict resolution between an AMO constraint and a clause}
+\label{le:alternativeAMOClauseConflict}
+\end{lemma}
+
+The lemma \ref{le:alternativeAMOClauseConflict} shows the alternative conflict resolution rule between an AMO constraint and a clause. Because there is a conflict between the AMO constraint and the clause, there must be a literal $x$ that is shared by both constraints. As already explained before, the literals $\{y_1,...,y_m\}$ must be true, which forces $x$ to be true. And there must be a literal $z$, that is true in the AMO constraint, which forces $x$ to be false. Otherwise there can't be a conflict. In order to resolve this specific conflict, it is enough to learn the constraint $y_1 \vee ... \vee y_m \vee \neg z$. Now either $z$ will be false, which allows $x$ to be true. Or one of the literals $\{y_1,...,y_m\}$ will be true, which allows $x$ to be false. $\blacksquare$
+
+With this rule, the solver only prevents this specific conflict. This is more efficient, because the solver only has to learn a single clause, but it doesn't completely prevent every conflict between the AMO constraint and the clause.
 
 \section{DNF Constraint}
 The third constraint type is the "disjunctive normal form" (DNF) constraint.
@@ -521,7 +615,7 @@ DNF(x_1,...,x_n) = \{x_1 \vee ... \vee x_n \}
 x_i = y_1 \wedge ... \wedge y_m
 \end{displaymath}
 \end{leftbar}
-The DNF is a disjunction of conjunctions. It is satisfied if at least a single conjunction is satisfied. This is the case if every literal in that conjunction is true. In this thesis these conjunctions are called terms.
+The DNF is a disjunction of conjunctions. It is satisfied, if at least a single conjunction is satisfied. This is the case, if every literal in that conjunction is true. In this thesis these conjunctions are called terms.
 
 \subsection{Unit Propagation}
 A unit propagation in a DNF can occur in one of two cases:
@@ -531,9 +625,9 @@ A unit propagation in a DNF can occur in one of two cases:
 \item If all non false terms share a literal, then this literal is a unit literal.
 \end{enumerate}
 \end{leftbar}
-The first case is trivial because at least one term needs to be satisfied in order for the DNF to be satisfied. Because there is only a single conjunction left, that can fulfill this condition, every literal of that term needs to be true.
+The first case is trivial, because at least one term needs to be satisfied in order for the DNF to be satisfied. Because there is only a single non false term left, that can fulfill this condition, every literal of that term needs to be true.
 \par
-For the second case consider a DNF with at least two terms that are currently undecided. The rest of the terms are false. If those terms share a literal $x$ then both of them can only be true if and only if $x$ is true. Because at least one of them needs to be true, $x$ must be a unit literal.
+For the second case consider a DNF with at least two terms, that are currently non false. The rest of the terms are false. If those terms share a literal $x$ then both of them can only be true, if and only if $x$ is true. Because at least one of them needs to be true, $x$ must be a unit literal.
 \par
 Now consider a situation where those constraints don't share any literal. In this situation there are several possibilities on how the DNF can be satisfied and therefore there can't  be a unit propagation yet.
 
@@ -541,7 +635,7 @@ Now consider a situation where those constraints don't share any literal. In thi
 
 The literal propagation process for DNF constraints is a difficult task, because the unit propagation starts when all non false terms are intersecting on at least one literal. So during the literal propagation process, the solver needs to keep track of these intersections, otherwise it could miss a unit propagation. 
 
-Generally the propagation needs to be efficient, because this process gets repeated many times during the solving procedure. The two-watched-literal algorithm for clauses achieves this by minimizing the amount of time where the solver visits clauses. So the first idea is to create an algorithm that achieves a similar property for DNF constraints. Because clauses are just a special case of DNF constraints, one could consider watching only two non false terms at a time. While this would minimize the time, that is spent by visiting the clauses, it is possible to create examples where this algorithm misses necessary unit propagations.
+Generally the propagation needs to be efficient, because this process gets repeated many times during the solving procedure. The two-watched-literal algorithm for clauses achieves this by minimizing the amount of time, where the solver visits clauses. So the first idea is to create an algorithm, that achieves a similar property for DNF constraints. Because clauses are just a special case of DNF constraints, one could consider watching only two non false terms at a time. While this would minimize the time, that is spent by visiting the DNF constraints, it is possible to create examples, where this algorithm misses necessary unit propagations.
 
 \begin{figure}[!htb]
 \begin{leftbar}
@@ -558,45 +652,41 @@ DNF ((a,b,c),(a,c,d),(a,b,d),(b,c,d,x))
 \end{figure}
 
 The example \ref{ex:NotPropagationComplete} shows a situation where the Two-Watched-Term algorithm misses a unit propagation. In the first DNF constraint there are three terms that are all pairwise intersecting. If the algorithm only watches two of these terms, then it is possible to construct a partial assignment where a unit propagation is missed. For this consider the situation that $\{(a,b),(a,c)\}$ are watched. If $x$ turns false, then the DNF constraint isn't visited. The algorithm now misses the needed unit propagation of $a$. If $a$ now turns false, then the DNF constraint isn't satisfied. In this situation the algorithm would have to watch all three of the terms.
-In a similar manner it is possible to construct a partial assignment, that leads to a missed unit propagation in the second DNF constraint. In this example the algorithm would have to watch four terms in order to not make a mistake. This can be extended for a variable amount of terms, so in order to only watch a subset of terms in every DNF constraint, the algorithm has to calculate how many terms it needs to watch to still be propagation complete. 
+In a similar manner, it is possible to construct a partial assignment, that leads to a missed unit propagation in the second DNF constraint. In this example the algorithm would have to watch four terms in order to not make a mistake. This can be extended for a variable amount of terms, so in order to only watch a subset of terms in every DNF constraint, the algorithm has to calculate how many terms it needs to watch to still be propagation complete. 
 
 A simple solution to this problem, is to just watch all terms in every DNF constraint.
-On every visit the algorithm can then just select the shortest non false term in the DNF constraints and check for intersections with all other non false terms. If there exists such a literal then it needs to be propagated. In order to speed up the search for the shortest term, it is efficient to already sort all terms by their size. But this algorithm has the problem that it results in many unnecessary visits to the DNF constraints. If the DNF constraints are very large then these visits take too much time.
+On every visit the algorithm can then just select the shortest non false term in the DNF constraints and check for intersections with all other non false terms. If there exists such a literal then it needs to be propagated. In order to speed up the search for the shortest term, it is efficient to already sort all terms by their size. But this algorithm has the problem, that it results in many unnecessary visits to the DNF constraints. If the DNF constraints are very large then these visits take too much time.
 
 \subsection{The Two-Watched-Termsets-Algorithms}
 
 This section describes the Two-Watched-Termsets-Algorithm which is a compromise between the two approaches explained above. The algorithm changes its behavior depending on how many non intersecting terms are left in the DNF constraint. In order to understand how this algorithm ensures propagation completeness, it is necessary to look at all possible cases.
 
-\paragraph{Unit DNF constraints:} In order to understand the cases below, it is necessary to establish the term "unit DNF constraint". A unit DNF constraint shows similar behavior to a unit clause. A unit clause consists of a single literal and therefore forces this literal to always be true. A unit dnf constraint has the same property.
-\begin{leftbar}
-A literal $x$ that is contained in every term of a DNF constraint is a unit literal and needs to be propagated.
-\end{leftbar}
-
-Because such a unit literal is always satisfied, the algorithm doesn't consider them during the calculation of intersections and they are therefore also not considered in the cases below.
+Similar to unit clauses, which contain only a single literal, there are also DNF constraints, that contain unit literals. A unit literal in a DNF constraint is a literal, that is contained in every term.
+Because such a unit literal gets propagated in the beginning, the algorithm doesn't consider them during the calculation of intersections and they are therefore also not considered in the cases below.
 
 
-\paragraph{First case:} After the creation of the DNF constraint, the algorithm can't find any non-false non-intersecting terms. If this is the case then the algorithm automatically watches every term of the DNF constraint.
+\paragraph{First case:} After the creation of the DNF constraint, the algorithm can't find any non-false non-intersecting terms. If this is the case, then the algorithm automatically watches every term of the DNF constraint.
 
-\paragraph{Second case:} The DNF constraint contains two non-false non-intersecting terms. As already explained, a unit propagation in a DNF constraint can only occur if there is only one non-false term left or if all non-false terms intersect on a literal. So as long as the algorithm watches two non-false non-intersecting terms, it can never miss a unit propagation. So in this case the algorithm has to only watch these two terms.
+\paragraph{Second case:} The DNF constraint contains two non-false non-intersecting terms. As already explained, a unit propagation in a DNF constraint, can only occur, if there is only one non-false term left, or if all non-false terms intersect on a literal. So as long as the algorithm watches two non-false non-intersecting terms, it can never miss a unit propagation. So in this case the algorithm has to only watch these two terms.
 
-So after the initial creation of a DNF constraint the algorithm either watches all the terms or only two terms. If a propagation occurs in a DNF constraint where all terms are watched, the algorithm can just check for literal intersection in all non-false terms and then propagate these intersections as unit literals
+So after the initial creation of a DNF constraint the algorithm either watches all the terms or only two terms. If a propagation occurs in a DNF constraint, where all terms are watched, the algorithm can just check for literal intersections in all non-false terms and then propagate these intersections as unit literals.
 
-If a propagation occurs in a DNF constraint where only two terms are watched it is more complicated. Because both watched terms don't intersect, only one of them can turn false because of a propagation. The algorithm then has to try to replace the false watched term. This replacement also can't intersect with the currently watched non-false term. If the algorithm can find a suitable replacement then there is no need for a unit propagation. If it can't find a replacement then it now needs to watch all terms that intersect with the current non-false watched term. The behavior after this point is then similar to when all terms are watched.
+If a propagation occurs in a DNF constraint, where only two terms are watched, it is more complicated. Because both watched terms don't intersect, only one of them can turn false as a result of a propagation. The algorithm then has to try to replace the false watched term. This replacement also can't intersect with the currently watched non-false term. If the algorithm can find a suitable replacement, then there is no need for a unit propagation. If it can't find a replacement, then it now needs to watch all terms, that intersect with the current non-false watched term. The behavior after this point is then similar to when all terms are watched.
 
-A big adavantage of this algorithm is that there is no backtracking needed in order to ensure the propagation completeness. At every point the algorithm either watches two non-false non-intersecting terms, or all non-false terms that are currently intersecting.
+A big adavantage of this algorithm is, that there is no backtracking needed in order to ensure the propagation completeness. At every point the algorithm either watches two non-false non-intersecting terms, or all non-false terms that are currently intersecting.
 
 
 
 \subsection{DNF - DNF Conflict}
 
-This section describes how a conflict between two DNF constraints can be resolved. The notation $DNF/x_i$ means that every term that contains the literal $x_i$ gets removed from the DNF constraint.
+This section describes how a conflict between two DNF constraints can be resolved. The notation $DNF/x_i$ means that every term, that contains the literal $x_i$ gets removed from the DNF constraint.
 \begin{leftbar}
 Consider two DNF constraints $DNF_1$ and $DNF_2$ and the set of variables $\{x_1,...,x_n\}$ that the two constraints are complementary on. Then every conflict between these two constraints can be resolved by learning the following constraints
 \begin{displaymath}
 \bigwedge_{i=1}^{n} DNF_1 / x_i \vee DNF_2 / \neg x_i
 \end{displaymath}
 \end{leftbar}
-The two DNF constraints are complementary on the set of variables $\{x_1,...,x_n\}$. If a term in $DNF_1$ that contains a literal $x_k$ turn true, then every term in $DNF_2$ that contains the literal $\neg x_k$ turns false. The same principle is true when the situation is reversed and term in $DNF_2$ with the literal $\neg x_k$ turns true. That means that in order for both constraints to be satisfied either $DNF_1/x_k$ or $DNF_2/\neg x_k$ needs to be true. This rule is true for every variable $\{x_1,...,x_n\}$. Therefore the conflict can be resolved by learning the constraints $\bigwedge_{i=1}^{n} DNF_1 / x_i \vee DNF_2 / \neg x_i$.
+The two DNF constraints are complementary on the set of variables $\{x_1,...,x_n\}$. If a term in $DNF_1$ that contains a literal $x_k$ turn true, then every term in $DNF_2$ that contains the literal $\neg x_k$ turns false. The same principle is true when the situation is reversed and a term in $DNF_2$ with the literal $\neg x_k$ turns true. That means, that in order for both constraints to be satisfied either $DNF_1/x_k$ or $DNF_2/\neg x_k$ needs to be true. This rule is true for every variable $\{x_1,...,x_n\}$. Therefore the conflict can be resolved by learning the constraints $\bigwedge_{i=1}^{n} DNF_1 / x_i \vee DNF_2 / \neg x_i$.
 
 As an example consider the following two DNF constraints:
 \begin{displaymath}
