@@ -625,7 +625,7 @@ A unit propagation in a DNF can occur in one of two cases:
 \item If all non false terms share a literal, then this literal is a unit literal.
 \end{enumerate}
 \end{leftbar}
-The first case is trivial, because at least one term needs to be satisfied in order for the DNF to be satisfied. Because there is only a single non false term left, that can fulfill this condition, every literal of that term needs to be true.
+The first case is trivial, because at least one term needs to be satisfied, in order for the DNF to be satisfied. Because there is only a single non false term left, that can fulfill this condition, every literal of that term needs to be true.
 \par
 For the second case consider a DNF with at least two terms, that are currently non false. The rest of the terms are false. If those terms share a literal $x$ then both of them can only be true, if and only if $x$ is true. Because at least one of them needs to be true, $x$ must be a unit literal.
 \par
@@ -676,71 +676,76 @@ If a propagation occurs in a DNF constraint, where only two terms are watched, i
 A big adavantage of this algorithm is, that there is no backtracking needed in order to ensure the propagation completeness. At every point the algorithm either watches two non-false non-intersecting terms, or all non-false terms that are currently intersecting.
 
 
-
+\newpage
 \subsection{DNF - DNF Conflict}
 
-This section describes how a conflict between two DNF constraints can be resolved. The notation $DNF/x_i$ means that every term, that contains the literal $x_i$ gets removed from the DNF constraint.
+This section describes how a conflict between two DNF constraints can be resolved. The notation $DNF/x_i$ means that every term, that contains the literal $x_i$ gets removed from the DNF constraint. First consider the following example:
+
+\begin{example}[!htb]
 \begin{leftbar}
-Consider two DNF constraints $DNF_1$ and $DNF_2$ and the set of variables $\{x_1,...,x_n\}$ that the two constraints are complementary on. Then every conflict between these two constraints can be resolved by learning the following constraints
 \begin{displaymath}
-\bigwedge_{i=1}^{n} DNF_1 / x_i \vee DNF_2 / \neg x_i
+DNF_1 ((a,b),(c,d))
+\end{displaymath}
+\begin{displaymath}
+DNF_2 ((e,\neg b),(f,g))
+\end{displaymath}
+\begin{displaymath}
+c = 0, f = 0
 \end{displaymath}
 \end{leftbar}
-The two DNF constraints are complementary on the set of variables $\{x_1,...,x_n\}$. If a term in $DNF_1$ that contains a literal $x_k$ turn true, then every term in $DNF_2$ that contains the literal $\neg x_k$ turns false. The same principle is true when the situation is reversed and a term in $DNF_2$ with the literal $\neg x_k$ turns true. That means, that in order for both constraints to be satisfied either $DNF_1/x_k$ or $DNF_2/\neg x_k$ needs to be true. This rule is true for every variable $\{x_1,...,x_n\}$. Therefore the conflict can be resolved by learning the constraints $\bigwedge_{i=1}^{n} DNF_1 / x_i \vee DNF_2 / \neg x_i$.
+\caption{Example of a conflict between two DNF constraints}
+\label{ex:DNFDNFConflict}
+\end{example}
+The example \ref{ex:DNFDNFConflict} shows a conflict between two DNF constraints. Because the literals $\{c,f\}$ are already false, the literals $b$ and $\neg b$ need to both be true, in order to satisfy both constraints, which causes a conflict.
 
-As an example consider the following two DNF constraints:
-\begin{displaymath}
-DNF ((a,b),(c,d))
-\end{displaymath}
-\begin{displaymath}
-DNF ((e,\neg b),(f,\neg d))
-\end{displaymath}
-Then the conflict can be resolved by learning the following constraints
-\begin{displaymath}
-DNF ((a,b),(e,\neg b)) \wedge DNF ((c,d),(f,\neg d))
-\end{displaymath}
+In order to resolve this conflict, the following rule can be applied:
 
-\subsubsection{How to Apply the Rule}
-
-The rule as it is defined above, allows the algorithm to learn a DNF constraint for every literal that the conflicting DNF constraints are complementary on. This can cost computation time, memory and might not make sense in a practical situation. Consider the following example:
-
+\begin{lemma}[!htb]
 \begin{leftbar}
-\begin{displaymath}
-DNF((a,b),(c,d),(x,y))
-\end{displaymath}
-\begin{displaymath}
-DNF((\neg a, e),(\neg c, f), (x,y))
-\end{displaymath}
-\end{leftbar}
-
-Let's assume that the variables $c$, $f$ and $x$ turn false in this order. This causes a conflict on the variable $a$ because the first constraint needs $a$ to be true, while the second constraint needs $\neg a$ to be true. The constraints are complementary on the variables $a$ and $c$. According to the rule from above, the conflict can be resolved by learning the constraints $DNF((c,d),(\neg c, f),(x,y))$ and $DNF((a,b),(\neg a, e),(x,y))$. Now if the literals turn false again in the same order, then the first learned DNF constraint will start a unit propagation of $x$ and $y$ after $c$ and $f$ turn false. This will then satisfy both constraints of the example. As we can see, in this example the constraint $DNF((a,b),(\neg a, e),(x,y))$ wasn't even involved in resolving the conflict from the example. So in order to spare memory and computation time it might make more sense to just learn the amount of constraints that are needed to resolve the current conflict. That's why in practice the following rule should be used:
-
-\begin{leftbar}
-Consider two DNF constraints $DNF_1$ and $DNF_2$ and the variable $x$ that the two constraints are complementary on. Then a conflict between these two constraints that is caused by the variable $x$ can be resolved by learning the following constraint:
+Consider two DNF constraints $DNF_1$ and $DNF_2$, that are complementary on the variable $x$. $DNF_1$ contains the literal $x$ and $DNF_2$ contains the literal $\neg x$. A conflict, that is caused by the variable $x$, can then be resolved by learning the following constraints:
 \begin{displaymath}
 DNF_1 / x \vee DNF_2 / \neg x
+\end{displaymath}
+\end{leftbar}
+\caption{Conflict resolution between two DNF constraints}
+\label{le:DNFDNFConflict}
+\end{lemma}
+
+
+The lemma \ref{le:DNFDNFConflict} shows the conflict resolution between two DNF constraints. The two DNF constraints are complementary on the variable $x$. If a term in $DNF_1$ that contains the literal $x$ turn true, then every term in $DNF_2$ that contains the literal $\neg x$ turns false. The same principle is true when the situation is reversed and a term in $DNF_2$ with the literal $\neg x$ turns true. That means, that in order for both constraints to be satisfied, either $DNF_1/x$ or $DNF_2/\neg x$ needs to be true. Therefore the conflict can be resolved by learning the constraints $DNF_1 / x \vee DNF_2 / \neg x$. $\blacksquare$
+
+By applying the lemma \ref{le:DNFDNFConflict} to the example \ref{ex:DNFDNFConflict}, the conflict can be resolved by learning the following constraint:
+\begin{leftbar}
+\begin{displaymath}
+ DNF ((c,d),(f,g))
 \end{displaymath}
 \end{leftbar}
 
 \subsubsection{Alternative DNF-DNF Conflict Resolution}
 
-Even though the algorithm only has to learn a single DNF constraint in order to resolve a conflict between two DNF constraints, the following example shows that even learning a single DNF constraint can be a disadvantage for the solver.
+When the solver uses the lemma \ref{le:DNFDNFConflict}, it only has to learn a single DNF constraints, in order to resolve a DNF-DNF conflict. The next example shows, that even learning a single DNF constraint can be an unnecessary burden for the solver.
 
+\begin{example}
 \begin{leftbar}
-A conflict occurs between these two constraints because $d$ and $f$ turn false.
 \begin{displaymath}
 (a \wedge b) \vee (d \wedge e)
 \end{displaymath}
 \begin{displaymath}
 (\neg a \wedge c) \vee (f \wedge g)
 \end{displaymath}
-This conflict can be resolved by learning the following DNF constraint
+\begin{displaymath}
+d = 0, f = 0
+\end{displaymath}
+A conflict occurs between these two constraints because $d$ and $f$ turn false. This conflict can be resolved by learning the following DNF constraint
 \begin{displaymath}
 (d \wedge e) \vee (f \wedge g)
 \end{displaymath}
 \end{leftbar}
+\caption{Example of a DNF-DNF conflict resolution}
+\label{ex:DNFDNFConflictResolution}
+\end{example}
 
-The example shows a simple DNF-DNF conflict that can be resolved by the resolution rule that we defined. Now consider the following conversion of the learned DNF constraint as a CNF
+The example \ref{ex:DNFDNFConflictResolution} shows a simple DNF-DNF conflict, that can be resolved by the lemma \ref{le:DNFDNFConflict}, that we defined. Now consider the following conversion of the learned DNF constraint as a CNF
 
 \begin{leftbar}
 \begin{displaymath}
@@ -748,54 +753,63 @@ The example shows a simple DNF-DNF conflict that can be resolved by the resoluti
 \end{displaymath}
 \end{leftbar}
 
-So by learning the new DNF constraint the algorithm effectively learns four new clauses. This number could grow exponentially with the size of the DNF constraint. An alternative to learning the DNF constraints would be to just learn the clause $(d \vee f)$. This clause is effective in avoiding the conflict from above. The conflict occured because $d$ and $f$ turned false. This clause ensures that at least one of them is true. The conflict between these two DNF constraint can then still occur if for example both $e \vee g$ turn false. The algorithm can then just learn the clause $(e \vee g)$. By using this gradual approach we can ensure that the algorithm only learns a minimal amount constraints which makes the propagation easier later on. So the new conflict resolution rule can be defined the following way.
+So by learning the new DNF constraint the algorithm effectively learns four new clauses. This number could grow exponentially with the size of the DNF constraint. A more effective approach, would be to learn a single clause, in order to resolve a DNF-DNF conflict. For this consider the following lemma:
 
+\begin{lemma}
 \begin{leftbar}
-Consider two DNF constraints $DNF_1$ and $DNF_2$ and the variable $x$ that the two constraints are complementary on. Let $\{y_1,...,y_n\}$ be the literals of $DNF_1$ that turned false and therefore forced a unit propagation of the variable $x$. Let $\{z_1,...,z_m\}$ be the literals of $DNF_2$ that turned false and therefore caused the propagation of the variable $x$. Then this specific conflict can be resolved by learning the following clause:
+Consider two DNF constraints $DNF_1$ and $DNF_2$ and the variable $x$ that the two constraints are complementary on. $DNF_1$ contains the literal $x$ and $DNF_2$ contains the literal $\neg x$. Let $\{y_1,...,y_n\}$ be the literals of $DNF_1$ that turned false and therefore forced a unit propagation of the literal $x$. Let $\{z_1,...,z_m\}$ be the literals of $DNF_2$ that turned false and therefore caused the propagation of the literal $\neg x$. Then this specific conflict can be resolved by learning the following clause:
 \begin{displaymath}
 y_1 \vee ... \vee y_n \vee z_1 \vee ... \vee z_m
 \end{displaymath}
 \end{leftbar}
+\caption{Altnerative conflict resolution between two DNF constraints}
+\label{le:DNFDNFConflictAlt}
+\end{lemma}
+
+The lemma \ref{le:DNFDNFConflictAlt} shows an alternative conflict resolution between two DNF constraints. Because there is a conflict between $DNF_1$ and $DNF_2$, the current partial variable assignment can't satisfy both constraints. Because only false literals are responsible for non satisfying assignments in DNF constraints, only these literals are intersting in this situation. That means that at least one of the literals $\{y_1,...,y_n\}$ or $\{z_1,...,z_m\}$ needs to be true, so that a satisfying assignment can be reached. This can be expressed as the clause $y_1 \vee ... \vee y_n \vee z_1 \vee ... \vee z_m$. $\blacksquare$
 
 \subsection{DNF - Clause Conflict}
-\begin{leftbar}
-Consider a DNF constraint and a clause. Let the set $\{x_1,...,x_n\}$ be the variables that the clause and the DNF constraint are complementary on. Every conflict can be resolved by learning the following constraints:
-\begin{displaymath}
-\bigwedge_{i=1}^{n} DNF / \neg x_i \vee Clause / x_i
-\end{displaymath}
-\end{leftbar}
-This conflict is essentially just a special case of the DNF - DNF conflict. A clause is a disjunction of literals, which is just a DNF constraint, where every literal is a term. Therefore we can apply the same rule that we use for DNF - DNF conflict resolution.
 
-As an example consider the following DNF constraint and clause:
+This section contains the conflict resolution between DNF constraints and clauses. First consider the following example:
+
+\begin{example}
+\begin{leftbar}
 \begin{displaymath}
 DNF((a,b,c),(e,f,g))
 \end{displaymath}
 \begin{displaymath}
 Clause(c,d,\neg e)
 \end{displaymath}
-Every conflict between these two constraints can be resolved by learning the following constraint
 \begin{displaymath}
-DNF((a,b,c),(c),(d))
-\end{displaymath}
-
-\subsubsection{How to Apply the Rule}
-
-The way the rule is defined, there is the possibility of learning several a DNF constraints for every literal that the clause and DNF constraint are complementary on. As already descibred in the section for the DNF - DNF conflict, it might not always make sense to learn all of these constraints in practical situations. Consider the following example:
-\begin{leftbar}
-\begin{displaymath}
-Clause(a,b,c)
-\end{displaymath}
-\begin{displaymath}
-DNF((\neg a,g),(\neg b, c))
+c = 0, d = 0
 \end{displaymath}
 \end{leftbar}
+\caption{Example of a DNF-Clause conflict}
+\label{ex:DNFClauseConflict}
+\end{example}
 
-By applying the rule on this example, we could learn exactly two DNF constraints, because the clause and the DNF constraint are complementary on the variables $a$ and $b$. That doesn't necessarily mean that both of these literals will cause a conflict. Let us consider the situation that the literal $a$ causes a conflict. Then by learning the constraint $DNF((\neg b, c),(b,c))$ we can avoid future conflicts between these constraints that involve the literal $a$. In fact this constraint ensures that the literal $c$ is a unit literal and therefore always true. This unit literal causes the clause to always be true, and therefore there won't be anymore conflicts between these two constraints. This example shows that it isn't always necessary to learn every constraint specified by the rule. In this example we avoided learning the constraint $DNF((\neg a, c),(a,c))$ completely and still resolved the conflict. Therefore it might make more sense to use the following rule in practical SAT solving situations:
+The example \ref{ex:DNFClauseConflict} shows a conflict between a DNF constraint and a clause. Because the literals $\{c,d\}$ are already false, the literal $e$ and $\neg e$ need to be true at the same time, which causes a conflict. This conflict can be resolved by applying the following lemma:
+
+
+
+\begin{lemma}
+\begin{leftbar}
+Consider a DNF constraint and a clause, that are complementary on the variable $x$. The DNF constraint contains the literal $x$ and the clause the literal $\neg x$. A conflict, that is caused by the variable $x$, can be resolved by learning the following constraint
+\begin{displaymath}
+DNF / x \vee Clause / \neg x
+\end{displaymath}
+\end{leftbar}
+\caption{Conflict resolution between a DNF constraint and a clause}
+\label{le:DNFClauseConflict}
+\end{lemma}
+
+The lemma \ref{le:DNFClauseConflict} shows the conflict resolution between a DNF constraint and a clause. The proof for this lemma is simple, because a clause is just a special case of a DNF constraints. A clause is a disjunction of literals, which can be written as a DNF constraints, where each term has a single literal. This also means, that the proof of lemma \ref{le:DNFDNFConflict} is also true for lemma \ref{le:DNFClauseConflict}. $\blacksquare$
+
+By applying the lemma \ref{le:DNFClauseConflict} to the example \ref{ex:DNFClauseConflict}, the conflict can be resolved by learning the following constraint:
 
 \begin{leftbar}
-Consider a DNF constraint and a clause. Let $x$ be literal that both constraints are complementary on. Let $x$ also be the literal that started the conflict between the two constraints. This conflict can then be resolved by learning the following constraint:
 \begin{displaymath}
-DNF / \neg x \vee Clause / x
+DNF((a,b,c),(c),(d))
 \end{displaymath}
 \end{leftbar}
 
@@ -803,60 +817,62 @@ DNF / \neg x \vee Clause / x
 
 The DNF-Clause conflict resolution rule has a similar problem to the DNF-DNF conflict resolution, because in both cases the algorithm has to learn a DNF constraint. As already explained before, a DNF constraint is difficult to handle, because the algorithm effectively learns several clauses at each conflict, which makes the propagation significantly harder after each conflict. That is why it is beneficial to also only learn a single clause in order to resolve the conflict.
 
+\begin{lemma}
 \begin{leftbar}
 Consider a DNF constraint and a clause. Let $x$ be literal that both constraints are complementary on. Let $\{y_1,...,y_n\}$ be the literals of the DNF constraint that turned false and therefore forced a unit propagation of the variable $x$. Let $\{z_1,...,z_m\}$ be the literals of the clause that turned false and therefore caused the propagation of the variable $x$. Then this specific conflict can be resolved by learning the following clause:
 \begin{displaymath}
 y_1 \vee ... \vee y_n \vee z_1 \vee ... \vee z_m
 \end{displaymath}
 \end{leftbar}
+\caption{Alternative conflict resolution between a DNF constraint and a clause}
+\label{le:DNFClauseConflictAlt}
+\end{lemma}
 
-This rule is effective in avoiding a specific in avoiding a specific conflict between a DNF constraint and a clause, but doesn't ensure that these two constraints won't have another conflict in the future. This is the tradeoff for only learning the minimal amount of constraints to resolve the conflict.
+The lemma \ref{le:DNFClauseConflictAlt} shows an alternative conflict resolution between a DNF constraint and a clause. Because the clause is just a special case of a DNF constraint, the same proof as for lemma \ref{le:DNFDNFConflictAlt} is also valid here for the lemma \ref{le:DNFClauseConflictAlt}. $\blacksquare$
 
 
 
 \subsection{DNF - AMO Conflict}
 
+This section contains the conflict resolution between DNF constraints and AMO constraints. First consider the following example:
+
+\begin{example}
 \begin{leftbar}
-Consider a DNF constraint and an AMO constraint. Let $\{x_1,...,x_n\}$ be the set of literals that are contained in both constraints. Let $\{z_1,...,z_m\}$ be the set of all literals in the AMO constraint. A conflict that involves these variables can be resolved by learning the following constraints:
-\begin{displaymath}
-\bigwedge_{i=1}^{n} DNF / x_i \vee DNF(\neg \{z_1,...,z_m\}/x_i)
-\end{displaymath}
-\end{leftbar}
-
-This type of conflict can only be started by AMO constraints and involves the set of literals $\{x_1,...,x_n\}$ that both constraints share. Consider the literal $x_k$ that is contained in both constraints. If any literal besides $x_k$ turns true in the AMO constraint, $x_k$ automatically has to be false. This can cause a conflict when every non-false term in the DNF constraint contains the literal $x_k$. In order to resolve this conflict either any term that doesn't contain $x_k$ needs to be true, or every literal besides $x_k$ needs to be false in the AMO constraint. This can be achieved by learning the constraint $DNF / x_k \vee DNF(\neg \{z_1,...,z_m\}/x_k)$. This rule can then be applied for every shared literal in both constraints, which leads to the set of learned constraints mentioned in the rule above.
-
-Lets take a look at an example to see how the conflict resolution works. Consider the following DNF and AMO constraint:
 \begin{displaymath}
 DNF((bc),(de))
 \end{displaymath}
 \begin{displaymath}
 AMO(a,b,c)
 \end{displaymath}
-Currently $a \in TRUE$ and $\{d,e\} \in FALSE$ which causes the DNF constraint to not be satisfied. In order to resolve this conflict, the following constraint is learned:
 \begin{displaymath}
-DNF((de),(\neg a))
-\end{displaymath}
-
-\subsubsection{How to Apply the Rule}
-
-If we analyze the rule further you can see that a direct application of the rule might result in a large amount of DNF constraints that the algorithm has to learn. This rule creates a DNF constraint for every variable that is contained in both the AMO and the DNF constraint. By learning all of these constraints, all future conflicts between these two constraints can be avoided. This might not be necessary in all situations. Consider the following example:
-\begin{leftbar}
-\begin{displaymath}
-AMO(a,b,c,d)
-\end{displaymath}
-\begin{displaymath}
-DNF((a,g),(b,f),(x,y))
-\end{displaymath}
-Let's assume a conflict occurs because the literals $x$ and $y$ turn false and then the literal $c$ turns true. This then causes $a$ and $b$ to turn false, which leaves us in situation, where the DNF constraint can't be satisfied anymore. To solve this conflict, the solver could apply the rule from above and learn the following constraints:
-\begin{displaymath}
-DNF((b,f),(x,y),(\neg b, \neg c, \neg d)) \wedge DNF((a,g),(x,y),(\neg a, \neg c, \neg d)) 
+a = 1, d = 0, e = 0
 \end{displaymath}
 \end{leftbar}
-With the same variable assignment from before, we would get another conflict between the AMO constraint and the newly learned DNF constraint $DNF((b,f),(x,y),(\neg b, \neg c, \neg d))$. This can then be fully resolved by again applying the rule from above and learning the constraint $DNF((x,y),(\neg b, \neg c, \neg d), (\neg a, \neg c, \neg d))$. If $x$ and $y$ now turn false, then $\neg c$ becomes a unit literal and the conflict is therefore resolved. As we can see, the second learned constraint $DNF((a,g),(x,y),(\neg a, \neg c, \neg d)$ wasn't even involved in the resolution of the current conflict. There is the possibility that it might be useful in later conflicts, but in order to save memory and computation time we decided that it might be more efficient if the resolution rule is only applied to the variable that causes the current conflict. In practice therefore the following rule is used:
+\caption{Example for a conflict between a DNF constraint and an AMO constraint}
+\label{ex:AMODNFConflict}
+\end{example}
+
+
+The example \ref{ex:AMODNFConflict} shows a conflict between an AMO constraint and a DNF constraint. Because the literal $a$ is true, the AMO constraint forces a unit propagation of $\neg b$ and $\neg c$. But because the literals $\{d,e\}$ are already false, $b$ and $c$ need to be true, in order to satisfy the DNF constraint. This causes a conflict. It can be resolved by applying the following lemma:
+
+
+\begin{lemma}
 \begin{leftbar}
-Consider a DNF constraint and an AMO constraint. Let $x$ be the variable that is contained in both constraints and causes the current conflict. Let $\{z_1,...,z_m\}$ be the set of all literals in the AMO constraint. A conflict caused by the variable $x$ can then be resolved by learning the following constraint:
+Consider a DNF constraint and an AMO constraint. Let $x$ be a literal, that is contained in both constraints. Let $\{z_1,...,z_m\}$ be the set of literals in the AMO constraint except for $x$. A conflict caused by the literal $x$ can then be resolved by learning the following constraint.
 \begin{displaymath}
-DNF / x \vee DNF(\neg \{z_1,...,z_m\}/x)
+DNF / x \vee (\neg z_1 \wedge ... \wedge \neg z_m)
+\end{displaymath}
+\end{leftbar}
+\caption{Conflict resolution between an AMO constraint and a DNF constraint}
+\label{le:AMODNFConflict}
+\end{lemma}
+
+The lemma \ref{le:AMODNFConflict} shows the conflict resolution between a DNF constraint and an AMO constraint. Consider the literal $x$ that is contained in both constraints. If any literal besides $x$ turns true in the AMO constraint, $x$ automatically has to be false. This can cause a conflict when every non-false term in the DNF constraint contains the literal $x$. In order to resolve this conflict either any term that doesn't contain $x$ needs to be true, or every literal besides $x$ needs to be false in the AMO constraint. This can be achieved by learning the constraint $DNF / x \vee (\neg z_1 \wedge ... \wedge \neg z_m)$. $\blacksquare$
+
+By applying the lemma \ref{le:AMODNFConflict} to the example \ref{ex:AMODNFConflict}, the conflict can be resolved by learning the following constraint:
+\begin{leftbar}
+\begin{displaymath}
+DNF((de),(\neg a))
 \end{displaymath}
 \end{leftbar}
 
@@ -865,14 +881,19 @@ DNF / x \vee DNF(\neg \{z_1,...,z_m\}/x)
 The resolution rule for DNF-AMO conflicts again results in at least one DNF constraint that is learned. Here it is also preferable to instead learn a single clause to resolve the conflict. This can be achieve with the following rule:
 
 
+\begin{lemma}
 \begin{leftbar}
 Consider a DNF constraint and an AMO constraint. Let $x$ be the literal that the constraints are conflicting on. Let $y$ be the other literal of the AMO constraint that is true. Let $\{z_1,...,z_m\}$ be the set of literals of the DNF constraint that turned false and therefore led to this conflict. Then this conflict can be resolved by learning the following clause
 \begin{displaymath}
 \neg y \vee z_1 \vee ... \vee z_m
 \end{displaymath}
 \end{leftbar}
+\caption{Alternative conflict resolution between an AMO constraint and a DNF constraint}
+\label{le:AMODNFConflictAlt}
+\end{lemma}
 
-The conflict is on the literal $x$. The conflict can only occur if there is another literal $y$ in the AMO constraint that is currently true. So in order for this specific conflict to resolve either $y$ has to be false, so that the AMO constraint can be satisfied, or one of the literals $\{z_1,...,z_m\}$ that forced $x$ to be a unit literal, needs to be true.
+The lemma \ref{le:AMODNFConflictAlt} shows an alternative conflict resolution between an AMO constraint and a DNF constraint.
+The conflict is on the literal $x$. The conflict can only occur if there is another literal $y$ in the AMO constraint that is currently true. So in order for this specific conflict to resolve either $y$ has to be false, so that the AMO constraint can be satisfied, or one of the literals $\{z_1,...,z_m\}$ that forced $x$ to be a unit literal, needs to be true. $\blacksquare$
 
 \chapter{Implementation}
 \label{ch:Implementation}
