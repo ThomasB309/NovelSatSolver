@@ -336,7 +336,7 @@ y_1 \vee ... \vee y_n \vee z_1 \vee ... \vee z_m
 \section{Evaluation}
 \label{ch:Evaluation}
 
-This Section will focus on the performance evaluation of our new SAT solver. First we will talk about how the different benchmarks for this evaluation were created. Then we will look at how our SAT solver performs in comparison to other modern state of the art SAT solvers. Since our solver is implemented in Java, we will compare it against the only available state-of-the-art SAT solver in Java -- Sat4j~\cite{le2010sat4j}.
+This Section will focus on the performance evaluation of our new SAT solver. First we will talk about how the different benchmarks for this evaluation were created. Then we will look at how our SAT solver performs in comparison to other modern state of the art SAT solvers. Since our solver is implemented in Java, we will compare it against the only available state-of-the-art SAT solver in Java -- Sat4j~\cite{le2010sat4j} version 2.3.6. The source code of our solver is available at \url{https://github.com/ThomasB309/NovelSatSolver}
 
 \subsection{Translating DNF and AMO Benchmarks}
 
@@ -547,7 +547,7 @@ We observed, that for DNF constraints with a large amount of small terms, our so
 All in all we can conclude that there are benchmarks, where a native support for DNF constraints can be beneficial. to the solving time, and in some situations the new solver was able to outperform even SAT4J.
 
 As for future work we would like to speed up the solving process of CNF formulas in general, which would then also lead to a higher solving speed, when solving the other constraints natively.
-Another area of improvement is the CDCL algorithm that works with the new constraints. The DPLL configuration of our solver was consistently able to outperform the CDCL configurations. Here the branching heuristic could also be the reason for this performance difference. Another idea is to examine if there are more conflicts on average, if a certain constraint type occurs in a benchmark. Then it might be necessary to use a more aggressive clause database reduction algorithm.
+Another area of improvement is the CDCL algorithm that works with the new constraints. The DPLL configuration of our solver was consistently able to outperform the CDCL configurations. Here the branching heuristic could also be the reason for this performance difference. Another idea is to examine if there are more conflicts on average, if a certain constraint type occurs in a benchmark. Then it might be necessary to use more aggressive clause database reduction.
 
 \label{sect:bib}
 \bibliographystyle{plain}
