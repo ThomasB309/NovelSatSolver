@@ -13,7 +13,7 @@
 \chapter{Introduction}
 \label{ch:Introduction}
 
-The Boolean satisfiability problem is concerned with determining, whether there exists a set of variable assignments that satisfy a given Boolean formula. This problem has many uses cases in the area of hardware and software verification, planning and scheduling algorithms and also product configuration. \cite{biere2009handbook}
+The Boolean satisfiability problem is concerned with determining, whether there exists a set of variable assignments, that satisfy a given Boolean formula. This problem has many uses cases in the area of hardware and software verification, planning and scheduling algorithms and also product configuration. \cite{biere2009handbook}
 
 The following example shows a simple use case for the Boolean satisfiability problem in the area of product configuration. In this example the user tries to configure a car. This car can have a backup warning system (BWS) and a backup camera (BC), but it needs to have at least one of them. It can also have an electronic parking brake (EPB) and a manual parking brake (MPB). Here it also needs to have at least one of them.
 \begin{example}
@@ -26,9 +26,9 @@ The following example shows a simple use case for the Boolean satisfiability pro
 \label{ex:carConfiguration}
 \end{example}
 
-The example \ref{ex:carConfiguration} shows how the described constraints can be expressed as a Boolean satisfiability problem. In this example the problem is satisfiable, but if the user has the ability to freely define these constraints, then it is possible for situations to occur, where the user defines an unsatisfiable problem. In order to prevent these situations, a program called a "SAT solver" determines, whether the defined problem can be satisfied.
+The Example \ref{ex:carConfiguration} shows how the described constraints can be expressed as a Boolean satisfiability problem. In this example the problem is satisfiable, but if the user has the ability to freely define these constraints, then it is possible for situations to occur, where the user defines an unsatisfiable problem. In order to prevent these situations, a program called a "SAT solver" determines, whether the defined problem can be satisfied.
 
-Most modern SAT solver programs can only solve problems, that are defined in their "conjunctive normal form" (CNF) \cite{biere2009handbook}. A CNF consists of a set of clauses that are all conjunctively combined with the $\wedge$ operator. A clause consists of a set of literals that are disjunctively combined with the $\vee$ operator \cite{biere2009handbook}.
+Most modern SAT solver programs can only solve problems, that are defined in their "conjunctive normal form" (CNF) \cite{biere2009handbook}. A CNF consists of a set of clauses, that are all conjunctively combined with the $\wedge$ operator. A clause consists of a set of literals, that are disjunctively combined with the $\vee$ operator \cite{biere2009handbook}.
 
 The next example highlights some of the disadvantages of this commonly used format. In this example the user wants to extend the car configuration by the color of the car. In contrast to the example before, the car can only have one color at a time. The buyer has to be able to choose from the colors blue (B), red (R), green (G) and black (BL).
 \begin{example}
@@ -43,11 +43,11 @@ The next example highlights some of the disadvantages of this commonly used form
 (\neg R \vee \neg G) \wedge (\neg R \vee \neg BL) \wedge (\neg G \vee \neg BL)
 \end{displaymath}
 \end{leftbar}
-\caption{Configuration rules of a car that has to have exactly one color}
+\caption{Configuration rules of a car, that has to have exactly one color}
 \label{ex:carConfigurationColor}
 \end{example}
 
-The example \ref{ex:carConfigurationColor} shows how the constraints for the car color can be defined as a CNF. The first clause ensures that at least one of the colors is chosen. The other clauses then make sure that at most one of the colors are chosen. The condition, that at most one of the colors can be chosen, can only be described with a large amount of clauses. It would be easier to define such a problem in a system, that supports a so called "At most one" (AMO) constraint natively.
+The Example \ref{ex:carConfigurationColor} shows how the constraints for the car color can be defined as a CNF. The first clause ensures, that at least one of the colors is chosen. The other clauses then make sure, that at most one of the colors are chosen. The condition, that at most one of the colors can be chosen, can only be described with a large amount of clauses. It would be easier to define such a problem in a system, that supports a so called "at most one" (AMO) constraint natively.
 
 \begin{example}
 \begin{leftbar}
@@ -58,13 +58,13 @@ The example \ref{ex:carConfigurationColor} shows how the constraints for the car
 AMO(B,R,G,BL)
 \end{displaymath}
 \end{leftbar}
-\caption{Car configuration rules with native AMO constraint}
+\caption{Car configuration rules with a native AMO constraint}
 \label{ex:carConfigurationColorAMO}
 \end{example}
 
-The example \ref{ex:carConfigurationColorAMO} shows the same constraints as example \ref{ex:carConfigurationColor} but instead defined with a natively supported AMO constraint. This significantly reduces the amount of constraints and offers the possibility for the solver, to leverage certain advantages that AMO constraints have.
+The example \ref{ex:carConfigurationColorAMO} shows the same constraints as example \ref{ex:carConfigurationColor}, but instead defined with a natively supported AMO constraint. This significantly reduces the amount of constraints and offers the possibility for the solver, to leverage certain advantages, that AMO constraints have.
 
-The next example highlights another situation, where a natively supported constraint can reduce the amount of clauses. It uses the same variable definitions, that were used in the other examples
+The next example highlights another situation, where a natively supported constraint can reduce the amount of clauses. It uses the same variable definitions, that were used in the other examples.
 
 \begin{example}
 \begin{leftbar}
@@ -94,9 +94,9 @@ Example \ref{ex:carConfigurationDNF} shows a set of rules, which allows the buye
 \label{ex:carConfigurationCNF}
 \end{example}
 
-The example \ref{ex:carConfigurationCNF} shows that the CNF needs a higher amount of constraints in order to describe the two packages. In addition to the lower amount of constraints in certain situations, the DNF might also have advantages that can be leveraged during the solving process.
+The example \ref{ex:carConfigurationCNF} shows that the CNF needs a higher amount of constraints, in order to describe the two packages. In addition to the lower amount of constraints in certain situations, the DNF might also have advantages, that can be leveraged during the solving process.
 
 In cooperation with the CAS Software AG this thesis therefore tries to examine, whether a SAT solver, that is capable of natively solving DNF and AMO constraints in addition to the clauses, has advantages in the area of solving speed, compared to more traditional modern SAT solvers.
 
-Chapter \ref{ch:Preliminaries} introduces the concepts needed to understand the subject of the thesis. Chapter \ref{ch:Related Work} then gives an overview of SAT solvers that introduced important concepts, or SAT solvers, that examined approaches which have similarities to this thesis. Chapter \ref{ch:Analysis} then gives a thorough analysis of the concepts, that our novel SAT solver architecture uses, in order to solve Boolean problems with AMO and DNF constraints. Chapter \ref{ch:Implementation} describes the implemented architecture in detail. In chapter \ref{ch:Evaluation} we compare the performance of the novel SAT solver architectures with other modern SAT solvers, in order to see, if the new approach offers any advantages. In the end chapter \ref{ch:Conclusion} gives a conclusion and an outlook on possible improvements in future works.
+Chapter \ref{ch:Preliminaries} introduces the concepts, that are needed to understand the subject of the thesis. Chapter \ref{ch:Related Work} then gives an overview of SAT solvers, that introduced important concepts, or SAT solvers, that examined approaches, which have similarities to this thesis. Chapter \ref{ch:Analysis} then gives a thorough analysis of the concepts, that our novel SAT solver architecture uses, in order to solve Boolean problems with AMO and DNF constraints. Chapter \ref{ch:Implementation} describes the implemented architecture in detail. In chapter \ref{ch:Evaluation} we compare the performance of the novel SAT solver architecture with other modern SAT solvers, in order to see, if the new approach offers any advantages. In the end chapter \ref{ch:Conclusion} gives a conclusion and an outlook on possible improvements in future works.
 

@@ -155,7 +155,7 @@
 \theinstitute\\[2em]
 \begin{tabular}{l l}
   \ifcurrentbaselanguage{English}{Reviewer}{Erstgutachter}: & \thereviewerone\\
-  \ifcurrentbaselanguage{English}{Second reviewer}{Zweitgutachter}: & \thereviewertwo\\
+    \ifcurrentbaselanguage{English}{Second reviewer}{Zweitgutachter}: & \thereviewertwo\\
   \ifcurrentbaselanguage{English}{Advisor}{Betreuender Mitarbeiter}: &  \theadvisorone\\
   % if there is no second advisor, do not output this line
   \ifthenelse{\equal{\theadvisortwo}{}}{}{%

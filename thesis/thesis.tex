@@ -40,11 +40,14 @@
 \nogrouplogo
 
 %% The reviewers are the professors that grade your thesis
-\reviewerone{Prof. Dr. rer. nat. Peter Sanders}
+\reviewerone{Prof. Dr. Peter Sanders}
+\reviewertwo{Prof. Dr. Carsten Sinz}
 
 %% The advisors are PhDs or Postdocs
-\advisorone{Dr. rer. nat. Markus Iser}
+\advisorone{Dr. Markus Iser}
 %% The second advisor can be omitted
+
+\advisortwo{Dr. Tomáš Balyo}
 
 %% Please enter the start end end time of your thesis
 \editingtime{07. December 2021}{07. June 2022}
@@ -73,6 +76,7 @@
 
 \usepackage{newfloat}
 \usepackage{caption}
+\usepackage{adjustbox}
 
 \usepackage{framed}
 \usepackage[framemethod=tikz, rightmargin=5, leftmargin=5,backgroundcolor=white, frametitlerule=true,  roundcorner=5pt, middlelinewidth=2pt, skipabove=\baselineskip plus 2pt minus 1pt, skipbelow=\baselineskip plus 2pt minus 1pt, nobreak=true]{mdframed}
@@ -85,6 +89,8 @@
 \usepackage{amsmath}
 \usepackage{pgfplots}
 \pgfplotsset{compat=1.12}
+\let\openbox\relax
+\usepackage{amsthm}
 
 \graphicspath{{./images/}}
 
@@ -102,7 +108,9 @@
 
 \DeclareFloatingEnvironment[fileext=frm,placement={!htb},name=Definition]{definition}
 
-\DeclareFloatingEnvironment[fileext=frm,placement={!htb},name=Lemma]{lemma}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+
 
 
 
@@ -169,7 +177,10 @@
 %% --------------------
 
 %% Add entry to the table of contents for the bibliography
+\begingroup
+\setlength{\emergencystretch}{8em}
 \printbibliography[heading=bibintoc]
+\endgroup
 
 %% ----------------
 %% |   Appendix   |
