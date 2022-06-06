@@ -94,24 +94,17 @@ public class SudokuExperiment {
 			System.exit(-1);
 		}
 
-
-		dpllNoRestartsFalse.setName("DPLL\\_NR\\_F");
-		dpllRestartsFalse.setName("DPLL\\_R\\_F");
-		cdclRestartsFalse.setName("CDCL\\_R\\_F");
 		sat4j.setName("SAT4J");
 
 		int timeout = Integer.parseInt(args[1]);
 
 		for (String file : listFilesUsingFileWalk(args[0], 1)) {
 			SudokuProblem problem = readSudokuProblem(file);
-			dpllNoRestartsFalse.add(solveWithDinoSat(problem, true, false, false, timeout));
-			dpllRestartsFalse.add(solveWithDinoSat(problem, true, true, false, timeout));
-			cdclRestartsFalse.add(solveWithDinoSat(problem, false, true, false, timeout));
 			sat4j.add(solveWithSat4j(problem, timeout));
 			System.out.println(file);
 		}
 
-		Evaluation.printTable(dpllNoRestartsFalse, dpllRestartsFalse, cdclRestartsFalse, sat4j);
+		Evaluation.printTable(sat4j);
 
 	}
 
@@ -196,7 +189,7 @@ public class SudokuExperiment {
 	public static Statistics solveWithSat4j(SudokuProblem problem, int timeout) {
 		Statistics stats = new Statistics();
 		ISolver solver = SolverFactory.newDefault();
-		solver.setTimeout(timeout);
+		solver.setTimeout((int) ((1.0 * timeout) / 1000));
 		CnfWithAMO formula = convertSudokuProblemToCnfWithAMO(problem);
 		long startTime = 0;
 		try {

@@ -43,6 +43,24 @@
                         <configuration>
                             <archive>
                                 <manifest>
+                                    <mainClass>cas.thomas.Sudoku.SudokuExperiment</mainClass>
+                                </manifest>
+                            </archive>
+                            <descriptorRefs>
+                                <descriptorRef>jar-with-dependencies</descriptorRef>
+                            </descriptorRefs>
+                            <finalName>sudokuSAT4J.jar</finalName>
+                        </configuration>
+                        <id>sudoku</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <configuration>
+                            <archive>
+                                <manifest>
                                     <mainClass>cas.thomas.BenchmarkGeneration.PhaseTransitionInputParser</mainClass>
                                 </manifest>
                             </archive>
