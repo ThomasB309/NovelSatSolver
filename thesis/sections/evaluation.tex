@@ -129,7 +129,7 @@ This section contains the phase transition experiments for formulas, that purely
 
 \input{graphs/AMO_Phase_Transition.tex}
 
-The graph \ref{fig:AMOPhase} shows the relation between the AMO constraint to variable ratio and the percentage of satisfiable instances, as well as the normalized solving time for 1000 instances. The continuous lines show the percentage of satisfiable instances, while the dashed lines show the normalized solving time. During each iteration, the solver solved 1000 randomly generated formulas. The amount of AMO constraints per formulas was increased by 5 per iteration. We conducted this experiment with AMO constraints of length two to seven. The results show, that every type of AMO constraint, that we conducted the experiment with, has a phase transition. The length of the AMO constraint only has an effect on when the phase transition occurs. An increasing AMO constraint length causes the phase transition to occur earlier. A possible explanation for that, is that an increasing amount of literals per AMO constraint, restricts the space of possible solutions more. This then causes the phase transition to occur earlier. We also measured the time, that the solver needs in order to solve the 1000 instances in every iteration. We then normalized these values and added them to the graph. What is interesting, is that the the hardest instances seem to be located near the phase transition point, independent of the number of literals that the AMO constraints have.
+The Figure \ref{fig:AMOPhase} shows the relation between the AMO constraint to variable ratio and the percentage of satisfiable instances, as well as the normalized solving time for 1000 instances. The continuous lines show the percentage of satisfiable instances, while the dashed lines show the normalized solving time. During each iteration, the solver solved 1000 randomly generated formulas. The amount of AMO constraints per formulas was increased by 5 per iteration. We conducted this experiment with AMO constraints of length two to seven. The results show, that every type of AMO constraint, that we conducted the experiment with, has a phase transition. The length of the AMO constraint only has an effect on when the phase transition occurs. An increasing AMO constraint length causes the phase transition to occur earlier. A possible explanation for that, is that an increasing amount of literals per AMO constraint, restricts the space of possible solutions more. This then causes the phase transition to occur earlier. We also measured the time, that the solver needs in order to solve the 1000 instances in every iteration. We then normalized these values and added them to the graph. What is interesting, is that the the hardest instances seem to be located near the phase transition point, independent of the number of literals that the AMO constraints have.
 
 \subsection{Phase Transition of DNF Constraints}
 
@@ -142,7 +142,7 @@ Similar to the phase transition calculation for the AMO constraints, we also con
 \input{graphs/DNF_Phase_Transition_Constant_Terms.tex}
 
 
-The graph \ref{fig:DNFConstantTerms} shows the relation between the DNF constraint to variable ratio and the percentage of satisfiable instances, as well as the normalized solving time of 1000 instances. The dotted lines show the normalized solving time, while the continuous lines show the percentage of satisfiable instances. Here we used DNF constraints with a constant term count of 3, 50 variables and a DNF increment of 1 per iteration. We then conducted the experiment for the term sizes 2-7. For the phase transition we can see a similar behavior to what we have already seen with the AMO constraints. By adding more literals to the terms of the DNF constraints, the space of satisfiable instances gets restricted, which is the likely explanation for why the phase transition occurs later, the more literals are added to the terms. What is interesting here is, that the hardest instances of these DNF formulas also seem to occur near their phase transition point.
+The Figure \ref{fig:DNFConstantTerms} shows the relation between the DNF constraint to variable ratio and the percentage of satisfiable instances, as well as the normalized solving time of 1000 instances. The dotted lines show the normalized solving time, while the continuous lines show the percentage of satisfiable instances. Here we used DNF constraints with a constant term count of 3, 50 variables and a DNF increment of 1 per iteration. We then conducted the experiment for the term sizes 2-7. For the phase transition we can see a similar behavior to what we have already seen with the AMO constraints. By adding more literals to the terms of the DNF constraints, the space of satisfiable instances gets restricted, which is the likely explanation for why the phase transition occurs later, the more literals are added to the terms. What is interesting here is, that the hardest instances of these DNF formulas also seem to occur near their phase transition point.
 
 \subsection{DNF Constraints with a Constant Term Length}
 
@@ -150,7 +150,7 @@ In this next experiment we left the number of terms per DNF constraint constant,
 
 \input{graphs/DNF_Phase_Transition_Constant_Term_Length.tex}	
 
-The graph \ref{fig:DNFConstantTermLength} shows the relation between the DNF constraint to variable ratio and the percentage of the satisfiable instances, as well as the normalized solving time of 1000 instances. We use DNF constraints with a constant term length of five, 25 variables and a DNF increment of one per iteration. The experiment was then conducted for DNF constraints with one to five terms. The dotted lines show the normalized solving time and the continuous lines show the percentage of satisfiable instances. Here we see the opposite behavior of before. The more terms are added to the constraints, the later the phase transition occurs. A possible explanation for this, is that a higher amount of terms actually widens the space of possible solutions and therefore shifts the phase transition point to a later point. The hardest instances also seem to be near the phase transition point of these DNF constraints.
+The Figure \ref{fig:DNFConstantTermLength} shows the relation between the DNF constraint to variable ratio and the percentage of the satisfiable instances, as well as the normalized solving time of 1000 instances. We use DNF constraints with a constant term length of five, 25 variables and a DNF increment of one per iteration. The experiment was then conducted for DNF constraints with one to five terms. The dotted lines show the normalized solving time and the continuous lines show the percentage of satisfiable instances. Here we see the opposite behavior of before. The more terms are added to the constraints, the later the phase transition occurs. A possible explanation for this, is that a higher amount of terms actually widens the space of possible solutions and therefore shifts the phase transition point to a later point. The hardest instances also seem to be near the phase transition point of these DNF constraints.
 
 \section{Phase Transition of AMO Constraints with a Constant Number of Clauses}
 
@@ -158,7 +158,7 @@ An important aspect of our evaluation is the performance of our solver on formul
 
 \input{graphs/AMO_Phase_Transition_Clauses.tex}	
 
-The graph \ref{fig:AMOClause} shows the relation between the AMO constraint to variables ratio and the percentage of satisfiable instances, as well as the normalized solving time of 1000 instances. We used 100 variables, AMO constraints of length 5 and an AMO increment of 1 per iteraiton. We then conducted the experiment, where the formulas contain 0 to 400 clauses with 3 literals. What can be seen, is that a larger amount of clauses shifts the phase transition of the AMO constraints to an earlier point. This is consistent with the information, that we already gathered from the earlier experiments. The clauses restrict the space of possible solutions, which in turn causes the phase transition to occur earlier. What is interesting to see, is that the AMO constraints don't have a large impact on the solving time. The hardest instances actually occur when the formulas are near the phase transition point of the clauses.
+The Figure \ref{fig:AMOClause} shows the relation between the AMO constraint to variables ratio and the percentage of satisfiable instances, as well as the normalized solving time of 1000 instances. We used 100 variables, AMO constraints of length 5 and an AMO increment of 1 per iteraiton. We then conducted the experiment, where the formulas contain 0 to 400 clauses with 3 literals. What can be seen, is that a larger amount of clauses shifts the phase transition of the AMO constraints to an earlier point. This is consistent with the information, that we already gathered from the earlier experiments. The clauses restrict the space of possible solutions, which in turn causes the phase transition to occur earlier. What is interesting to see, is that the AMO constraints don't have a large impact on the solving time. The hardest instances actually occur when the formulas are near the phase transition point of the clauses.
 
 \section{Phase Transition of DNF Constraints with a Constant Number of Clauses}
 
@@ -166,7 +166,7 @@ Similar to the phase transition of AMO constraints with a constant number of cla
 
 \input{graphs/DNF_Phase_Transition_Clauses.tex}	
 
-The graph \ref{fig:DNFClauses} shows the relation between the DNF constraint to variable ratio and the percentage of satisfiable instances, as well as the normalized solving speed of 1000 instances. We used DNF constraints with 3 terms of length 3, 50 variables, DNF increments of 1 per iteration, clause increments of 50 per iteration and clauses of length 3. Similar to the AMO constraints, we can see that the phase transition of the DNF constraints shifts to an earlier point the more clauses are added. The hardest instances seem to occur near the phase transition point.
+The Figure \ref{fig:DNFClauses} shows the relation between the DNF constraint to variable ratio and the percentage of satisfiable instances, as well as the normalized solving speed of 1000 instances. We used DNF constraints with 3 terms of length 3, 50 variables, DNF increments of 1 per iteration, clause increments of 50 per iteration and clauses of length 3. Similar to the AMO constraints, we can see that the phase transition of the DNF constraints shifts to an earlier point the more clauses are added. The hardest instances seem to occur near the phase transition point.
 
 \section{Phase Transition of AMO Constraints with DNF Constraints}
 
@@ -174,7 +174,7 @@ After conducting experiments with the combination of other constraint types with
 
 \input{graphs/AMO_Phase_Transition_DNF.tex}
 
-The graph \ref{fig:AMODNF} shows the relation between the AMO constraint to variable ratio and the percentage of satisfiable instances, as well as the normalized solving time for 1000 instances. We used AMO constraints of length 5, 100 variables, AMO increments of 1 per iteration, DNF constraints with 3 terms of length 3 and DNF increments of 10 per iteration. We can see a similar behavior to the phase transition of AMO constraints with a constant amount of clauses. By adding more DNF constraints, the solution space gets more restricted, which causes the phase transition to occur earlier. Similar to the clauses we can also see, that the DNF constraints are responsible for a strong increase in the solving time. The hardest instances seem to again occur near the phase transition point.
+The Figure \ref{fig:AMODNF} shows the relation between the AMO constraint to variable ratio and the percentage of satisfiable instances, as well as the normalized solving time for 1000 instances. We used AMO constraints of length 5, 100 variables, AMO increments of 1 per iteration, DNF constraints with 3 terms of length 3 and DNF increments of 10 per iteration. We can see a similar behavior to the phase transition of AMO constraints with a constant amount of clauses. By adding more DNF constraints, the solution space gets more restricted, which causes the phase transition to occur earlier. Similar to the clauses we can also see, that the DNF constraints are responsible for a strong increase in the solving time. The hardest instances seem to again occur near the phase transition point.
 
 \section{Phase Transition of AMO Constraints with DNF Constraints and Clauses}
 
@@ -183,7 +183,7 @@ As a final experiment we wanted to see how the all three constraint types intera
 
 \input{graphs/AMO_Phase_Transition_Clauses_DNF.tex}
 
-The graph \ref{fig:AMOClauseDNF} shows the relation between the AMO constraint to variable ratio and the percentage of satisfiable instances, as well as the normalized solving speed of 1000 instances. We used AMO constraints of length 5, 100 variables, AMO increments of 1 per iteration, DNF constraints with 3 terms of length 3, DNF increments of 5 per iteration, clauses of length 3 and clause increments of 50 per iteration. Again the addition of clauses and DNF constraints shifts the phase transition to an earlier point. The DNF constraints and clauses seem to be mostly responsible for the increase of the solving time.
+The Figure \ref{fig:AMOClauseDNF} shows the relation between the AMO constraint to variable ratio and the percentage of satisfiable instances, as well as the normalized solving speed of 1000 instances. We used AMO constraints of length 5, 100 variables, AMO increments of 1 per iteration, DNF constraints with 3 terms of length 3, DNF increments of 5 per iteration, clauses of length 3 and clause increments of 50 per iteration. Again the addition of clauses and DNF constraints shifts the phase transition to an earlier point. The DNF constraints and clauses seem to be mostly responsible for the increase of the solving time.
 
 \section{Industrial Benchmarks}
 
@@ -214,7 +214,7 @@ $(CNF)Ind_{small}$ & 26 & 9057.96 & 0.00 & 0.00 & 0.00 & 16935.81 & 3.15 & 0.00 
 \end{adjustbox}
 \end{table}
 
-The table \ref{tab:industrialBenchmarks} shows the composition of the $Ind_{small}$, $Ind_{medium}$ and $Ind_{large}$ industrial benchmark sets, as well as their equisatisfiable CNF counterparts. All three benchmark sets contain DNF constraints, AMO constraints and clauses.
+The Table \ref{tab:industrialBenchmarks} shows the composition of the $Ind_{small}$, $Ind_{medium}$ and $Ind_{large}$ industrial benchmark sets, as well as their equisatisfiable CNF counterparts. All three benchmark sets contain DNF constraints, AMO constraints and clauses.
 
 
 \begin{table}[!htb]
@@ -238,7 +238,7 @@ $Sat4j$ & 18.867 & 20 & 0 & 82588.10 & 726588.50 & 48.25 \\
 \end{tabular}
 \end{table}
 
-The table \ref{tab:mBenchmarks} contains the performance evaluation for the $Ind_{large}$ and $(CNF)Ind_{large}$ benchmark sets. Here we used a timeout of two minutes. First it is necessary to understand the naming of the different solver configurations. This naming scheme is consistent throughout this chapter. The configurations, that start with "DPLL" make use of the DPLL algorithm instead of the CDCL algorithm. They therefore don't resolve conflicts by learning clauses. The "CDCL" configurations learn clauses at every conflict. The configurations, that contain "NR" don't use any restarts, while the configurations that contain an "R" make use of the Luby restarts. Then there is also the letter "F", which indicates, that the first value, that a branching variable gets assigned, is always false. If a configuration starts with "(CNF)", then that means, that the solver solved the equisatisfiable CNF version of this benchmark. $Sat4j$ always solves the encoded benchmark, when not mentioned otherwise.
+The Table \ref{tab:mBenchmarks} contains the performance evaluation for the $Ind_{large}$ and $(CNF)Ind_{large}$ benchmark sets. Here we used a timeout of two minutes. First it is necessary to understand the naming of the different solver configurations. This naming scheme is consistent throughout this chapter. The configurations, that start with "DPLL" make use of the DPLL algorithm instead of the CDCL algorithm. They therefore don't resolve conflicts by learning clauses. The "CDCL" configurations learn clauses at every conflict. The configurations, that contain "NR" don't use any restarts, while the configurations that contain an "R" make use of the Luby restarts. Then there is also the letter "F", which indicates, that the first value, that a branching variable gets assigned, is always false. If a configuration starts with "(CNF)", then that means, that the solver solved the equisatisfiable CNF version of this benchmark. $Sat4j$ always solves the encoded benchmark, when not mentioned otherwise.
 
 In this benchmark both DPLL configurations of our solver show the fastest solving time, with the DPLL configuration, that uses restarts, taking the first place. Both CDCL configurations perform worse than $Sat4j$. So in this benchmark it seems, that natively solving the DNF and AMO constraints yields an advantage with the DPLL algorithm. An interesting observation is, that the average number of branching decisions, propagations and conflicts is way higher for both CDCL configurations compared to $Sat4j$. The DPLL configurations actually have the least amount of average branching decisions and propagations, but have more conflicts than $Sat4j$.
 
@@ -263,7 +263,7 @@ $Sat4j$ & 1.579 & 21 & 0 & 6822.62 & 16236.81 & 0.00 \\
 \end{tabular}
 \end{table}
 
-The table \ref{tab:jBenchmarks} contains the performance evaluation of the $Ind_{medium}$ and $(CNF)Ind_{medium}$ benchmark sets. Here we used a timeout of two minutes. For these benchmark sets, the solving times for every configuration of our solver, as well as $Sat4j$, are so low, that it is difficult to draw conclusions on which solver actually performs better. The solving times are very similar for every solver and the small differences could also be attributed to the parsing time. What can be observed, is that $Sat4j$ has the lowest amount of branching decisions out of every solver.
+The Table \ref{tab:jBenchmarks} contains the performance evaluation of the $Ind_{medium}$ and $(CNF)Ind_{medium}$ benchmark sets. Here we used a timeout of two minutes. For these benchmark sets, the solving times for every configuration of our solver, as well as $Sat4j$, are so low, that it is difficult to draw conclusions on which solver actually performs better. The solving times are very similar for every solver and the small differences could also be attributed to the parsing time. What can be observed, is that $Sat4j$ has the lowest amount of branching decisions out of every solver.
 
 \begin{table}[!htb]
 \centering
@@ -286,7 +286,7 @@ $Sat4j$ & 0.914 & 26 & 0 & 3900.38 & 8410.46 & 0.85 \\
 \end{tabular}
 \end{table}
 
-The table \ref{tab:wBenchmarks} shows the performance evaluation of the $Ind_{small}$ and  $(CNF)Ind_{small}$ benchmark sets. We used a timeout of 2 minutes. Here we can observe a similar situation to the medium benchmark set. The solving times are both very low and also very similar for every solver, which makes it difficult to draw any conclusions. $Sat4j$ still has the lowest amount of average branching decisions.
+The Table \ref{tab:wBenchmarks} shows the performance evaluation of the $Ind_{small}$ and  $(CNF)Ind_{small}$ benchmark sets. We used a timeout of 2 minutes. Here we can observe a similar situation to the medium benchmark set. The solving times are both very low and also very similar for every solver, which makes it difficult to draw any conclusions. $Sat4j$ still has the lowest amount of average branching decisions.
 
 In conclusion we can observe, that for the $Ind_{large}$ industrial benchmark set, our solver with the DPLL configuration was able to outperform $Sat4j$ by a few seconds. For the medium and small benchmarks, the solving times were too low to draw any conclusions on which solver is faster. What can be consistently observed, is that $Sat4j$ has a low amount of average branching decisions compared to our solver. A probable explanation for this, is that $Sat4j$ uses a better branching heuristic, especially when combined with clause learning. Our solver seems to have the largest amount of branching decisions, when it uses clause learning. This indictates that our VSIDS implementation makes worse decisions, especially when new clauses are learned.
 
@@ -337,7 +337,7 @@ $(CNF)D_{15\_3}C_3U$ & 100 & 2135,00 & 0,00 & 0.00 & 0.00 & 8660,00 & 2,74 \\
 \end{tabular}
 \end{table}
 
-The table \ref{tab:randomizedBenchmarks} shows the composition of all the randomized benchmark sets, that we generated for our evaluation. The naming scheme for these benchmarks is consistent and reveals the composition of the benchmark set. If a benchmark set starts with the expression $(CNF)$ then that means, it was encoded into a pure CNF form. The $DNF_{x\_y}$ expression then reveals, that this benchmark contains DNF constraints with $x$ terms, that each contain $y$ literals. The expression $C_x$ then reveals, that the benchmark contains clauses, that each contain $x$ literals. If the name of the benchmark ends with a $U$ then all of the formulas in this set are unsatisfiable.
+The Table \ref{tab:randomizedBenchmarks} shows the composition of all the randomized benchmark sets, that we generated for our evaluation. The naming scheme for these benchmarks is consistent and reveals the composition of the benchmark set. If a benchmark set starts with the expression $(CNF)$ then that means, it was encoded into a pure CNF form. The $DNF_{x\_y}$ expression then reveals, that this benchmark contains DNF constraints with $x$ terms, that each contain $y$ literals. The expression $C_x$ then reveals, that the benchmark contains clauses, that each contain $x$ literals. If the name of the benchmark ends with a $U$ then all of the formulas in this set are unsatisfiable.
 
 \section{DNF Benchmarks with 5 Terms and 5 Literals per Term}
 
@@ -364,7 +364,7 @@ $Sat4j$ & 4.662 & 100 & 0 & 2516.05 & 133720.91 & 1584.24 \\
 \end{tabular}
 \end{table}
 
-The table \ref{tab:dnf55Sat} shows the performance statistics on the $DNF_{5\_5}$ and $(CNF)DNF_{5\_5}$ benchmark sets. Here we used a timeout of two minutes. $Sat4j$ shows by far the best performance with a solving time of 4.662 seconds. No configuration of our SAT solver comes close to this performance. Our solver performs best when solving the encoded CNF benchmark $(CNF)DNF_{5\_5}$. The DPLL configuration with restarts and the CDCL configuration, that solves the DNF constraints natively, were not able to solve every formula without timing out. What can be observed again, is that the average amount of branching decisions, unit propagations and conflicts is significantly lower for $Sat4j$ than for our solver.
+The Table \ref{tab:dnf55Sat} shows the performance statistics on the $DNF_{5\_5}$ and $(CNF)DNF_{5\_5}$ benchmark sets. Here we used a timeout of two minutes. $Sat4j$ shows by far the best performance with a solving time of 4.662 seconds. No configuration of our SAT solver comes close to this performance. Our solver performs best when solving the encoded CNF benchmark $(CNF)DNF_{5\_5}$. The DPLL configuration with restarts and the CDCL configuration, that solves the DNF constraints natively, were not able to solve every formula without timing out. What can be observed again, is that the average amount of branching decisions, unit propagations and conflicts is significantly lower for $Sat4j$ than for our solver.
 
 
 \begin{table}[!htb]
@@ -388,7 +388,7 @@ $Sat4j$ & 10.568 & 100 & 0 & 5050.79 & 279582.43 & 3368.70 \\
 \end{tabular}
 \end{table}
 
-The table \ref{tab:dnf55Unsat} shows the performance statistics on the $DNF_{5\_5}U$ and $(CNF)DNF_{5\_5}U$ benchmark sets. While all solvers took generally longer to solve this benchmark compared to the satisfiable counterpart, $Sat4j$ is still the fastest solver by a significant margin. Here it is interesting, that now the DPLL configuration of our solver shows the best performance. $Sat4j$ again shows the lowest amount of average branching decisions, unit propagations and conflicts.
+The Table \ref{tab:dnf55Unsat} shows the performance statistics on the $DNF_{5\_5}U$ and $(CNF)DNF_{5\_5}U$ benchmark sets. While all solvers took generally longer to solve this benchmark compared to the satisfiable counterpart, $Sat4j$ is still the fastest solver by a significant margin. Here it is interesting, that now the DPLL configuration of our solver shows the best performance. $Sat4j$ again shows the lowest amount of average branching decisions, unit propagations and conflicts.
 
 What can be concluded, is that $Sat4j$ shows a significantly better performance on pure DNF benchmarks, that contain small DNF constraints. An important factor are the average amount of branching decisions, unit propagations and conflicts, that are very large for every configuration of our solver. This again indicates, that the VSIDS heuristic in our solver makes worse decisions. For the satisfiable benchmark set, our solver performed better, when it solved the encoded version, but for the unsatisfiable benchmark the DPLL configuration with no restarts performed better. One possible explanation for this, is that the unsatisfiable benchmarks are generally harder, which causes the CDCL configurations to learn more clauses, which then makes the propagation process slower.
 
@@ -417,7 +417,7 @@ $Sat4j$ & 0.37 & 100 & 0 & 283.10 & 5589.50 & 122.96 \\
 \end{tabular}
 \end{table}
 
-The table \ref{tab:dnf1010Sat} shows the performance evaluation of the $DNF_{10\_10}$ and $(CNF)DNF_{10\_10}$ benchmark sets. We used a timeout of two minutes. Here $Sat4j$ is the clear winner again. Our solver performs best, when it solves the CNF encoded benchmark. Again the DPLL configuration without restarts outperforms both the DPLL configuration without restarts and the CDCL configuration, that solves the benchmark with the native constraints.
+The Table \ref{tab:dnf1010Sat} shows the performance evaluation of the $DNF_{10\_10}$ and $(CNF)DNF_{10\_10}$ benchmark sets. We used a timeout of two minutes. Here $Sat4j$ is the clear winner again. Our solver performs best, when it solves the CNF encoded benchmark. Again the DPLL configuration without restarts outperforms both the DPLL configuration without restarts and the CDCL configuration, that solves the benchmark with the native constraints.
 
 We can see similar effects as before. The amount of decisions, that our solver has to make is still significantly higher in all configurations compared to $Sat4j$.
 
@@ -442,7 +442,7 @@ $Sat4j$ & 0.485 & 100 & 0 & 508.47 & 11842.25 & 269.49 \\
 \end{tabular}
 \end{table}
 
-The table \ref{tab:dnf1010Unsat} shows the performance evaluation of the $DNF_{10\_10}U$ and the $(CNF)DNF_{10\_10}U$ benchmark sets. We used a timeout of two minutes. $Sat4j$ is still the clear winner. Our solver still performs the best when solving the CNF formulas. The DPLL configuration without restarts still outperforms the other configurations that solve the DNF constraints natively.
+The Table \ref{tab:dnf1010Unsat} shows the performance evaluation of the $DNF_{10\_10}U$ and the $(CNF)DNF_{10\_10}U$ benchmark sets. We used a timeout of two minutes. $Sat4j$ is still the clear winner. Our solver still performs the best when solving the CNF formulas. The DPLL configuration without restarts still outperforms the other configurations that solve the DNF constraints natively.
 
 Here we can make a similar conclusion to the pure DNF benchmarks with small DNF constraints. $Sat4j$ outperforms every configuration of our solver. One major reason for that are again the average amount of branching decisions, which are very high for our solver. What can also be said, is that with the large terms of the DNF constraints, the advantages of the Two-Watched-Termsets algorithm, can't really be leveraged, because the solver still has to watch a large amount of literals per DNF constraint.
 
@@ -472,7 +472,7 @@ $Sat4j$ & 355.249 & 99 & 0 & 24897.67 & 6970444.00 & 22712.35 \\
 \end{tabular}
 \end{table}
 
-The table \ref{tab:dnf153Sat} shows the performance evaluation on the $DNF_{15\_3}$ and $(CNF)DNF_{15\_3}$ benchmark sets. We used a timeout of 2 minutes. In contrast to the pure DNF benchmarks before, our solver with the DPLL algorithm and no restarts is the clear winner. $Sat4j$ takes the second place. What is also interesting to observe, is that the average amount of unit propagations of the configurations, that natively solve the DNF constraints, is now significantly lower compared to $Sat4j$.
+The Table \ref{tab:dnf153Sat} shows the performance evaluation on the $DNF_{15\_3}$ and $(CNF)DNF_{15\_3}$ benchmark sets. We used a timeout of 2 minutes. In contrast to the pure DNF benchmarks before, our solver with the DPLL algorithm and no restarts is the clear winner. $Sat4j$ takes the second place. What is also interesting to observe, is that the average amount of unit propagations of the configurations, that natively solve the DNF constraints, is now significantly lower compared to $Sat4j$.
 
 \begin{table}[!htb]
 \centering
@@ -495,7 +495,7 @@ $Sat4j$ & 802.786 & 101 & 0 & 51116.41 & 14393933.36 & 47212.17 \\
 \end{tabular}
 \end{table}
 
-The table \ref{tab:dnf153Unsat} shows the performance evaluation of the $DNF_{15\_3}U$ and $(CNF)DNF_{15\_3}U$ benchmark sets. We used a timeout of 2 minutes. Here the configuration of our solver, that uses the DPLL algorithm without restarts is the clear winner. The second place is again taken by $Sat4j$. It can be again observed, that the average amount of unit propagations is significantly lower for the configurations, that natively solve the DNF constraints, compared to $Sat4j$.
+The Table \ref{tab:dnf153Unsat} shows the performance evaluation of the $DNF_{15\_3}U$ and $(CNF)DNF_{15\_3}U$ benchmark sets. We used a timeout of 2 minutes. Here the configuration of our solver, that uses the DPLL algorithm without restarts is the clear winner. The second place is again taken by $Sat4j$. It can be again observed, that the average amount of unit propagations is significantly lower for the configurations, that natively solve the DNF constraints, compared to $Sat4j$.
 
 In conclusion we can say that our SAT solver with the DPLL algorithm and no restarts has the advantage, when solving pure DNF benchmarks, that contain DNF constraints with a large amount of small terms. While it is still observable, that $Sat4j$ has a lower average amount of branching decisions and conflicts, the average amount of unit propagations is significantly higher. This is probably because the encoding of the DNF constraints with a large amount of terms, results in a large amount of clauses. This in turn causes the amount of unit propagations to rise. Because our solver uses our Two-Watched-Termsets algorithm, it can take full advantage of the small terms, and therefore only has to watch a very small amount of literals.
 
@@ -525,7 +525,7 @@ $Sat4j$ & 633.809 & 100 & 0 & 45855.74 & 12760527.31 & 42233.01 \\
 \end{tabular}
 \end{table}
 
-The table \ref{tab:dnfClauseBenchmarkSAT} shows the results of the $D_{15\_3}C_3$ and the $(CNF)D_{15\_3}C_3$ benchmark sets. The solving process was performed with a timeout of 2 minutes per formula. Our SAT solver has the fastest solving time with about 377.423 seconds, while using the DPLL algorithm with no restarts. $Sat4j$ shows the second best performance with 633.809 seconds. All other configurations are significantly slower and both CDCL configurations weren't able to solve all formulas before the timeout. What can be observed again, is that the average amount of unit propagations is significantly higher for $Sat4j$ than our solver with the DPLL configuration and no restarts.
+The Table \ref{tab:dnfClauseBenchmarkSAT} shows the results of the $D_{15\_3}C_3$ and the $(CNF)D_{15\_3}C_3$ benchmark sets. The solving process was performed with a timeout of 2 minutes per formula. Our SAT solver has the fastest solving time with about 377.423 seconds, while using the DPLL algorithm with no restarts. $Sat4j$ shows the second best performance with 633.809 seconds. All other configurations are significantly slower and both CDCL configurations weren't able to solve all formulas before the timeout. What can be observed again, is that the average amount of unit propagations is significantly higher for $Sat4j$ than our solver with the DPLL configuration and no restarts.
 
 \begin{table}[!htb]
 \centering
@@ -546,7 +546,7 @@ $Sat4j$ & 1386.435 & 100 & 0 & 96550.89 & 26889449.38 & 89580.13 \\
 \end{tabular}
 \end{table}
 
-The table \ref{tab:dnfClauseBenchmarkUNSAT} shows the results of the $D_{15\_3}C_3U$ and the $(CNF)D_{15\_3}C_3U$ benchmark sets. All in all the behavior is similar to the satisfiable benchmark sets. The DPLL configuration with no restarts is still the best performing solver, with $Sat4j$ taking the second place. The unsatisfiable benchmarks seem to be significantly harder to solve, because the solving time is higher across the board. The CDCL configuration weren't able to solve any formula in under two minutes, and even the DPLL configuration with restarts was only able to solve 5.
+The Table \ref{tab:dnfClauseBenchmarkUNSAT} shows the results of the $D_{15\_3}C_3U$ and the $(CNF)D_{15\_3}C_3U$ benchmark sets. All in all the behavior is similar to the satisfiable benchmark sets. The DPLL configuration with no restarts is still the best performing solver, with $Sat4j$ taking the second place. The unsatisfiable benchmarks seem to be significantly harder to solve, because the solving time is higher across the board. The CDCL configuration weren't able to solve any formula in under two minutes, and even the DPLL configuration with restarts was only able to solve 5.
 
 In conclusion we can see that our SAT solver was able to outperform $Sat4j$ with this particular combination of clauses and DNF constraints. The DNF constraints are probably the cause of this, because we chose a combination of clauses and DNF constraints, where the DNF constraints have a large amount of small terms, like already explained in section \ref{sec:dnf153}.
 
@@ -571,7 +571,7 @@ $Satlib_{CNF}$ & 15 & 1864,93 & 0,00 & 0.00 & 0.00 & 5984,73 & 2,65 & 0,00 & 0.0
 \end{tabular}
 \end{table}
 
-The table \ref{tab:satlib} shows the composition of the $Satlib$ and the $Satlib_{CNF}$ benchmark sets. Because these benchmark sets weren't created by encoding DNF and AMO constraints as a CNF, but instead extracting DNF constraints from clauses, the variable count in all formulas stays the same. In each formula we extracted 80 DNF prime implicants. The performance evaluation on these benchmarks is interesting, because there is no need for an encoding. The DNF prime implicants replace the clauses and the amount of variables stay the same. This allows us to evaluate on how the encoding might impact the performance of pure CNF solvers like $Sat4j$.
+The Table \ref{tab:satlib} shows the composition of the $Satlib$ and the $Satlib_{CNF}$ benchmark sets. Because these benchmark sets weren't created by encoding DNF and AMO constraints as a CNF, but instead extracting DNF constraints from clauses, the variable count in all formulas stays the same. In each formula we extracted 80 DNF prime implicants. The performance evaluation on these benchmarks is interesting, because there is no need for an encoding. The DNF prime implicants replace the clauses and the amount of variables stay the same. This allows us to evaluate on how the encoding might impact the performance of pure CNF solvers like $Sat4j$.
 
 
 
@@ -597,7 +597,7 @@ $Sat4j$ & 13.402 & 15 & 0 & 13256.73 & 590031.33 & 8784.07 \\
 \end{tabular}
 \end{table}
 
-The table \ref{tab:satlibSat} shows the performance evaluation of the $Satlib$ and $Satlib_{CNF}$ benchmark sets. $Sat4j$ shows the best performance and our CDCL solver configuration, that solves the pure CNF benchmark takes the second place. Only $Sat4j$ was able to solve the whole benchmark set without timeouts. The $CDCL_{R\_F\_CNF}$ has three timeouts. What is also interesting is that the DPLL configuration of our solver now performs worse compared to the CDCL configurations. The opposite was true for the randomized benchmarks. One possible explanation for this, is that the prime implicant DNF constraints have some structural advantages, that are useful in the solving process compared to completely randomized DNF constraints.
+The Table \ref{tab:satlibSat} shows the performance evaluation of the $Satlib$ and $Satlib_{CNF}$ benchmark sets. $Sat4j$ shows the best performance and our CDCL solver configuration, that solves the pure CNF benchmark takes the second place. Only $Sat4j$ was able to solve the whole benchmark set without timeouts. The $CDCL_{R\_F\_CNF}$ has three timeouts. What is also interesting is that the DPLL configuration of our solver now performs worse compared to the CDCL configurations. The opposite was true for the randomized benchmarks. One possible explanation for this, is that the prime implicant DNF constraints have some structural advantages, that are useful in the solving process compared to completely randomized DNF constraints.
 
 \section{Sudoku}
 
@@ -618,7 +618,7 @@ $Sudoku_{CNF}$ & 14 & 690062.29 & 0.00 & 0.00 & 0.00 & 1645673.21 & 2.08 & 0.00 
 \end{tabular}
 \end{table}
 
-The table \ref{tab:sudoku} shows the composition of the $Sudoku$ and $Sudoku_{CNF}$ benchmark sets. Each benchmark set has 14 formulas and there are two formulas for each size of the sudoku board. So the benchmarks were created from sudoku games of the size 3 to 9. Because the encoding of AMO constraints needs a large amount of clauses, the CNF encoded benchmark set has a way higher average amount of variables and clauses.
+The Table \ref{tab:sudoku} shows the composition of the $Sudoku$ and $Sudoku_{CNF}$ benchmark sets. Each benchmark set has 14 formulas and there are two formulas for each size of the sudoku board. So the benchmarks were created from sudoku games of the size 3 to 9. Because the encoding of AMO constraints needs a large amount of clauses, the CNF encoded benchmark set has a way higher average amount of variables and clauses.
 
 \begin{table}[!htb]
 \centering
@@ -643,6 +643,6 @@ $(CNF)Sat4j$ & 503.126 & 10 & 4 & 380163.29 & 129174029.79 & 131355.00 \\
 \end{tabular}
 \end{table}
 
-The table \ref{tab:sudokuSat} shows the performance evaluation of the $Sudoku$ and $Sudoku_{CNF}$ benchmark sets. We used a timeout of 2 minutes. (CNF)$Sat4j$ and $Sat4j$ are the clear winners with the least amount of solving time and 10 formulas solved before the timeout. The $CDCL_{R\_F}$ and $CDCL_{R\_F\_CNF}$ configurations are very close in their solving time and they both solved 9 formulas before the timeout.
+The Table \ref{tab:sudokuSat} shows the performance evaluation of the $Sudoku$ and $Sudoku_{CNF}$ benchmark sets. We used a timeout of 2 minutes. (CNF)$Sat4j$ and $Sat4j$ are the clear winners with the least amount of solving time and 10 formulas solved before the timeout. The $CDCL_{R\_F}$ and $CDCL_{R\_F\_CNF}$ configurations are very close in their solving time and they both solved 9 formulas before the timeout.
 
 What is interesting, is that $Sat4j$ was able to achieve a performance improvement, when solving the sudoku problems natively, compared to the encoded variant, even though the average amount of branching decisions is signifcantly higher for the native variant. One explanation for that, is the signifcantly higher average amount of propagations, when solving the encoded sudoku problems. Even though our solver was faster, when solving the encoded sudoku problems, the native solver isn't far behind.

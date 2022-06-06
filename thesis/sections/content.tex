@@ -32,7 +32,7 @@ This formula is satisfiable with the following possible variable assignments:
 \label{ex:SatFormula}
 \end{example}
 
-The example \ref{ex:SatFormula} shows a formula, that is satisfiable with several possible sets of variable assignments.
+The Example \ref{ex:SatFormula} shows a formula, that is satisfiable with several possible sets of variable assignments.
 
 \begin{example}
 \begin{leftbar}
@@ -45,7 +45,7 @@ There exists not possible assignment that satisfies the given formula
 \label{ex:UnsatFormula}
 \end{example}
 
-The example \ref{ex:UnsatFormula} shows a formula, that can't be satisfied, no matter how the variables are assigned. This is due to the conflicting conjunction $x_1 \wedge \neg x_1$. This conjunction forces $x_1$ to both be false and true and is therefore not satisfiable.
+The Example \ref{ex:UnsatFormula} shows a formula, that can't be satisfied, no matter how the variables are assigned. This is due to the conflicting conjunction $x_1 \wedge \neg x_1$. This conjunction forces $x_1$ to both be false and true and is therefore not satisfiable.
 
 \section{The Conjunctive Normal Form (CNF)}
 
@@ -62,7 +62,7 @@ The following two formulas are equivalent:
 \label{ex:EqFormulas}
 \end{example}
 
-The example \ref{ex:EqFormulas} shows the two equivalent formulas $x_1 \implies x_2$ and $\neg x_1 \vee x_2$. Because these two formulas are equivalent, the Boolean satisfiability problem also has the same solution for both of these formulas. Even though both formulas are semantically equivalent, it doesn't necessarily mean that the solving process of the SAT problem has the same complexity.
+The Example \ref{ex:EqFormulas} shows the two equivalent formulas $x_1 \implies x_2$ and $\neg x_1 \vee x_2$. Because these two formulas are equivalent, the Boolean satisfiability problem also has the same solution for both of these formulas. Even though both formulas are semantically equivalent, it doesn't necessarily mean that the solving process of the SAT problem has the same complexity.
 
 Historically most SAT solver algorithms were designed, in order to solve formulas in their "conjunctive normal form" (CNF) \cite{biere2009handbook}. A CNF consists of a set of clauses, that are conjunctively combined using the $\vee$ operator. A clause is a set of literals which are disjunctively combined. \cite{biere2009handbook}
 
@@ -85,7 +85,7 @@ The SAT solver community uses a common file format, which is called the "DIMACS 
 \captionof{example}{Example of an input file in the DIMACS file format}
 \label{ex:DIMACS}
 \end{center}
-The example \ref{ex:DIMACS} shows a possible input file in the DIMACS format. The input starts with the comment "SAT benchmark". This comment is denoted by the letter "c". Every line that starts with a "c" has to be ignored by the SAT solver. Before the CNF can be defined, there needs to be a preamble, that is denoted by the phrase "p cnf", followed by the number of variables and clauses in the CNF. In this case the formula has three variables and three clauses. After the preamble the formula can be defined. Each line contains exactly one clause, which is escaped by the character "0". \cite{biere2009handbook}
+The Example \ref{ex:DIMACS} shows a possible input file in the DIMACS format. The input starts with the comment "SAT benchmark". This comment is denoted by the letter "c". Every line that starts with a "c" has to be ignored by the SAT solver. Before the CNF can be defined, there needs to be a preamble, that is denoted by the phrase "p cnf", followed by the number of variables and clauses in the CNF. In this case the formula has three variables and three clauses. After the preamble the formula can be defined. Each line contains exactly one clause, which is escaped by the character "0". \cite{biere2009handbook}
 
 \section{The Davis–Putnam–Logemann–Loveland (DPLL) Algorithm}
 \label{sec:dpll}
@@ -126,7 +126,7 @@ Consider the formula $x_1 \wedge \neg x_2 \wedge x_3$. The search tree then look
 \label{ex:SearchTree}
 \end{figure}
 
-The tree in example \ref{ex:SearchTree} shows all possible variable assignments for the formula $x_1 \wedge \neg x_2 \wedge x_3$. During each iteration the DPLL algorithm chooses a variable of the formula and assigns a value to it. Which variable is chosen and what value gets assigned, can differ depending on which branching heuristic is used. The time, that the algorithm needs, in order to come to a conclusion, can vary greatly depending on which branching heuristic is used. If the formula is false after an assignment and the algorithm hasn't tried every possible assignment, then it backtracks and tries another combination. If the search space is already exhausted, then the formula is not satisfiable. In the example the algorithm would stop as soon as it finds the assignment $\{1,0,1\}$, because the formula is satisfied.
+The tree in Example \ref{ex:SearchTree} shows all possible variable assignments for the formula $x_1 \wedge \neg x_2 \wedge x_3$. During each iteration the DPLL algorithm chooses a variable of the formula and assigns a value to it. Which variable is chosen and what value gets assigned, can differ depending on which branching heuristic is used. The time, that the algorithm needs, in order to come to a conclusion, can vary greatly depending on which branching heuristic is used. If the formula is false after an assignment and the algorithm hasn't tried every possible assignment, then it backtracks and tries another combination. If the search space is already exhausted, then the formula is not satisfiable. In the example the algorithm would stop as soon as it finds the assignment $\{1,0,1\}$, because the formula is satisfied.
 
 \section{Unit Resolution}
 One very important aspect of the DPLL algorithm is the unit resolution step. For this step it is important to understand what the term "unit literal" means in the context of a solving algorithm. A unit literal is a literal, that has to be true, in order to satisfy the formula. Such a unit literal can either occur, because the formula contains a clause with a single literal, or if the formula contains a clause with a single non false literal under the current partial assignment. The DPLL algorithm uses these unit literals to instantly give the variables an assignment. \cite{biere2009handbook}
@@ -139,7 +139,7 @@ Consider the clause $x_1 \vee \neg x_2 \vee x_3$ and the partial variable assign
 \label{ex:Unitliteral}
 \end{example}
 
-The example \ref{ex:Unitliteral} shows a situation, where a clause contains a unit literal as a result of the partial assignment of the DPLL algorithm. Because $\neg x_2$ is a unit literal the DPLL algorithm can instantly set the variable $x_2$ to false, which reduces the search space.
+The Example \ref{ex:Unitliteral} shows a situation, where a clause contains a unit literal as a result of the partial assignment of the DPLL algorithm. Because $\neg x_2$ is a unit literal the DPLL algorithm can instantly set the variable $x_2$ to false, which reduces the search space.
 
 \section{Resolvent}
 In order to understand how the DPLL algorithm evolved into the more advanced CDCL algorithm, it is important to know what the "resolvent" of two clauses is. The specific rule, that is used in todays modern SAT solvers was introduced in the paper "A machine-oriented logic based on the resolution principle" \cite{robinson1965machine} by Robinson.
@@ -155,7 +155,7 @@ Let A and B be two clauses of a Boolean formula and $x$ a variable. The literal 
 \label{def:Resolution}
 \end{definition}
 
-The definition \ref{def:Resolution} shows, how the resolvent of two clauses is defined. An important aspect of the resolvent is, that it is always implied by the clauses, that are resolved by it \cite{biere2009handbook}. As already explained, a boolean formula in its CNF form can only be true, if every clause is true. In a satisfying assignment the variable $x$ is either true or false. If x is false, then $(A - x)$ has to be true, in order for A to be true. If x is true, then $(B - \neg x)$ has to be true, in order for B to be true. Therefore $(A - x) \cup (B - \neg x)$ is implied.
+The Definition \ref{def:Resolution} shows, how the resolvent of two clauses is defined. An important aspect of the resolvent is, that it is always implied by the clauses, that are resolved by it \cite{biere2009handbook}. As already explained, a boolean formula in its CNF form can only be true, if every clause is true. In a satisfying assignment the variable $x$ is either true or false. If x is false, then $(A - x)$ has to be true, in order for A to be true. If x is true, then $(B - \neg x)$ has to be true, in order for B to be true. Therefore $(A - x) \cup (B - \neg x)$ is implied.
 
 \begin{leftbar}
 Consider the two clauses $x_1 \vee x_2 \vee x_3$ and $x_4 \vee x_5 \vee \neg x_3$. Then the resolvent of both clauses is:
@@ -346,7 +346,7 @@ Given a partial assignment of variables, the LBD score of a constraint is the nu
 \label{def:LBD}
 \end{definition}
 
-The definition \ref{def:LBD} is a direct translation of the clause LBD score to a general constraint. It is hard to predict, if these general LBD scores also have a significant performance advantage over other database reduction schemes.
+The Definition \ref{def:LBD} is a direct translation of the clause LBD score to a general constraint. It is hard to predict, if these general LBD scores also have a significant performance advantage over other database reduction schemes.
 
 \subsection{Restarts}
 
@@ -374,7 +374,7 @@ AMO(x_1, ..., x_n)= \{\neg x_i \vee \neg x_j \; | \; \forall i, j \; i < j\}
 \label{def:AMOEncodingNaive}
 \end{definition}
 
-The definition \ref{def:AMOEncodingNaive} shows the naïve CNF encoding of an AMO constraint. 
+The Definition \ref{def:AMOEncodingNaive} shows the naïve CNF encoding of an AMO constraint. 
 
 It uses n * (n-1) / 2 clauses and can therefore grow very large. There are also other encodings like the sequential AMO encoding, which uses 3n – 4 clauses and n – 1 auxiliary variables. Another encoding with fewer auxiliary variables is the logarithmic bitwise encoding which requires only n log n clauses and n auxiliary variables. 
 \cite{chen2010new} 
@@ -419,7 +419,7 @@ d = 1, f = 1
 \label{ex:FirstAMOAMO}
 \end{example}
 
-The example \ref{ex:FirstAMOAMO} shows two AMO constraints that currently have a conflict. Because the literals $\{d,f\}$ are currently true, it forces a unit propagation in both constraints. Because of these unit propagations the literals $c$ and $\neg c$ both have to be true at the same time, which causes a conflict.
+The Example \ref{ex:FirstAMOAMO} shows two AMO constraints that currently have a conflict. Because the literals $\{d,f\}$ are currently true, it forces a unit propagation in both constraints. Because of these unit propagations the literals $c$ and $\neg c$ both have to be true at the same time, which causes a conflict.
 
 This type of conflict occurs between AMO constraints, that are complementary on a single literal. It can be resolved by using the rule of the following lemma:
 
@@ -438,7 +438,7 @@ If a conflict occurs between these constraints, then it can be resolved by learn
 We first have to establish, that every variable will always have an assignment at the end of the solving process. This also means, that the variable $x_a$ will have an assignment. Because the AMO constraints are complementary on this variable, this means that at least one of them will have a true literal. This forces a unit propagation of all other literals in this AMO constraints. So therefore either $\{y_1,...,y_k\}$ or $\{z_1,...,z_m\}$ have to all be false, which can be written as $(\neg y_1 \wedge ... \wedge \neg y_k) \vee (\neg z_1 \wedge ... \wedge \neg z_m)$. If any literal other than $x_a$ or $\neg x_a$ turns true, then this constraint forces all other literals of one of the AMO constraints to be false. This AMO constraint then can't have two true literals anymore. This resolves the conflict. This expression can then be transformed into the clauses from the rule above.
 \end{proof}
 
-Now by applying the lemma \ref{le:oneComplementary} to the example \ref{ex:FirstAMOAMO}, the conflict can be resolved the following way:
+Now by applying the Lemma \ref{le:oneComplementary} to the Example \ref{ex:FirstAMOAMO}, the conflict can be resolved the following way:
 \begin{displaymath}
 AMO_1(a,b,c,d)
 \end{displaymath}
@@ -497,7 +497,7 @@ b = 1
 \caption{Example of a conflict between AMO constraints with two complementary literals}
 \label{ex:secondAMOAMO}
 \end{example}
-The example \ref{ex:secondAMOAMO} shows a conflict between AMO constraints with two complementary literals. Because the literal $b$ is true, $AMO_1$ forces $\{a,c,d\}$ to be false. Now $AMO_2$ has the literals $\{\neg c,\neg d\}$, that are true and is therefore not satisfied. To resolve this conflict, the following lemma can be used:
+The Example \ref{ex:secondAMOAMO} shows a conflict between AMO constraints with two complementary literals. Because the literal $b$ is true, $AMO_1$ forces $\{a,c,d\}$ to be false. Now $AMO_2$ has the literals $\{\neg c,\neg d\}$, that are true and is therefore not satisfied. To resolve this conflict, the following lemma can be used:
 
 \begin{lemma}
 \begin{leftbar}
@@ -514,7 +514,7 @@ If a conflict occurs between these constraints, then it can be resolved by learn
 In order to proof this lemma, consider the situation, that any literal other than \newline $\{x_a, x_b, \neg x_a, \neg x_b\}$ turns true. Because of the unit propagation process of AMO constraints, either $\{x_a, x_b\}$ or $\{\neg x_a, \neg x_b\}$ would turn false in this situation. This would result in their complementary literals being true. Therefore one of the AMO constraints would contain at least two true literals, which results in them not being satisfied. So what can be concluded from that, is that all literals except for the set $\{x_a, x_b, \neg x_a, \neg x_b\}$ need to be false. This can be achieved by learning the unit clauses $\{\neg x \; | \; x \in \{AMO_1,AMO_2\}, x \notin \{x_a,x_b, \neg x_a, \neg x_b\}\}$.
 \end{proof}
 
-By using lemma \ref{le:twoComplementary} on the example \ref{ex:secondAMOAMO}, the conflict can be resolved by learning the unit literals $\{\neg a, \neg b, \neg e, \neg f, g\}$.
+By using Lemma \ref{le:twoComplementary} on the Example \ref{ex:secondAMOAMO}, the conflict can be resolved by learning the unit literals $\{\neg a, \neg b, \neg e, \neg f, g\}$.
 
 \newpage
 \subsubsection{Third AMO - AMO Conflict}
@@ -534,7 +534,7 @@ AMO_2(\neg a, \neg b, \neg c, e)
 \label{ex:threeComplementary}
 \end{example}
 
-The example \ref{ex:threeComplementary} shows two AMO constraints, that are complementary on three literals. There is no possible assignment, that satisfies both constraints.
+The Example \ref{ex:threeComplementary} shows two AMO constraints, that are complementary on three literals. There is no possible assignment, that satisfies both constraints.
 
 \begin{lemma}
 \begin{leftbar}
@@ -543,7 +543,7 @@ Consider the AMO constraints $AMO_1$ and $AMO_2$. If the AMO constraints are com
 \end{lemma}
 
 \begin{proof}
-If there are at least three literals in $AMO_1$, that are also in their negated form in $AMO_2$, then there is no possible assignment, that satisfies both constraints. As already proven by lemma \ref{le:twoComplementary}, if there are two literals $x_a$ and $x_b$ in $AMO_1$, that are also in their negated form in $AMO_2$, then all other literals in $AMO_1$ and $AMO_2$ have to be false. Now consider the situation where there is an extra literal $x_c$ in $AMO_1$ and $\neg x_c$ in $AMO_2$. Because either $x_a$ or $x_b$ are already true, $x_c$ needs to be false. This in turn causes $\neg x_c$ to be true. $AMO_2$ now has two true literals and can't be satisfied. Therefore the whole formula can be declared unsatisfiable.
+If there are at least three literals in $AMO_1$, that are also in their negated form in $AMO_2$, then there is no possible assignment, that satisfies both constraints. As already proven by Lemma \ref{le:twoComplementary}, if there are two literals $x_a$ and $x_b$ in $AMO_1$, that are also in their negated form in $AMO_2$, then all other literals in $AMO_1$ and $AMO_2$ have to be false. Now consider the situation where there is an extra literal $x_c$ in $AMO_1$ and $\neg x_c$ in $AMO_2$. Because either $x_a$ or $x_b$ are already true, $x_c$ needs to be false. This in turn causes $\neg x_c$ to be true. $AMO_2$ now has two true literals and can't be satisfied. Therefore the whole formula can be declared unsatisfiable.
 \end{proof}
 
 \subsection{AMO - Clause Conflict}
@@ -566,7 +566,7 @@ a = 0, b = 0, e = 1
 \label{ex:amoClauseConflict}
 \end{example}
 
-The example \ref{ex:amoClauseConflict} shows a conflict between an AMO constraint and a clause. In this example the literals $\{a,b\}$ are already false, which forces a unit propagation of the literal $c$. Because the literal $e$ is already true, this causes a conflict with the AMO constraint. To resolve this conflict, the following lemma can be used:
+The Example \ref{ex:amoClauseConflict} shows a conflict between an AMO constraint and a clause. In this example the literals $\{a,b\}$ are already false, which forces a unit propagation of the literal $c$. Because the literal $e$ is already true, this causes a conflict with the AMO constraint. To resolve this conflict, the following lemma can be used:
 
 \begin{lemma}
 \begin{leftbar}
@@ -584,7 +584,7 @@ This conflict can then be resolved by learning the following constraint
 In order for a conflict between a clause and an AMO constraint to occur, there must be a literal $x$, that is shared by both. A conflict happens, when $x$ needs to be true, because the set of literals $\{y_1,...,y_m\}$ is currently false and at the same time there exists a literal $z_i$ in the AMO constraint, that is currently true, which forces $x$ to be false. One possibility to resolve this conflict, is that one of the literals in $\{y_1,...,y_m\}$ turns true, which means that $x$ doesn't have to be true anymore. The other possibility is, that all the literals in $\{z_1,...,z_k\}$ turn false, so that it is possible for $x$ to turn true. This can be expressed as $\bigvee_{i=1}^{n}y_i \vee (\bigwedge_{a=1}^{k}\neg z_a)$. If this rule is then transformed into clauses, the solver learns $\bigwedge_{a=1}^{k}((\bigvee_{i=1}^{n}y_i)\vee \neg z_a)$.
 \end{proof}
 
-By applying the lemma \ref{le:amoClauseConflict} to the example \ref{ex:amoClauseConflict} the solver learns the following clauses:
+By applying the Lemma \ref{le:amoClauseConflict} to the Example \ref{ex:amoClauseConflict} the solver learns the following clauses:
 
 \begin{leftbar}
 \begin{displaymath}
@@ -659,7 +659,7 @@ DNF ((a,b,c),(a,c,d),(a,b,d),(b,c,d,x))
 \label{ex:NotPropagationComplete}
 \end{figure}
 
-The example \ref{ex:NotPropagationComplete} shows a situation where such an algorithm misses a unit propagation. In the first DNF constraint there are three terms, that are all pairwise intersecting. If the algorithm only watches two of these terms, then it is possible to construct a partial assignment, where a unit propagation is missed. For this consider the situation, that $\{(a,b),(a,c)\}$ are watched. If $x$ turns false, then the DNF constraint isn't visited. The algorithm now misses the needed unit propagation of $a$. If $a$ now turns false, then the DNF constraint isn't satisfied. In this situation the algorithm would have to watch all three of the terms.
+The Example \ref{ex:NotPropagationComplete} shows a situation where such an algorithm misses a unit propagation. In the first DNF constraint there are three terms, that are all pairwise intersecting. If the algorithm only watches two of these terms, then it is possible to construct a partial assignment, where a unit propagation is missed. For this consider the situation, that $\{(a,b),(a,c)\}$ are watched. If $x$ turns false, then the DNF constraint isn't visited. The algorithm now misses the needed unit propagation of $a$. If $a$ now turns false, then the DNF constraint isn't satisfied. In this situation the algorithm would have to watch all three of the terms.
 In a similar manner, it is possible to construct a partial assignment, that leads to a missed unit propagation in the second DNF constraint. In this example the algorithm would have to watch four terms, in order to not make a mistake. This can be extended for a variable amount of terms, so in order to only watch a subset of terms in every DNF constraint, the algorithm has to calculate how many terms it needs to watch to still be propagation complete. 
 
 A simple solution to this problem, is to just watch all terms in every DNF constraint.
@@ -705,7 +705,7 @@ c = 0, f = 0
 \caption{Example of a conflict between two DNF constraints}
 \label{ex:DNFDNFConflict}
 \end{example}
-The example \ref{ex:DNFDNFConflict} shows a conflict between two DNF constraints. Because the literals $\{c,f\}$ are already false, the literals $b$ and $\neg b$ need to both be true, in order to satisfy both constraints, which causes a conflict.
+The Example \ref{ex:DNFDNFConflict} shows a conflict between two DNF constraints. Because the literals $\{c,f\}$ are already false, the literals $b$ and $\neg b$ need to both be true, in order to satisfy both constraints, which causes a conflict.
 
 In order to resolve this conflict, the following rule can be applied:
 
@@ -723,7 +723,7 @@ DNF_1 / x \vee DNF_2 / \neg x
 The two DNF constraints are complementary on the variable $x$. If a term in $DNF_1$, that contains the literal $x$ is satisfied, then every term in $DNF_2$, that contains the literal $\neg x$ turns false. The same principle is true when the situation is reversed and a term in $DNF_2$ with the literal $\neg x$ is satisfied. That means, that in order for both constraints to be satisfied, either $DNF_1/x$ or $DNF_2/\neg x$ needs to be true. Therefore the conflict can be resolved by learning the constraints $DNF_1 / x \vee DNF_2 / \neg x$.
 \end{proof}
 
-By applying the lemma \ref{le:DNFDNFConflict} to the example \ref{ex:DNFDNFConflict}, the conflict can be resolved by learning the following constraint:
+By applying the Lemma \ref{le:DNFDNFConflict} to the Example \ref{ex:DNFDNFConflict}, the conflict can be resolved by learning the following constraint:
 \begin{leftbar}
 \begin{displaymath}
  DNF ((c,d),(f,g))
@@ -733,7 +733,7 @@ By applying the lemma \ref{le:DNFDNFConflict} to the example \ref{ex:DNFDNFConfl
 \newpage
 \subsubsection{Alternative DNF-DNF Conflict Resolution}
 
-When the solver uses the lemma \ref{le:DNFDNFConflict}, it only has to learn a single DNF constraints, in order to resolve a DNF-DNF conflict. The next example shows, that even learning a single DNF constraint can be an unnecessary burden for the solver.
+When the solver uses the Lemma \ref{le:DNFDNFConflict}, it only has to learn a single DNF constraints, in order to resolve a DNF-DNF conflict. The next example shows, that even learning a single DNF constraint can be an unnecessary burden for the solver.
 
 \begin{example}
 \begin{leftbar}
@@ -755,7 +755,7 @@ A conflict occurs between these two constraints because $d$ and $f$ turn false. 
 \label{ex:DNFDNFConflictResolution}
 \end{example}
 
-The example \ref{ex:DNFDNFConflictResolution} shows a simple DNF-DNF conflict, that can be resolved by the lemma \ref{le:DNFDNFConflict}, that we defined. Now consider the following conversion of the learned DNF constraint as a CNF
+The Example \ref{ex:DNFDNFConflictResolution} shows a simple DNF-DNF conflict, that can be resolved by the Lemma \ref{le:DNFDNFConflict}, that we defined. Now consider the following conversion of the learned DNF constraint as a CNF
 
 \begin{leftbar}
 \begin{displaymath}
@@ -799,7 +799,7 @@ c = 0, d = 0
 \label{ex:DNFClauseConflict}
 \end{example}
 
-The example \ref{ex:DNFClauseConflict} shows a conflict between a DNF constraint and a clause. Because the literals $\{c,d\}$ are already false, the literal $e$ and $\neg e$ need to be true at the same time, which causes a conflict. This conflict can be resolved by applying the following lemma:
+The Example \ref{ex:DNFClauseConflict} shows a conflict between a DNF constraint and a clause. Because the literals $\{c,d\}$ are already false, the literal $e$ and $\neg e$ need to be true at the same time, which causes a conflict. This conflict can be resolved by applying the following lemma:
 
 
 
@@ -814,10 +814,10 @@ DNF / x \vee Clause / \neg x
 \end{lemma}
 
 \begin{proof}
-The proof for this lemma is simple, because a clause is just a special case of a DNF constraints. A clause is a disjunction of literals, which can be written as a DNF constraint, where each term has a single literal. This also means, that the proof of lemma \ref{le:DNFDNFConflict} is also true for lemma \ref{le:DNFClauseConflict}.
+The proof for this lemma is simple, because a clause is just a special case of a DNF constraints. A clause is a disjunction of literals, which can be written as a DNF constraint, where each term has a single literal. This also means, that the proof of Lemma \ref{le:DNFDNFConflict} is also true for Lemma \ref{le:DNFClauseConflict}.
 \end{proof}
 
-By applying the lemma \ref{le:DNFClauseConflict} to the example \ref{ex:DNFClauseConflict}, the conflict can be resolved by learning the following constraint:
+By applying the Lemma \ref{le:DNFClauseConflict} to the Example \ref{ex:DNFClauseConflict}, the conflict can be resolved by learning the following constraint:
 
 \begin{leftbar}
 \begin{displaymath}
@@ -841,7 +841,7 @@ y_1 \vee ... \vee y_n \vee z_1 \vee ... \vee z_m
 
 
 \begin{proof}
-Because the clause is just a special case of a DNF constraint, the same proof as for lemma \ref{le:DNFDNFConflictAlt} is also valid here for the lemma \ref{le:DNFClauseConflictAlt}.
+Because the clause is just a special case of a DNF constraint, the same proof as for Lemma \ref{le:DNFDNFConflictAlt} is also valid here for the Lemma \ref{le:DNFClauseConflictAlt}.
 \end{proof}
 
 
@@ -867,7 +867,7 @@ a = 1, d = 0, e = 0
 \end{example}
 
 
-The example \ref{ex:AMODNFConflict} shows a conflict between an AMO constraint and a DNF constraint. Because the literal $a$ is true, the AMO constraint forces a unit propagation of $\neg b$ and $\neg c$. But because the literals $\{d,e\}$ are already false, $b$ and $c$ need to be true, in order to satisfy the DNF constraint. This causes a conflict. It can be resolved by applying the following lemma:
+The Example \ref{ex:AMODNFConflict} shows a conflict between an AMO constraint and a DNF constraint. Because the literal $a$ is true, the AMO constraint forces a unit propagation of $\neg b$ and $\neg c$. But because the literals $\{d,e\}$ are already false, $b$ and $c$ need to be true, in order to satisfy the DNF constraint. This causes a conflict. It can be resolved by applying the following lemma:
 
 
 \begin{lemma}
@@ -942,7 +942,7 @@ Each DNF constraint ends with two "0" characters. The last "0" character is used
 \label{ex:RCNF}
 \end{center}
 
-The example \ref{ex:RCNF} shows an input file in the defined RCNF format. The first line describes how many variables and constraints the input formula consists of. In this example there are ten variables and 3 constraints. The number of constraints is the sum of all clauses, DNF constraints and AMO constraints.
+The Example \ref{ex:RCNF} shows an input file in the defined RCNF format. The first line describes how many variables and constraints the input formula consists of. In this example there are ten variables and 3 constraints. The number of constraints is the sum of all clauses, DNF constraints and AMO constraints.
 
 \section{The Constraint Implementation}
 
