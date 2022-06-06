@@ -1,0 +1,162 @@
+\begin{figure}[!htb]
+\centering
+  \begin{tikzpicture}[>=latex, scale=0.8]
+\centering
+\begin{axis}[
+  cycle list name=color list,
+  axis x line=center,
+  axis y line=center,
+  width={\linewidth},
+  xtick={0,0.1,...,0.55},
+  ytick={0.1,0.2,...,1},
+  xlabel={Normalized solving speed},
+  ylabel={Percentage of satisfiable constraints},
+  every axis x label/.style=
+            {at={(ticklabel cs: 0.5,0)}, anchor=north},
+  every axis y label/.style=
+            {at={(ticklabel cs: 0.5,0)}, anchor=south},
+  ylabel style={rotate=90},
+  label style={font=\large},
+  xmin= 0,
+  xmax=0.6,
+  ymin=0,
+  ymax=1.05]
+
+  \addplot+ [red, no marks] table {
+0.04 1.0
+0.08 0.592
+0.12 0.205
+0.16 0.034
+0.2 0.005
+0.24 0.0
+};
+
+\addplot+ [blue, no marks] table {
+0.04 1.0
+0.08 0.969
+0.12 0.753
+0.16 0.378
+0.2 0.121
+0.24 0.015
+0.28 0.005
+0.32 0.0
+};
+
+\addplot+ [green, no marks] table {
+0.04 1.0
+0.08 1.0
+0.12 0.971
+0.16 0.822
+0.2 0.531
+0.24 0.188
+0.28 0.053
+0.32 0.013
+0.36 0.001
+0.4 0.0
+};
+
+\addplot+ [black, no marks] table {
+0.04 1.0
+0.08 1.0
+0.12 1.0
+0.16 0.989
+0.2 0.861
+0.24 0.581
+0.28 0.225
+0.32 0.067
+0.36 0.017
+0.4 0.001
+0.44 0.0
+};
+
+\addplot+ [brown, no marks] table {
+0.04 1.0
+0.08 1.0
+0.12 1.0
+0.16 1.0
+0.2 0.989
+0.24 0.894
+0.28 0.592
+0.32 0.262
+0.36 0.084
+0.4 0.025
+0.44 0.004
+0.48 0.001
+0.52 0.0
+};
+
+\addplot+ [red, dashed, no marks] table {
+0.04 0.11145510835913312
+0.08 0.043343653250773995
+0.12 0.12693498452012383
+0.16 0.05263157894736842
+0.2 0.07430340557275542
+0.24 0.030959752321981424
+};
+
+\addplot+ [blue, dashed, no marks] table {
+0.04 0.09287925696594428
+0.08 0.1393188854489164
+0.12 0.7151702786377709
+0.16 0.4613003095975232
+0.2 0.32507739938080493
+0.24 0.23529411764705882
+0.28 0.16408668730650156
+0.32 0.12693498452012383
+};
+
+\addplot+ [green, dashed, no marks] table {
+0.04 0.21981424148606812
+0.08 0.42724458204334365
+0.12 0.30959752321981426
+0.16 0.5789473684210527
+0.2 0.5510835913312694
+0.24 0.4179566563467492
+0.28 0.3281733746130031
+0.32 0.32507739938080493
+0.36 0.3622291021671827
+0.4 0.4086687306501548
+};
+
+\addplot+ [black, dashed, no marks] table {
+0.04 0.034055727554179564
+0.08 0.11764705882352941
+0.12 0.1021671826625387
+0.16 0.17956656346749225
+0.2 0.5789473684210527
+0.24 0.544891640866873
+0.28 0.6873065015479877
+0.32 0.5510835913312694
+0.36 0.43962848297213625
+0.4 0.5170278637770898
+0.44 0.3653250773993808
+};
+
+\addplot+ [brown, dashed, no marks] table {
+0.04 0.02786377708978328
+0.08 0.04643962848297214
+0.12 0.07430340557275542
+0.16 0.11145510835913312
+0.2 0.23839009287925697
+0.24 0.5572755417956656
+0.28 0.8823529411764706
+0.32 0.9938080495356038
+0.36 1.0
+0.4 0.9287925696594427
+0.44 0.9287925696594427
+0.48 0.826625386996904
+0.52 0.7832817337461301
+};
+
+\addlegendentry{1 Term}
+\addlegendentry{2 Terms}
+\addlegendentry{3 Terms}
+\addlegendentry{4 Terms}
+\addlegendentry{5 Terms}
+
+\end{axis}
+
+\end{tikzpicture}
+\caption{Solving speed of 1000 instances with DNF constraints of constant term length 5 and 25 variables}
+\label{fig:DNF}
+\end{figure}

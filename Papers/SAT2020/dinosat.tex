@@ -75,7 +75,9 @@
 
 %TODO mandatory: add short abstract of the document
 \begin{abstract}
-We introduce a new SAT solver Dinosat, whose input is a conjunction of clauses, at-most-one constraints and disjunctive normal form (DNF) formulas. The native support of DNF formulas is motivated by the application domain of SAT based product configuration. In the paper we show how to integrate DNF reasoning into a CDCL SAT solver. Our preliminary experimental evaluation shows that our approach can outperform a standard SAT solver when all constraints are translated to CNF.
+In this paper we report our preliminary results with a new kind of SAT solver called Dinosat.
+Dinosat's input is a conjunction of clauses, at-most-one constraints and disjunctive normal form (DNF) formulas. The native support for DNF formulas is motivated by the application domain of SAT based product configuration. A DNF formula can also be viewed as a generalization of a clause, i.e., a clause (disjunction of literals) is special case of a DNF formula, where each term (conjunction of literals) has exactly one literal. Similarly, we can generalize the classical resolution rule and use it to resolve two DNF formulas. Based on that, the CDCL algorithm can be modified to work with DNF formulas instead of just clauses. Using randomly generated formulas (with DNFs) we experimentally show, that in certain relevant scenarios, it is more efficient to solve these formulas with Dinosat than translate them to CNF and use a state-of-the-art SAT solver. Another contribution of this paper is identifying the phase transition points for such formulas.
+
 \end{abstract}
 
 \section{Introduction}
