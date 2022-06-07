@@ -905,7 +905,7 @@ The conflict is on the literal $x$. The conflict can only occur, if there is ano
 \chapter{Implementation}
 \label{ch:Implementation}
 
-This chapter discusses the implementation details of our novel SAT Solver architecture. As already explained in chapter \ref{ch:Analysis}, the goal of this thesis is the implementation of a novel SAT Solver architecture, that is both backwards compatible with current SAT solver implementations by using the DIMACS file format, while also being capable of processing new constraints, that aren't represented in the standard CNF format. In order to make this possible, we first had to define a new format, that can represent the additional constraints. The complete architecture was programmed in Java.
+This chapter discusses the implementation details of our novel SAT Solver architecture. As already explained in Chapter \ref{ch:Analysis}, the goal of this thesis is the implementation of a novel SAT Solver architecture, that is both backwards compatible with current SAT solver implementations by using the DIMACS file format, while also being capable of processing new constraints, that aren't represented in the standard CNF format. In order to make this possible, we first had to define a new format, that can represent the additional constraints. The complete architecture was programmed in Java.
 
 \section{Rich CNF Format (RCNF)}
 
@@ -946,7 +946,7 @@ The Example \ref{ex:RCNF} shows an input file in the defined RCNF format. The fi
 
 \section{The Constraint Implementation}
 
-As already described in chapter \ref{ch:Analysis}, an important part of this thesis is the conflict resolution between the different types of constraints. The current modern SAT solvers just need to be able to resolve conflicts between clauses. This allows for a very efficient implementation with arrays, because there is no need for differentiation between different constraint types. In our novel architecture the solver needs to be able to clearly differentiate, between which types of constraint a conflict occurred, in order to be able to apply the different rules.
+As already described in Chapter \ref{ch:Analysis}, an important part of this thesis is the conflict resolution between the different types of constraints. The current modern SAT solvers just need to be able to resolve conflicts between clauses. This allows for a very efficient implementation with arrays, because there is no need for differentiation between different constraint types. In our novel architecture the solver needs to be able to clearly differentiate, between which types of constraint a conflict occurred, in order to be able to apply the different rules.
 
 \begin{figure}[htbp]
   \centering
@@ -959,7 +959,7 @@ Figure \ref{fig:constraints} shows the class diagram of the constraints, that ar
 
 \subsection{The "DisjunctiveConstraint" Class}
 
-This class contains the implementation of the clause constraints, as the name already suggests. Internally every literal of the clause is kept inside a primitive integer array. Simple arrays have the advantage of minimal memory consumption and very fast access times. The propagate() method makes use of the Two-Watched-Literals algorithm, that was already described in chapter \ref{ch:Preliminaries}. That means, that there are always two non false literals watched. If any of them turn false, then another non false literal is set as a replacement. If there are no replacement literals left, then the last non false watched literal must be propagated as a unit literal.
+This class contains the implementation of the clause constraints, as the name already suggests. Internally every literal of the clause is kept inside a primitive integer array. Simple arrays have the advantage of minimal memory consumption and very fast access times. The propagate() method makes use of the Two-Watched-Literals algorithm, that was already described in Chapter \ref{ch:Preliminaries}. That means, that there are always two non false literals watched. If any of them turn false, then another non false literal is set as a replacement. If there are no replacement literals left, then the last non false watched literal must be propagated as a unit literal.
 
 \subsection{The "BinaryDisjunctiveConstraint" Class}
 
@@ -972,7 +972,7 @@ The literals of our AMO constraints are also kept in a primitive integer array, 
 
 \subsection{The "DNFConstraint" Class}
 
-This class contains the implementation of the "DNF" constraint. In contrast to the clause and AMO constraints, a DNF constraint can't be simply represented by a list of literals. Internally the class uses an array of primitive integer arrays, in order to represent the different terms. Here the minimal memory consumption and fast access speed are the reason, arrays are used. The literal propagation is far more complex in DNF constraints, than it is in clauses and AMO constraints. That is the case, because a unit propagation needs to start, if all non false terms intersect on a literal. This makes it difficult to find an algorithm, that is similar to the Two-Watched-Literals algorithm for clauses. The DNFConstraint class therefore uses the algorithm, that was already defined in chapter \ref{ch:Analysis}.
+This class contains the implementation of the "DNF" constraint. In contrast to the clause and AMO constraints, a DNF constraint can't be simply represented by a list of literals. Internally the class uses an array of primitive integer arrays, in order to represent the different terms. Here the minimal memory consumption and fast access speed are the reason, arrays are used. The literal propagation is far more complex in DNF constraints, than it is in clauses and AMO constraints. That is the case, because a unit propagation needs to start, if all non false terms intersect on a literal. This makes it difficult to find an algorithm, that is similar to the Two-Watched-Literals algorithm for clauses. The DNFConstraint class therefore uses the algorithm, that was already defined in Chapter \ref{ch:Analysis}.
 \par
 Because the intersection between terms is very important for the propagation algorithm, the class pre calculates a list for every literal, that contains all terms, that share this literal. These lists can then be efficiently used, to check for intersections.
 
@@ -1034,7 +1034,7 @@ The CDCLConflictHandler makes use of our modified version of the CDCL-algorithm.
 
 \subsection{The Conflict Handling}
 
-Each constraint type has an implementation of the "handleConflict()" method. This method always gets called on the constraint, in which the conflict occurred in. In this method the conflict constraint determines the constraint, that is the reason for this conflict. The "Formula" class keeps track of, which constraint caused the propagation of a unit literal. We call these constraints the "reason constraint" of the unit literal. The conflict constraint therefore determines the reason constraint of the conflict literal. Now depending on which type of constraints are involved in the conflict, the algorithm applies the conflict resolution rules that were determined in chapter \ref{ch:Analysis} and derive the learnable constraints. We decided to only use the alternative conflict resolution rules.
+Each constraint type has an implementation of the "handleConflict()" method. This method always gets called on the constraint, in which the conflict occurred in. In this method the conflict constraint determines the constraint, that is the reason for this conflict. The "Formula" class keeps track of, which constraint caused the propagation of a unit literal. We call these constraints the "reason constraint" of the unit literal. The conflict constraint therefore determines the reason constraint of the conflict literal. Now depending on which type of constraints are involved in the conflict, the algorithm applies the conflict resolution rules that were determined in Chapter \ref{ch:Analysis} and derive the learnable constraints. We decided to only use the alternative conflict resolution rules.
 
 \subsection{The Backtracking Process}
 

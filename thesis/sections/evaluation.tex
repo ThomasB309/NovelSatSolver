@@ -13,7 +13,7 @@
 \chapter{Evaluation}
 \label{ch:Evaluation}
 
-This chapter will focus on the performance evaluation of the novel SAT solver architecture. First we will talk about, how the different benchmarks for this evaluation were created. Then we will look at how our SAT solver performs in comparison to other modern state of the art SAT solvers.
+This chapter will focus on the performance evaluation of the novel SAT solver architecture. First we will talk about, how the different benchmarks for this evaluation were created. Then we will look at how our SAT solver performs in comparison to other modern state of the art SAT solvers. All evaluations were performed on a computer with an i9-9900K running Ubuntu 20.04.3 and using Java 17.01.
 
 \section{Benchmarks}
 
@@ -142,11 +142,11 @@ Similar to the phase transition calculation for the AMO constraints, we also con
 \input{graphs/DNF_Phase_Transition_Constant_Terms.tex}
 
 
-The Figure \ref{fig:DNFConstantTerms} shows the relation between the DNF constraint to variable ratio and the percentage of satisfiable instances, as well as the normalized solving time of 1000 instances. The dotted lines show the normalized solving time, while the continuous lines show the percentage of satisfiable instances. Here we used DNF constraints with a constant term count of 3, 50 variables and a DNF increment of 1 per iteration. We then conducted the experiment for the term sizes 2-7. For the phase transition we can see a similar behavior to what we have already seen with the AMO constraints. By adding more literals to the terms of the DNF constraints, the space of satisfiable instances gets restricted, which is the likely explanation for why the phase transition occurs later, the more literals are added to the terms. What is interesting here is, that the hardest instances of these DNF formulas also seem to occur near their phase transition point.
+The Figure \ref{fig:DNFConstantTerms} shows the relation between the DNF constraint to variable ratio and the percentage of satisfiable instances, as well as the normalized solving time of 1000 instances. The dotted lines show the normalized solving time, while the continuous lines show the percentage of satisfiable instances. Here we used DNF constraints with a constant term count of 3, 50 variables and a DNF increment of 1 per iteration. We then conducted the experiment for the term sizes 2-7. For the phase transition we can see a similar behavior to what we have already seen with the AMO constraints. By adding more literals to the terms of the DNF constraints, the space of satisfiable instances gets restricted, which is the likely explanation for why the phase transition occurs earlier, the more literals are added to the terms. What is interesting here is, that the hardest instances of these DNF formulas also seem to occur near their phase transition point.
 
-\subsection{DNF Constraints with a Constant Term Length}
+\subsection{Phase Transition of DNF Constraints with a Constant Term Length}
 
-In this next experiment we left the number of terms per DNF constraint constant, while steadily increasing the amount of literals per term, in order to see the effect that the term length has on the phase transition point.
+In this next experiment we left the term length constant.
 
 \input{graphs/DNF_Phase_Transition_Constant_Term_Length.tex}	
 
@@ -296,7 +296,7 @@ In addition to the provided industrial benchmark sets, we also used the knowledg
 
 \begin{table}[!htb]
 \centering
-\caption[Composition of the randomized benchmark sets]{Composition of the randomized benchmark sets with the number of Formulas (F), the average number of variables (V), the average number of DNF constraints (DNF), the average number of terms per DNF (TPD), average number of literals per term (LPT), the average number of clauses (C) and the average number of literals per clause (LPC)}
+\caption[Composition of the randomized benchmark sets]{Composition of the randomized benchmark sets with the number of formulas (F), the average number of variables (V), the average number of DNF constraints (DNF), the average number of terms per DNF (TPD), average number of literals per term (LPT), the average number of clauses (C) and the average number of literals per clause (LPC)}
 \label{tab:randomizedBenchmarks}
 \begin{tabular}{|c|c|c|c|c|c|c|c|c|c|}
 \hline
@@ -558,7 +558,7 @@ Because these benchmarks consist of formulas, that only contain clauses, we used
 
 \begin{table}[!htb]
 \centering
-\caption[Composition of the satlib benchmark sets]{Composition of the satlib benchmark sets with the number of Formulas (F), the average number of variables (V), the average number of DNF constraints (DNF), the average number of terms per DNF (TPD), average number of literals per term (LPT), the average number of clauses (C), the average number of literals per clause (LPC), the average number of AMO constraints (AMO) and the average number of literals per AMO constraint}
+\caption[Composition of the satlib benchmark sets]{Composition of the satlib benchmark sets with the number of formulas (F), the average number of variables (V), the average number of DNF constraints (DNF), the average number of terms per DNF (TPD), average number of literals per term (LPT), the average number of clauses (C), the average number of literals per clause (LPC), the average number of AMO constraints (AMO) and the average number of literals per AMO constraint}
 \label{tab:satlib}
 \begin{tabular}{|c|c|c|c|c|c|c|c|c|c|}
 \hline
@@ -605,7 +605,7 @@ This section contains the performance evaluation on benchmarks, that were create
 
 \begin{table}[!htb]
 \centering
-\caption[Composition of the sudoku benchmark sets]{Composition of the sudoku benchmark sets with the number of Formulas (F), the average number of variables (V), the average number of DNF constraints (DNF), the average number of terms per DNF (TPD), average number of literals per term (LPT), the average number of clauses (C), the average number of literals per clause (LPC), the average number of AMO constraints (AMO) and the average number of literals per AMO constraint}
+\caption[Composition of the sudoku benchmark sets]{Composition of the sudoku benchmark sets with the number of formulas (F), the average number of variables (V), the average number of DNF constraints (DNF), the average number of terms per DNF (TPD), average number of literals per term (LPT), the average number of clauses (C), the average number of literals per clause (LPC), the average number of AMO constraints (AMO) and the average number of literals per AMO constraint}
 \label{tab:sudoku}
 \begin{tabular}{|c|c|c|c|c|c|c|c|c|c|}
 \hline
