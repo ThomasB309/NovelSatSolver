@@ -2,10 +2,6 @@ NovelSatSolver/InputFiles/*
 /NovelSatSolver/.idea/*
 /NovelSatSolver/target/*
 
-*.cnf
-*.rnf
-*.sudoku
-*.rcnf
 *.aux
 *.glo
 *.idx
